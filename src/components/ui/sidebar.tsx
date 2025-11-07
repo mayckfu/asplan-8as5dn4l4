@@ -53,12 +53,12 @@ export const SidebarProvider: React.FC<
   })
   const [openMobile, setOpenMobile] = useState(false)
 
-  const setOpen = (value: boolean) => {
+  const setOpen = useCallback((value: boolean) => {
     setOpenState(value)
     if (typeof window !== 'undefined') {
       localStorage.setItem('sb_collapsed', JSON.stringify(!value))
     }
-  }
+  }, [])
 
   const toggleSidebar = useCallback(() => {
     if (isMobile) {
