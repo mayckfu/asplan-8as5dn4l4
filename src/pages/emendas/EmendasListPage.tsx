@@ -8,7 +8,13 @@ import {
   Save,
 } from 'lucide-react'
 import { parse, format } from 'date-fns'
-import { amendments, Amendment, getAmendmentDetails } from '@/lib/mock-data'
+import {
+  amendments,
+  Amendment,
+  getAmendmentDetails,
+  SituacaoOficial,
+  StatusInterno,
+} from '@/lib/mock-data'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -60,6 +66,46 @@ const getPendencias = (amendment: Amendment) => {
   if (amendment.total_gasto > amendment.total_repassado)
     pendencias.push('Despesas > Repasses')
   return pendencias
+}
+
+const exportToCsv = (filename: string, rows: object[]) => {
+  if (!rows || rows.length === 0) {
+    return
+  }
+  const separator = ','
+  const keys = Object.keys(rows[0])
+  const csvContent =
+    keys.join(separator) +
+    '\n' +
+    rows
+      .map((row: any) => {
+        return keys
+          .map((k) => {
+            let cell = row[k] === null || row[k] === undefined ? '' : row[k]
+            cell =
+              cell instanceof Date
+                ? cell.toLocaleString()
+                : cell.toString().replace(/"/g, '""')
+            if (cell.search(/("|,|\n)/g) >= 0) {
+              cell = `"${cell}"`
+            }
+            return cell
+          })
+          .join(separator)
+      })
+      .join('\n')
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  if (link.download !== undefined) {
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', filename)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
 }
 
 const EmendasListPage = () => {
@@ -232,12 +278,31 @@ const EmendasListPage = () => {
     setSearchParams(new URLSearchParams(presets[name]), { replace: true })
   }
 
+  const handleExport = () => {
+    const dataToExport = filteredAmendments.map((a) => ({
+      Tipo: a.tipo,
+      Autor: a.autor,
+      'Nº Emenda': a.numero_emenda,
+      'Nº Proposta': a.numero_proposta,
+      'Valor Total': a.valor_total,
+      'Situação Oficial': SituacaoOficial[a.situacao],
+      'Status Interno': StatusInterno[a.status_interno],
+      Pendências: a.pendencias.join('; '),
+    }))
+    exportToCsv('emendas.csv', dataToExport)
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Lista de Emendas</h1>
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" className="h-8 gap-1">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 gap-1"
+            onClick={handleExport}
+          >
             <FileDown className="h-3.5 w-3.5" />
             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
               Exportar CSV

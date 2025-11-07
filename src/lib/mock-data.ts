@@ -109,13 +109,6 @@ export type DetailedAmendment = Amendment & {
   pendencias: Pendencia[]
 }
 
-export const kpiData = [
-  { title: 'Total de Emendas Ativas', value: '78', icon: 'list' },
-  { title: 'Emendas em Análise', value: '12', icon: 'search' },
-  { title: 'Repasses Pendentes', value: 'R$ 1.2M', icon: 'dollar-sign' },
-  { title: 'Despesas Aprovadas', value: 'R$ 4.5M', icon: 'check-circle' },
-]
-
 export const amendments: Amendment[] = [
   {
     id: '1',
@@ -202,23 +195,34 @@ export const amendments: Amendment[] = [
     total_gasto: 750000,
     anexos_essenciais: false,
   },
-  ...Array.from({ length: 15 }, (_, i) => ({
-    id: `${i + 6}`,
-    tipo: i % 2 === 0 ? 'Individual' : 'Bancada',
-    tipo_recurso: 'CUSTEIO_MAC' as TipoRecursoEnum,
-    autor: 'Dep. Fulano de Tal',
-    numero_emenda: `202499${i}${i}`,
-    numero_proposta: `PROPOSTA${100 + i}`,
-    valor_total: 100000 + i * 5000,
-    situacao: 'PAGA' as SituacaoOficialEnum,
-    status_interno: 'CONCLUIDA' as StatusInternoEnum,
-    portaria: `PORTARIA-${100 + i}`,
-    deliberacao_cie: `CIE-${200 + i}`,
-    created_at: `2023-06-${10 + i}`,
-    total_repassado: 100000 + i * 5000,
-    total_gasto: 90000 + i * 5000,
-    anexos_essenciais: true,
-  })),
+  ...Array.from({ length: 15 }, (_, i) => {
+    const tipoRecursoKeys = Object.keys(
+      TipoRecurso,
+    ) as (keyof typeof TipoRecurso)[]
+    const situacaoKeys = Object.keys(
+      SituacaoOficial,
+    ) as (keyof typeof SituacaoOficial)[]
+    const statusKeys = Object.keys(
+      StatusInterno,
+    ) as (keyof typeof StatusInterno)[]
+    return {
+      id: `${i + 6}`,
+      tipo: i % 2 === 0 ? 'Individual' : 'Bancada',
+      tipo_recurso: tipoRecursoKeys[i % tipoRecursoKeys.length],
+      autor: ['Dep. Fulano de Tal', 'Sen. Ciclano', 'Dep. Beltrano'][i % 3],
+      numero_emenda: `202499${i}${i}`,
+      numero_proposta: `PROPOSTA${100 + i}`,
+      valor_total: 100000 + i * 15000,
+      situacao: situacaoKeys[i % situacaoKeys.length],
+      status_interno: statusKeys[i % statusKeys.length],
+      portaria: i % 2 === 0 ? `PORTARIA-${100 + i}` : null,
+      deliberacao_cie: i % 3 === 0 ? `CIE-${200 + i}` : null,
+      created_at: `2023-06-${10 + i}`,
+      total_repassado: 80000 + i * 10000,
+      total_gasto: 70000 + i * 8000,
+      anexos_essenciais: i % 2 === 0,
+    }
+  }),
 ]
 
 const getPendenciasFromAmendment = (amendment: Amendment): string[] => {
@@ -380,6 +384,43 @@ const detailedAmendmentsData: Record<
       },
     ],
   },
+  '4': {
+    descricao_completa:
+      'Compra de ambulância para o município de Pequenópolis.',
+    repasses: [
+      {
+        id: 'R4-1',
+        data: '2024-04-15',
+        valor: 100000,
+        fonte: 'Fundo Municipal de Saúde',
+      },
+    ],
+    despesas: [
+      {
+        id: 'D4-1',
+        data: '2024-04-20',
+        valor: 110000,
+        categoria: 'Veículos',
+        descricao: 'Pagamento da ambulância',
+        registrada_por: 'Admin',
+        autorizada_por: 'Carlos Lima',
+        responsavel_execucao: 'Admin',
+        unidade_destino: 'Secretaria de Saúde',
+        fornecedor_nome: 'Veículos Especiais Ltda.',
+        status_execucao: 'PAGA',
+        demanda: 'Renovação de Frota',
+      },
+    ],
+    anexos: [],
+    historico: [],
+    pendencias: [
+      {
+        id: 'P4-1',
+        descricao: 'Despesas > Repasses',
+        dispensada: false,
+      },
+    ],
+  },
 }
 
 export const getAmendmentDetails = (
@@ -405,115 +446,4 @@ export const getAmendmentDetails = (
     ...baseAmendment,
     ...details,
   }
-}
-
-// This is a copy of the old amendmentDetails to avoid breaking other pages that might use it.
-// It should be deprecated and removed in the future.
-export const amendmentDetails = {
-  id: 'EM12345',
-  title: 'Projeto de Infraestrutura Urbana',
-  officialStatus: 'Aprovado',
-  internalStatus: 'Concluído',
-  responsible: 'Ana Silva',
-  creationDate: '2023-01-15',
-  totalValue: 500000,
-  description:
-    'Melhoria da pavimentação e iluminação pública no bairro central.',
-  origin: 'Emenda Parlamentar Federal',
-  type: 'Investimento',
-  observations: 'Projeto concluído com sucesso dentro do prazo.',
-  lastUpdate: '2023-12-20',
-  transfers: [
-    {
-      id: 'REP001',
-      date: '2023-02-20',
-      value: 250000,
-      status: 'Realizado',
-      origin: 'Tesouro Nacional',
-      destination: 'Prefeitura Municipal',
-      observations: 'Primeira parcela',
-    },
-    {
-      id: 'REP002',
-      date: '2023-06-15',
-      value: 250000,
-      status: 'Realizado',
-      origin: 'Tesouro Nacional',
-      destination: 'Prefeitura Municipal',
-      observations: 'Segunda parcela',
-    },
-  ],
-  expenses: [
-    {
-      id: 'DESP01',
-      description: 'Contratação de Construtora',
-      date: '2023-03-10',
-      value: 400000,
-      status: 'Aprovada',
-      category: 'Obras',
-      provider: 'Construtora Alfa Ltda.',
-    },
-    {
-      id: 'DESP02',
-      description: 'Compra de Postes de LED',
-      date: '2023-04-05',
-      value: 85000,
-      status: 'Aprovada',
-      category: 'Materiais',
-      provider: 'Ilumina Brasil S.A.',
-    },
-  ],
-  attachments: [
-    {
-      name: 'projeto_base.pdf',
-      uploadDate: '2023-01-15',
-      uploader: 'Ana Silva',
-      type: 'pdf',
-    },
-    {
-      name: 'orcamento_detalhado.xlsx',
-      uploadDate: '2023-01-20',
-      uploader: 'Ana Silva',
-      type: 'excel',
-    },
-    {
-      name: 'nota_fiscal_01.pdf',
-      uploadDate: '2023-03-12',
-      uploader: 'Financeiro',
-      type: 'pdf',
-    },
-  ],
-  checklist: [
-    { id: 1, description: 'Aprovação do projeto base', completed: true },
-    { id: 2, description: 'Licitação da obra', completed: true },
-    { id: 3, description: 'Recebimento da primeira parcela', completed: true },
-    { id: 4, description: 'Execução da pavimentação', completed: true },
-    { id: 5, description: 'Prestação de contas final', completed: false },
-  ],
-  history: [
-    {
-      timestamp: '2023-01-15 10:00',
-      user: 'Ana Silva',
-      action: 'Emenda criada',
-      details: 'Status inicial: Rascunho',
-    },
-    {
-      timestamp: '2023-01-25 14:30',
-      user: 'Admin',
-      action: 'Status Oficial alterado',
-      details: "De 'Pendente' para 'Aprovado'",
-    },
-    {
-      timestamp: '2023-03-10 11:00',
-      user: 'Financeiro',
-      action: 'Despesa adicionada',
-      details: 'ID DESP01 - R$ 400.000,00',
-    },
-    {
-      timestamp: '2023-12-20 18:00',
-      user: 'Ana Silva',
-      action: 'Status Interno alterado',
-      details: "De 'Aguardando Repasse' para 'Concluído'",
-    },
-  ],
 }

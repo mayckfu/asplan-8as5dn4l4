@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { StatusBadge } from '@/components/StatusBadge'
 import { DetailedAmendment } from '@/lib/mock-data'
+import { Paperclip } from 'lucide-react'
 
 interface EmendaDetailHeaderProps {
   emenda: DetailedAmendment
@@ -45,6 +46,10 @@ export const EmendaDetailHeader = ({ emenda }: EmendaDetailHeaderProps) => {
             <p className="text-sm text-muted-foreground">{emenda.autor}</p>
           </div>
           <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+              <Paperclip className="h-4 w-4" />
+              {emenda.anexos.length} Anexos
+            </div>
             <div>
               <span className="text-xs font-semibold text-muted-foreground">
                 STATUS OFICIAL

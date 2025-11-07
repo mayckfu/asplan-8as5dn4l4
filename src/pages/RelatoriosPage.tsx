@@ -8,6 +8,8 @@ import {
   Pie,
   PieChart,
   Cell,
+  Legend,
+  Tooltip,
 } from 'recharts'
 import { Button } from '@/components/ui/button'
 import {
@@ -16,6 +18,7 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
+  CardFooter,
 } from '@/components/ui/card'
 import {
   ChartContainer,
@@ -36,6 +39,8 @@ import {
   amendments,
   getAmendmentDetails,
   DetailedAmendment,
+  TipoRecurso,
+  SituacaoOficial,
 } from '@/lib/mock-data'
 
 const initialFilters: ReportFiltersState = {
@@ -54,13 +59,58 @@ const initialFilters: ReportFiltersState = {
 }
 
 const COLORS = [
-  '#0088FE',
+  'hsl(var(--chart-1))',
+  'hsl(var(--chart-2))',
+  'hsl(var(--chart-3))',
+  'hsl(var(--chart-4))',
+  'hsl(var(--chart-5))',
   '#00C49F',
   '#FFBB28',
   '#FF8042',
-  '#AF19FF',
-  '#FF4560',
 ]
+
+const formatCurrency = (value: number) => `R$ ${value.toLocaleString('pt-BR')}`
+
+const exportToCsv = (filename: string, rows: object[]) => {
+  if (!rows || rows.length === 0) {
+    alert('Nenhum dado para exportar.')
+    return
+  }
+  const separator = ','
+  const keys = Object.keys(rows[0])
+  const csvContent =
+    keys.join(separator) +
+    '\n' +
+    rows
+      .map((row: any) => {
+        return keys
+          .map((k) => {
+            let cell = row[k] === null || row[k] === undefined ? '' : row[k]
+            cell =
+              cell instanceof Date
+                ? cell.toLocaleString()
+                : cell.toString().replace(/"/g, '""')
+            if (cell.search(/("|,|\n)/g) >= 0) {
+              cell = `"${cell}"`
+            }
+            return cell
+          })
+          .join(separator)
+      })
+      .join('\n')
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  if (link.download !== undefined) {
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', filename)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+}
 
 const RelatoriosPage = () => {
   const [filters, setFilters] = useState<ReportFiltersState>(initialFilters)
@@ -124,17 +174,9 @@ const RelatoriosPage = () => {
         const matchingDespesas = amendment.despesas.filter((despesa) => {
           if (
             filters.responsavel &&
-            !(
-              despesa.registrada_por
-                .toLowerCase()
-                .includes(filters.responsavel.toLowerCase()) ||
-              despesa.autorizada_por
-                ?.toLowerCase()
-                .includes(filters.responsavel.toLowerCase()) ||
-              despesa.responsavel_execucao
-                ?.toLowerCase()
-                .includes(filters.responsavel.toLowerCase())
-            )
+            !despesa.registrada_por
+              .toLowerCase()
+              .includes(filters.responsavel.toLowerCase())
           )
             return false
           if (
@@ -172,6 +214,11 @@ const RelatoriosPage = () => {
     })
   }, [filters])
 
+  const allDespesas = useMemo(
+    () => filteredData.flatMap((a) => a.despesas),
+    [filteredData],
+  )
+
   const consolidatedByAutor = useMemo(() => {
     const data = filteredData.reduce(
       (acc, item) => {
@@ -185,41 +232,92 @@ const RelatoriosPage = () => {
       .sort((a, b) => b.value - a.value)
   }, [filteredData])
 
-  const executionByUnidade = useMemo(() => {
-    const data = filteredData
-      .flatMap((a) => a.despesas)
-      .reduce(
-        (acc, item) => {
-          acc[item.unidade_destino] =
-            (acc[item.unidade_destino] || 0) + item.valor
-          return acc
-        },
-        {} as Record<string, number>,
-      )
+  const consolidatedByTipoRecurso = useMemo(() => {
+    const data = filteredData.reduce(
+      (acc, item) => {
+        const name = TipoRecurso[item.tipo_recurso]
+        acc[name] = (acc[name] || 0) + item.valor_total
+        return acc
+      },
+      {} as Record<string, number>,
+    )
+    return Object.entries(data).map(([name, value]) => ({ name, value }))
+  }, [filteredData])
+
+  const consolidatedBySituacao = useMemo(() => {
+    const data = filteredData.reduce(
+      (acc, item) => {
+        const name = SituacaoOficial[item.situacao]
+        acc[name] = (acc[name] || 0) + item.valor_total
+        return acc
+      },
+      {} as Record<string, number>,
+    )
+    return Object.entries(data).map(([name, value]) => ({ name, value }))
+  }, [filteredData])
+
+  const executionByResponsavel = useMemo(() => {
+    const data = allDespesas.reduce(
+      (acc, item) => {
+        acc[item.registrada_por] = (acc[item.registrada_por] || 0) + item.valor
+        return acc
+      },
+      {} as Record<string, number>,
+    )
     return Object.entries(data)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value)
-  }, [filteredData])
+  }, [allDespesas])
+
+  const executionByUnidade = useMemo(() => {
+    const data = allDespesas.reduce(
+      (acc, item) => {
+        acc[item.unidade_destino] =
+          (acc[item.unidade_destino] || 0) + item.valor
+        return acc
+      },
+      {} as Record<string, number>,
+    )
+    return Object.entries(data)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+  }, [allDespesas])
+
+  const executionByDemanda = useMemo(() => {
+    const data = allDespesas.reduce(
+      (acc, item) => {
+        const key = item.demanda || 'Sem Demanda'
+        acc[key] = (acc[key] || 0) + item.valor
+        return acc
+      },
+      {} as Record<string, number>,
+    )
+    return Object.entries(data)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+  }, [allDespesas])
 
   const executionStatus = useMemo(() => {
-    const data = filteredData
-      .flatMap((a) => a.despesas)
-      .reduce(
-        (acc, item) => {
-          acc[item.status_execucao] =
-            (acc[item.status_execucao] || 0) + item.valor
-          return acc
-        },
-        {} as Record<string, number>,
-      )
+    const data = allDespesas.reduce(
+      (acc, item) => {
+        acc[item.status_execucao] =
+          (acc[item.status_execucao] || 0) + item.valor
+        return acc
+      },
+      {} as Record<string, number>,
+    )
     return Object.entries(data).map(([name, value]) => ({ name, value }))
-  }, [filteredData])
+  }, [allDespesas])
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Relatórios</h1>
-        <Button size="sm" variant="outline">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => alert('Gerando relatório em PDF...')}
+        >
           <FileDown className="mr-2 h-4 w-4" /> Exportar PDF
         </Button>
       </div>
@@ -251,97 +349,213 @@ const RelatoriosPage = () => {
         <Card>
           <CardHeader>
             <CardTitle>Consolidado por Autor</CardTitle>
-            <CardDescription>
-              Valor total das emendas por autor.
-            </CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer config={{}} className="w-full h-[300px]">
-              <BarChart
-                data={consolidatedByAutor}
-                layout="vertical"
-                margin={{ left: 100 }}
-              >
+              <BarChart data={consolidatedByAutor} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  type="number"
-                  tickFormatter={(val) => `R$${Number(val) / 1000}k`}
+                <XAxis type="number" tickFormatter={(v) => formatCurrency(v)} />
+                <YAxis type="category" dataKey="name" width={120} />
+                <Tooltip
+                  content={<ChartTooltipContent formatter={formatCurrency} />}
                 />
-                <YAxis type="category" dataKey="name" width={100} />
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      formatter={(val) =>
-                        `R$ ${Number(val).toLocaleString('pt-BR')}`
-                      }
-                    />
-                  }
-                />
-                <Bar
-                  dataKey="value"
-                  fill="hsl(var(--primary))"
-                  radius={[0, 4, 4, 0]}
-                />
+                <Bar dataKey="value" fill="hsl(var(--primary))" radius={4} />
               </BarChart>
             </ChartContainer>
           </CardContent>
+          <CardFooter>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                exportToCsv('consolidado_autor.csv', consolidatedByAutor)
+              }
+            >
+              Exportar CSV
+            </Button>
+          </CardFooter>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Consolidado por Tipo de Recurso</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={{}} className="w-full h-[300px]">
+              <PieChart>
+                <Tooltip
+                  content={<ChartTooltipContent formatter={formatCurrency} />}
+                />
+                <Pie
+                  data={consolidatedByTipoRecurso}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  label
+                >
+                  {consolidatedByTipoRecurso.map((_, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Legend />
+              </PieChart>
+            </ChartContainer>
+          </CardContent>
+          <CardFooter>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                exportToCsv(
+                  'consolidado_recurso.csv',
+                  consolidatedByTipoRecurso,
+                )
+              }
+            >
+              Exportar CSV
+            </Button>
+          </CardFooter>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Consolidado por Situação Oficial</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={{}} className="w-full h-[300px]">
+              <BarChart data={consolidatedBySituacao}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="name"
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
+                <YAxis tickFormatter={(v) => formatCurrency(v)} />
+                <Tooltip
+                  content={<ChartTooltipContent formatter={formatCurrency} />}
+                />
+                <Bar dataKey="value" fill="hsl(var(--chart-3))" radius={4} />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+          <CardFooter>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                exportToCsv('consolidado_situacao.csv', consolidatedBySituacao)
+              }
+            >
+              Exportar CSV
+            </Button>
+          </CardFooter>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Execução por Responsável (Lançamento)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={{}} className="w-full h-[300px]">
+              <BarChart data={executionByResponsavel} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" tickFormatter={(v) => formatCurrency(v)} />
+                <YAxis type="category" dataKey="name" width={100} />
+                <Tooltip
+                  content={<ChartTooltipContent formatter={formatCurrency} />}
+                />
+                <Bar dataKey="value" fill="hsl(var(--chart-4))" radius={4} />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+          <CardFooter>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                exportToCsv('execucao_responsavel.csv', executionByResponsavel)
+              }
+            >
+              Exportar CSV
+            </Button>
+          </CardFooter>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Execução por Unidade</CardTitle>
-            <CardDescription>
-              Valor total gasto por unidade de destino.
-            </CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer config={{}} className="w-full h-[300px]">
-              <BarChart
-                data={executionByUnidade}
-                layout="vertical"
-                margin={{ left: 100 }}
-              >
+              <BarChart data={executionByUnidade} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  type="number"
-                  tickFormatter={(val) => `R$${Number(val) / 1000}k`}
+                <XAxis type="number" tickFormatter={(v) => formatCurrency(v)} />
+                <YAxis type="category" dataKey="name" width={120} />
+                <Tooltip
+                  content={<ChartTooltipContent formatter={formatCurrency} />}
                 />
-                <YAxis type="category" dataKey="name" width={100} />
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      formatter={(val) =>
-                        `R$ ${Number(val).toLocaleString('pt-BR')}`
-                      }
-                    />
-                  }
-                />
-                <Bar
-                  dataKey="value"
-                  fill="hsl(var(--chart-2))"
-                  radius={[0, 4, 4, 0]}
-                />
+                <Bar dataKey="value" fill="hsl(var(--chart-2))" radius={4} />
               </BarChart>
             </ChartContainer>
           </CardContent>
+          <CardFooter>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                exportToCsv('execucao_unidade.csv', executionByUnidade)
+              }
+            >
+              Exportar CSV
+            </Button>
+          </CardFooter>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Execução por Demanda</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={{}} className="w-full h-[300px]">
+              <BarChart data={executionByDemanda} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" tickFormatter={(v) => formatCurrency(v)} />
+                <YAxis type="category" dataKey="name" width={150} />
+                <Tooltip
+                  content={<ChartTooltipContent formatter={formatCurrency} />}
+                />
+                <Bar dataKey="value" fill="hsl(var(--chart-5))" radius={4} />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+          <CardFooter>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                exportToCsv('execucao_demanda.csv', executionByDemanda)
+              }
+            >
+              Exportar CSV
+            </Button>
+          </CardFooter>
+        </Card>
+
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Status de Execução das Despesas</CardTitle>
-            <CardDescription>
-              Distribuição do valor das despesas por status.
-            </CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
             <ChartContainer config={{}} className="w-full h-[300px]">
               <PieChart>
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      formatter={(val) =>
-                        `R$ ${Number(val).toLocaleString('pt-BR')}`
-                      }
-                    />
-                  }
+                <Tooltip
+                  content={<ChartTooltipContent formatter={formatCurrency} />}
                 />
                 <Pie
                   data={executionStatus}
@@ -352,16 +566,28 @@ const RelatoriosPage = () => {
                   outerRadius={100}
                   label
                 >
-                  {executionStatus.map((entry, index) => (
+                  {executionStatus.map((_, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={COLORS[index % COLORS.length]}
                     />
                   ))}
                 </Pie>
+                <Legend />
               </PieChart>
             </ChartContainer>
           </CardContent>
+          <CardFooter>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                exportToCsv('execucao_status.csv', executionStatus)
+              }
+            >
+              Exportar CSV
+            </Button>
+          </CardFooter>
         </Card>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { getAmendmentDetails } from '@/lib/mock-data'
@@ -16,6 +16,10 @@ const EmendaDetailPage = () => {
   const navigate = useNavigate()
 
   const emenda = getAmendmentDetails(id || '')
+
+  const handleGenerateDossier = () => {
+    alert('Gerando Dossiê da Emenda em PDF...')
+  }
 
   if (!emenda) {
     return (
@@ -47,8 +51,9 @@ const EmendaDetailPage = () => {
           Detalhes da Emenda
         </h1>
         <div className="hidden items-center gap-2 md:ml-auto md:flex">
-          <Button variant="outline" size="sm">
-            Descartar Alterações
+          <Button variant="outline" size="sm" onClick={handleGenerateDossier}>
+            <FileText className="mr-2 h-4 w-4" />
+            Gerar Dossiê
           </Button>
           <Button size="sm">Salvar Emenda</Button>
         </div>
