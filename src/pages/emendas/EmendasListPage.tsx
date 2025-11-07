@@ -54,6 +54,7 @@ import {
   FiltersState,
 } from '@/components/emendas/EmendasFilters'
 import { DateRange } from 'react-day-picker'
+import { formatCurrencyBRL } from '@/lib/utils'
 
 const ITEMS_PER_PAGE = 10
 
@@ -412,10 +413,7 @@ const EmendasListPage = () => {
                   <TableCell>{amendment.numero_emenda}</TableCell>
                   <TableCell>{amendment.numero_proposta}</TableCell>
                   <TableCell className="text-right tabular-nums">
-                    {amendment.valor_total.toLocaleString('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL',
-                    })}
+                    {formatCurrencyBRL(amendment.valor_total)}
                   </TableCell>
                   <TableCell>
                     <StatusBadge status={amendment.situacao} />

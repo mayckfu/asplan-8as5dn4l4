@@ -41,6 +41,7 @@ import {
   TipoRecurso,
   SituacaoOficial,
 } from '@/lib/mock-data'
+import { formatCurrencyBRL } from '@/lib/utils'
 
 const initialFilters: ReportFiltersState = {
   autor: '',
@@ -67,8 +68,6 @@ const COLORS = [
   '#FFBB28',
   '#FF8042',
 ]
-
-const formatCurrency = (value: number) => `R$ ${value.toLocaleString('pt-BR')}`
 
 const exportToCsv = (filename: string, rows: object[]) => {
   if (!rows || rows.length === 0) {
@@ -357,12 +356,15 @@ const RelatoriosPage = () => {
             <ChartContainer config={{}} className="w-full h-[300px]">
               <BarChart data={consolidatedByAutor} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" tickFormatter={(v) => formatCurrency(v)} />
+                <XAxis
+                  type="number"
+                  tickFormatter={(v) => formatCurrencyBRL(v)}
+                />
                 <YAxis type="category" dataKey="name" width={120} />
                 <Tooltip
                   content={
                     <ChartTooltipContent
-                      formatter={formatCurrency}
+                      formatter={formatCurrencyBRL}
                       className="tabular-nums"
                     />
                   }
@@ -396,7 +398,7 @@ const RelatoriosPage = () => {
                 <Tooltip
                   content={
                     <ChartTooltipContent
-                      formatter={formatCurrency}
+                      formatter={formatCurrencyBRL}
                       className="tabular-nums"
                     />
                   }
@@ -453,11 +455,11 @@ const RelatoriosPage = () => {
                   textAnchor="end"
                   height={80}
                 />
-                <YAxis tickFormatter={(v) => formatCurrency(v)} />
+                <YAxis tickFormatter={(v) => formatCurrencyBRL(v)} />
                 <Tooltip
                   content={
                     <ChartTooltipContent
-                      formatter={formatCurrency}
+                      formatter={formatCurrencyBRL}
                       className="tabular-nums"
                     />
                   }
@@ -489,12 +491,15 @@ const RelatoriosPage = () => {
             <ChartContainer config={{}} className="w-full h-[300px]">
               <BarChart data={executionByResponsavel} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" tickFormatter={(v) => formatCurrency(v)} />
+                <XAxis
+                  type="number"
+                  tickFormatter={(v) => formatCurrencyBRL(v)}
+                />
                 <YAxis type="category" dataKey="name" width={100} />
                 <Tooltip
                   content={
                     <ChartTooltipContent
-                      formatter={formatCurrency}
+                      formatter={formatCurrencyBRL}
                       className="tabular-nums"
                     />
                   }
@@ -526,12 +531,15 @@ const RelatoriosPage = () => {
             <ChartContainer config={{}} className="w-full h-[300px]">
               <BarChart data={executionByUnidade} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" tickFormatter={(v) => formatCurrency(v)} />
+                <XAxis
+                  type="number"
+                  tickFormatter={(v) => formatCurrencyBRL(v)}
+                />
                 <YAxis type="category" dataKey="name" width={120} />
                 <Tooltip
                   content={
                     <ChartTooltipContent
-                      formatter={formatCurrency}
+                      formatter={formatCurrencyBRL}
                       className="tabular-nums"
                     />
                   }
@@ -563,12 +571,15 @@ const RelatoriosPage = () => {
             <ChartContainer config={{}} className="w-full h-[300px]">
               <BarChart data={executionByDemanda} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" tickFormatter={(v) => formatCurrency(v)} />
+                <XAxis
+                  type="number"
+                  tickFormatter={(v) => formatCurrencyBRL(v)}
+                />
                 <YAxis type="category" dataKey="name" width={150} />
                 <Tooltip
                   content={
                     <ChartTooltipContent
-                      formatter={formatCurrency}
+                      formatter={formatCurrencyBRL}
                       className="tabular-nums"
                     />
                   }
@@ -602,7 +613,7 @@ const RelatoriosPage = () => {
                 <Tooltip
                   content={
                     <ChartTooltipContent
-                      formatter={formatCurrency}
+                      formatter={formatCurrencyBRL}
                       className="tabular-nums"
                     />
                   }

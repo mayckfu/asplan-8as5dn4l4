@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Repasse } from '@/lib/mock-data'
+import { formatCurrencyBRL } from '@/lib/utils'
 
 interface EmendaRepassesTabProps {
   repasses: Repasse[]
@@ -85,10 +86,7 @@ export const EmendaRepassesTab = ({ repasses }: EmendaRepassesTabProps) => {
                 </TableCell>
                 <TableCell>{repasse.fonte}</TableCell>
                 <TableCell className="text-right tabular-nums">
-                  {repasse.valor.toLocaleString('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                  })}
+                  {formatCurrencyBRL(repasse.valor)}
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>

@@ -35,6 +35,7 @@ import { Despesa } from '@/lib/mock-data'
 import { StatusBadge } from '@/components/StatusBadge'
 import { ExpenseDossierDrawer } from './ExpenseDossierDrawer'
 import { ExpenseStatusModal } from './ExpenseStatusModal'
+import { formatCurrencyBRL } from '@/lib/utils'
 
 interface EmendaDespesasTabProps {
   despesas: Despesa[]
@@ -109,10 +110,7 @@ export const EmendaDespesasTab = ({ despesas }: EmendaDespesasTabProps) => {
                     <StatusBadge status={despesa.status_execucao as any} />
                   </TableCell>
                   <TableCell className="text-right tabular-nums">
-                    {despesa.valor.toLocaleString('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL',
-                    })}
+                    {formatCurrencyBRL(despesa.valor)}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>

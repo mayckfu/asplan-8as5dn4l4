@@ -33,9 +33,7 @@ import {
   getAmendmentDetails,
   DetailedAmendment,
 } from '@/lib/mock-data'
-
-const formatCurrency = (value: number) =>
-  value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+import { formatCurrencyBRL } from '@/lib/utils'
 
 const Index = () => {
   const dashboardData = useMemo(() => {
@@ -61,17 +59,17 @@ const Index = () => {
       { title: 'Total Propostas', value: totalPropostas, icon: Package },
       {
         title: 'Total Valor',
-        value: formatCurrency(totalValor),
+        value: formatCurrencyBRL(totalValor),
         icon: Landmark,
       },
       {
         title: 'Total Repassado',
-        value: formatCurrency(totalRepassado),
+        value: formatCurrencyBRL(totalRepassado),
         icon: Banknote,
       },
       {
         title: 'Total Gasto',
-        value: formatCurrency(totalGasto),
+        value: formatCurrencyBRL(totalGasto),
         icon: ShoppingBag,
       },
       {
@@ -198,13 +196,13 @@ const Index = () => {
             className="rounded-2xl shadow-sm border border-neutral-200"
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-neutral-600">
+              <CardTitle className="text-xs text-neutral-500">
                 {kpi.title}
               </CardTitle>
               <kpi.icon className="h-5 w-5 text-neutral-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-neutral-800 tabular-nums">
+              <div className="text-2xl font-semibold tabular-nums leading-tight text-neutral-800">
                 {kpi.value}
               </div>
             </CardContent>
@@ -246,11 +244,11 @@ const Index = () => {
               <LineChart data={dashboardData.lineChartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
-                <YAxis tickFormatter={(val) => formatCurrency(val)} />
+                <YAxis tickFormatter={(val) => formatCurrencyBRL(val)} />
                 <ChartTooltip
                   content={
                     <ChartTooltipContent
-                      formatter={(val) => formatCurrency(Number(val))}
+                      formatter={(val) => formatCurrencyBRL(Number(val))}
                       className="tabular-nums"
                     />
                   }
@@ -283,11 +281,11 @@ const Index = () => {
               <BarChart data={dashboardData.gastoPorResponsavelData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
-                <YAxis tickFormatter={(val) => formatCurrency(val)} />
+                <YAxis tickFormatter={(val) => formatCurrencyBRL(val)} />
                 <ChartTooltip
                   content={
                     <ChartTooltipContent
-                      formatter={(val) => formatCurrency(Number(val))}
+                      formatter={(val) => formatCurrencyBRL(Number(val))}
                       className="tabular-nums"
                     />
                   }
@@ -308,11 +306,11 @@ const Index = () => {
               <BarChart data={dashboardData.gastoPorUnidadeData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
-                <YAxis tickFormatter={(val) => formatCurrency(val)} />
+                <YAxis tickFormatter={(val) => formatCurrencyBRL(val)} />
                 <ChartTooltip
                   content={
                     <ChartTooltipContent
-                      formatter={(val) => formatCurrency(Number(val))}
+                      formatter={(val) => formatCurrencyBRL(Number(val))}
                       className="tabular-nums"
                     />
                   }
@@ -333,11 +331,11 @@ const Index = () => {
               <BarChart data={dashboardData.gastoPorDemandaData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
-                <YAxis tickFormatter={(val) => formatCurrency(val)} />
+                <YAxis tickFormatter={(val) => formatCurrencyBRL(val)} />
                 <ChartTooltip
                   content={
                     <ChartTooltipContent
-                      formatter={(val) => formatCurrency(Number(val))}
+                      formatter={(val) => formatCurrencyBRL(Number(val))}
                       className="tabular-nums"
                     />
                   }

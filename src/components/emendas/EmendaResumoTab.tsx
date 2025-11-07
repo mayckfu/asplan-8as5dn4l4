@@ -11,6 +11,7 @@ import {
   StatusInterno,
   TipoRecurso,
 } from '@/lib/mock-data'
+import { formatCurrencyBRL } from '@/lib/utils'
 
 interface EmendaResumoTabProps {
   emenda: DetailedAmendment
@@ -58,10 +59,7 @@ export const EmendaResumoTab = ({ emenda }: EmendaResumoTabProps) => {
         </DetailItem>
         <DetailItem label="Valor Total">
           <span className="tabular-nums">
-            {emenda.valor_total.toLocaleString('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
-            })}
+            {formatCurrencyBRL(emenda.valor_total)}
           </span>
         </DetailItem>
         <DetailItem label="Data de Criação">

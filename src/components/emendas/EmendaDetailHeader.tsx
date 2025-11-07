@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { StatusBadge } from '@/components/StatusBadge'
 import { DetailedAmendment } from '@/lib/mock-data'
 import { Paperclip } from 'lucide-react'
+import { formatCurrencyBRL } from '@/lib/utils'
 
 interface EmendaDetailHeaderProps {
   emenda: DetailedAmendment
@@ -26,10 +27,7 @@ export const EmendaDetailHeader = ({ emenda }: EmendaDetailHeaderProps) => {
 
   const formatValue = (value: number, format: string) => {
     if (format === 'currency') {
-      return value.toLocaleString('pt-BR', {
-        style: 'currency',
-        currency: 'BRL',
-      })
+      return formatCurrencyBRL(value)
     }
     if (format === 'percent') {
       return `${value.toFixed(1)}%`
@@ -71,10 +69,8 @@ export const EmendaDetailHeader = ({ emenda }: EmendaDetailHeaderProps) => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-center mb-4">
           {kpis.map((kpi) => (
             <div key={kpi.label} className="p-2 rounded-lg bg-muted">
-              <p className="text-sm font-medium text-neutral-600">
-                {kpi.label}
-              </p>
-              <p className="text-xl font-bold text-neutral-800 tabular-nums">
+              <p className="text-xs text-neutral-500">{kpi.label}</p>
+              <p className="text-2xl font-semibold tabular-nums leading-tight text-neutral-800">
                 {formatValue(kpi.value, kpi.format)}
               </p>
             </div>

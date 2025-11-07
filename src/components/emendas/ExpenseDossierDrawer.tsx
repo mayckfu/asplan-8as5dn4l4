@@ -8,6 +8,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { Despesa } from '@/lib/mock-data'
 import { StatusBadge } from '@/components/StatusBadge'
+import { formatCurrencyBRL } from '@/lib/utils'
 
 interface ExpenseDossierDrawerProps {
   expense: Despesa | null
@@ -54,10 +55,7 @@ export const ExpenseDossierDrawer = ({
             <div className="grid grid-cols-2 gap-4">
               <DetailItem label="Valor">
                 <span className="tabular-nums">
-                  {expense.valor.toLocaleString('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                  })}
+                  {formatCurrencyBRL(expense.valor)}
                 </span>
               </DetailItem>
               <DetailItem label="Data">
