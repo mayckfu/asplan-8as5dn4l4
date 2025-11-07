@@ -226,17 +226,17 @@ const Index = () => {
         {dashboardData.kpis.map((kpi) => (
           <Card
             key={kpi.title}
-            className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 p-4 hover:shadow transition"
+            className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 p-3 md:p-4 hover:shadow transition"
           >
             <div className="flex items-start justify-between">
               <div className="flex-shrink-0">
                 <kpi.icon className="h-6 w-6 text-asplan-blue-neutral" />
               </div>
-              <div className="text-right">
+              <div className="text-right min-w-0">
                 <p className="text-xs text-neutral-500 dark:text-neutral-400">
                   {kpi.title}
                 </p>
-                <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-200 tabular-nums">
+                <p className="text-xl sm:text-2xl font-semibold text-neutral-900 dark:text-neutral-200 tabular-nums whitespace-nowrap overflow-hidden text-ellipsis">
                   {kpi.value}
                 </p>
               </div>
@@ -258,15 +258,15 @@ const Index = () => {
                     config.bgColor,
                   )}
                 >
-                  <CardContent className="p-4 flex items-center gap-4">
+                  <CardContent className="p-3 md:p-4 flex items-center gap-4">
                     <alert.icon className={cn('h-6 w-6', config.iconColor)} />
-                    <div>
+                    <div className="min-w-0">
                       <p className={cn('font-medium', config.textColor)}>
                         {alert.title}
                       </p>
                       <p
                         className={cn(
-                          'text-2xl font-bold tabular-nums',
+                          'text-xl sm:text-2xl font-bold tabular-nums whitespace-nowrap overflow-hidden text-ellipsis',
                           config.textColor,
                         )}
                       >
