@@ -77,8 +77,99 @@ const RelatoriosPage = () => {
     const allDetailedAmendments = amendments
       .map((a) => getAmendmentDetails(a.id))
       .filter((d): d is DetailedAmendment => !!d)
-    // Apply filters here (omitted for brevity, but would be similar to EmendasListPage)
-    return allDetailedAmendments
+
+    return allDetailedAmendments.filter((amendment) => {
+      if (
+        filters.autor &&
+        !amendment.autor.toLowerCase().includes(filters.autor.toLowerCase())
+      )
+        return false
+      if (
+        filters.tipoRecurso !== 'all' &&
+        amendment.tipo_recurso !== filters.tipoRecurso
+      )
+        return false
+      if (filters.situacao !== 'all' && amendment.situacao !== filters.situacao)
+        return false
+      if (
+        filters.statusInterno !== 'all' &&
+        amendment.status_interno !== filters.statusInterno
+      )
+        return false
+      if (
+        filters.valorMin &&
+        amendment.valor_total < parseFloat(filters.valorMin)
+      )
+        return false
+      if (
+        filters.valorMax &&
+        amendment.valor_total > parseFloat(filters.valorMax)
+      )
+        return false
+      if (filters.periodo?.from) {
+        const amendmentDate = new Date(amendment.created_at)
+        if (amendmentDate < filters.periodo.from) return false
+        if (filters.periodo.to && amendmentDate > filters.periodo.to)
+          return false
+      }
+
+      const hasDespesaFilters =
+        filters.responsavel ||
+        filters.unidade ||
+        filters.demanda ||
+        filters.statusExecucao !== 'all' ||
+        filters.fornecedor
+
+      if (hasDespesaFilters) {
+        const matchingDespesas = amendment.despesas.filter((despesa) => {
+          if (
+            filters.responsavel &&
+            !(
+              despesa.registrada_por
+                .toLowerCase()
+                .includes(filters.responsavel.toLowerCase()) ||
+              despesa.autorizada_por
+                ?.toLowerCase()
+                .includes(filters.responsavel.toLowerCase()) ||
+              despesa.responsavel_execucao
+                ?.toLowerCase()
+                .includes(filters.responsavel.toLowerCase())
+            )
+          )
+            return false
+          if (
+            filters.unidade &&
+            !despesa.unidade_destino
+              .toLowerCase()
+              .includes(filters.unidade.toLowerCase())
+          )
+            return false
+          if (
+            filters.demanda &&
+            !despesa.demanda
+              ?.toLowerCase()
+              .includes(filters.demanda.toLowerCase())
+          )
+            return false
+          if (
+            filters.statusExecucao !== 'all' &&
+            despesa.status_execucao !== filters.statusExecucao
+          )
+            return false
+          if (
+            filters.fornecedor &&
+            !despesa.fornecedor_nome
+              .toLowerCase()
+              .includes(filters.fornecedor.toLowerCase())
+          )
+            return false
+          return true
+        })
+        if (matchingDespesas.length === 0) return false
+      }
+
+      return true
+    })
   }, [filters])
 
   const consolidatedByAutor = useMemo(() => {
