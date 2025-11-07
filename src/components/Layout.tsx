@@ -20,7 +20,7 @@ const AppLayout = () => {
       <div className="flex flex-col overflow-hidden">
         <Header />
         <main className="flex-1 animate-fade-in overflow-y-auto bg-background">
-          <div className="max-w-screen-2xl mx-auto px-4 py-6">
+          <div className="max-w-screen-2xl mx-auto px-4 py-6 w-full">
             <Outlet />
           </div>
         </main>

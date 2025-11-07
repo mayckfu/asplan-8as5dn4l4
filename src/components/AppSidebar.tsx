@@ -3,7 +3,6 @@ import {
   Home,
   List,
   BarChart2,
-  Package2,
   Upload,
   HeartPulse,
   Smile,
@@ -45,14 +44,12 @@ export const AppSidebar = () => {
 
   return (
     <Sidebar>
-      <SidebarHeader>
-        <Link
-          to="/"
-          className="flex items-center gap-2 font-semibold text-neutral-900 dark:text-neutral-200"
-        >
-          <Package2 className="h-6 w-6 text-primary" />
-          {isExpanded && <span>Controle Interno</span>}
-        </Link>
+      <SidebarHeader className="justify-center">
+        <img
+          src="/asplan-logo.png"
+          alt="ASPLAN Logo"
+          className={cn('transition-all', isExpanded ? 'h-7' : 'h-6')}
+        />
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
@@ -62,6 +59,7 @@ export const AppSidebar = () => {
                 asChild
                 isActive={pathname === href}
                 tooltip={label}
+                className="text-asplan-blue-neutral hover:text-asplan-primary data-[active=true]:text-asplan-primary"
               >
                 <Link to={href}>
                   <Icon className="h-4 w-4" />

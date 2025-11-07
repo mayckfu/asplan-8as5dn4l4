@@ -17,34 +17,42 @@ export const Header = () => {
   const { toggleSidebar, state, isMobile, setOpenMobile } = useSidebar()
 
   return (
-    <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-card px-4 md:px-6 z-30 shadow-sm">
-      {isMobile ? (
-        <Button
-          variant="outline"
-          size="icon"
-          className="shrink-0"
-          onClick={() => setOpenMobile(true)}
-        >
-          <Menu className="h-5 w-5" />
-          <span className="sr-only">Abrir menu</span>
-        </Button>
-      ) : (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleSidebar}
-          className="shrink-0"
-        >
-          <ChevronLeft
-            className={cn(
-              'h-5 w-5 transition-transform duration-300',
-              state === 'expanded' ? 'rotate-0' : 'rotate-180',
-            )}
-          />
-        </Button>
-      )}
+    <header className="sticky top-0 flex h-16 items-center justify-between gap-4 border-b bg-card/90 px-4 md:px-6 z-30 shadow-sm backdrop-blur-md">
+      <div className="flex items-center gap-4">
+        {isMobile ? (
+          <Button
+            variant="outline"
+            size="icon"
+            className="shrink-0"
+            onClick={() => setOpenMobile(true)}
+          >
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Abrir menu</span>
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="shrink-0"
+          >
+            <ChevronLeft
+              className={cn(
+                'h-5 w-5 transition-transform duration-300',
+                state === 'expanded' ? 'rotate-0' : 'rotate-180',
+              )}
+            />
+          </Button>
+        )}
+        <Link to="/" className="flex items-center gap-3">
+          <img src="/asplan-logo.png" alt="ASPLAN Logo" className="h-7" />
+          <span className="font-semibold text-lg text-asplan-deep dark:text-neutral-200 hidden md:block">
+            ASPLAN — Planejamento & Saúde
+          </span>
+        </Link>
+      </div>
 
-      <div className="flex w-full items-center justify-end gap-4">
+      <div className="flex items-center gap-4">
         <Link to="/importacao">
           <Button variant="outline" size="sm">
             <Upload className="h-4 w-4 mr-2" />

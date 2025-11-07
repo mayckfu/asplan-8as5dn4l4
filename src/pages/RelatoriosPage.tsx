@@ -371,7 +371,7 @@ const RelatoriosPage = () => {
                     />
                   }
                 />
-                <Bar dataKey="value" fill="hsl(var(--primary))" radius={4} />
+                <Bar dataKey="value" fill="hsl(var(--chart-1))" radius={4} />
               </BarChart>
             </ChartContainer>
           </CardContent>

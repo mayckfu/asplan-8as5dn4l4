@@ -21,7 +21,7 @@ import {
   ShieldAlert,
   ShoppingBag,
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   ChartContainer,
   ChartTooltip,
@@ -33,7 +33,38 @@ import {
   getAmendmentDetails,
   DetailedAmendment,
 } from '@/lib/mock-data'
-import { formatCurrencyBRL, formatPercent } from '@/lib/utils'
+import { formatCurrencyBRL, formatPercent, cn } from '@/lib/utils'
+
+const alertConfig: Record<
+  string,
+  { bgColor: string; iconColor: string; textColor: string }
+> = {
+  'Falta Portaria': {
+    bgColor: 'bg-amber-100 dark:bg-amber-900/50',
+    iconColor: 'text-amber-500',
+    textColor: 'text-amber-800 dark:text-amber-300',
+  },
+  'Falta Deliberação CIE': {
+    bgColor: 'bg-blue-100 dark:bg-blue-900/50',
+    iconColor: 'text-blue-500',
+    textColor: 'text-blue-800 dark:text-blue-300',
+  },
+  'Sem Anexos Essenciais': {
+    bgColor: 'bg-red-100 dark:bg-red-900/50',
+    iconColor: 'text-red-500',
+    textColor: 'text-red-800 dark:text-red-300',
+  },
+  'Despesas sem autorização': {
+    bgColor: 'bg-amber-100 dark:bg-amber-900/50',
+    iconColor: 'text-amber-500',
+    textColor: 'text-amber-800 dark:text-amber-300',
+  },
+  default: {
+    bgColor: 'bg-yellow-100 dark:bg-yellow-900/50',
+    iconColor: 'text-yellow-500',
+    textColor: 'text-yellow-800 dark:text-yellow-300',
+  },
+}
 
 const Index = () => {
   const dashboardData = useMemo(() => {
@@ -195,19 +226,21 @@ const Index = () => {
         {dashboardData.kpis.map((kpi) => (
           <Card
             key={kpi.title}
-            className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800"
+            className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 p-4 hover:shadow transition"
           >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs text-neutral-500 dark:text-neutral-400">
-                {kpi.title}
-              </CardTitle>
-              <kpi.icon className="h-5 w-5 text-neutral-600 dark:text-neutral-300" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold tabular-nums leading-tight text-neutral-900 dark:text-neutral-200">
-                {kpi.value}
+            <div className="flex items-start justify-between">
+              <div className="flex-shrink-0">
+                <kpi.icon className="h-6 w-6 text-asplan-blue-neutral" />
               </div>
-            </CardContent>
+              <div className="text-right">
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {kpi.title}
+                </p>
+                <p className="text-2xl font-semibold text-neutral-900 dark:text-neutral-200 tabular-nums">
+                  {kpi.value}
+                </p>
+              </div>
+            </div>
           </Card>
         ))}
       </div>
@@ -215,137 +248,134 @@ const Index = () => {
       <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
         {dashboardData.alerts
           .filter((alert) => alert.count > 0)
-          .map((alert) => (
-            <Link to={alert.link} key={alert.title}>
-              <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 hover:bg-warning/10 transition-colors">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-amber-700 dark:text-amber-500">
-                    {alert.title}
-                  </CardTitle>
-                  <alert.icon className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-amber-700 dark:text-amber-500 tabular-nums">
-                    {alert.count}
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+          .map((alert) => {
+            const config = alertConfig[alert.title] || alertConfig.default
+            return (
+              <Link to={alert.link} key={alert.title}>
+                <Card
+                  className={cn(
+                    'rounded-2xl shadow-sm border-0 hover:shadow-md transition-shadow',
+                    config.bgColor,
+                  )}
+                >
+                  <CardContent className="p-4 flex items-center gap-4">
+                    <alert.icon className={cn('h-6 w-6', config.iconColor)} />
+                    <div>
+                      <p className={cn('font-medium', config.textColor)}>
+                        {alert.title}
+                      </p>
+                      <p
+                        className={cn(
+                          'text-2xl font-bold tabular-nums',
+                          config.textColor,
+                        )}
+                      >
+                        {alert.count}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            )
+          })}
       </div>
 
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-        <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
-          <CardHeader>
-            <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
-              Repasses e Despesas por Mês
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={{}} className="w-full h-[300px]">
-              <LineChart data={dashboardData.lineChartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis tickFormatter={(val) => formatCurrencyBRL(val)} />
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      formatter={(val) => formatCurrencyBRL(Number(val))}
-                      className="tabular-nums"
-                    />
-                  }
-                />
-                <ChartLegend />
-                <Line
-                  type="monotone"
-                  dataKey="repasses"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth={2}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="despesas"
-                  stroke="hsl(var(--danger))"
-                  strokeWidth={2}
-                />
-              </LineChart>
-            </ChartContainer>
-          </CardContent>
+        <Card className="rounded-2xl shadow-sm p-4 border border-neutral-200 dark:border-neutral-800">
+          <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-200 mb-3">
+            Repasses e Despesas por Mês
+          </h3>
+          <ChartContainer config={{}} className="w-full h-[300px]">
+            <LineChart data={dashboardData.lineChartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis tickFormatter={(val) => formatCurrencyBRL(val)} />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    formatter={(val) => formatCurrencyBRL(Number(val))}
+                    className="tabular-nums"
+                  />
+                }
+              />
+              <ChartLegend />
+              <Line
+                type="monotone"
+                dataKey="repasses"
+                stroke="hsl(var(--chart-2))"
+                strokeWidth={2}
+              />
+              <Line
+                type="monotone"
+                dataKey="despesas"
+                stroke="hsl(var(--chart-1))"
+                strokeWidth={2}
+              />
+            </LineChart>
+          </ChartContainer>
         </Card>
-        <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
-          <CardHeader>
-            <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
-              Gasto por Responsável
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={{}} className="w-full h-[300px]">
-              <BarChart data={dashboardData.gastoPorResponsavelData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis tickFormatter={(val) => formatCurrencyBRL(val)} />
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      formatter={(val) => formatCurrencyBRL(Number(val))}
-                      className="tabular-nums"
-                    />
-                  }
-                />
-                <Bar dataKey="value" fill="hsl(var(--primary))" radius={4} />
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
+        <Card className="rounded-2xl shadow-sm p-4 border border-neutral-200 dark:border-neutral-800">
+          <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-200 mb-3">
+            Gasto por Responsável
+          </h3>
+          <ChartContainer config={{}} className="w-full h-[300px]">
+            <BarChart data={dashboardData.gastoPorResponsavelData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis tickFormatter={(val) => formatCurrencyBRL(val)} />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    formatter={(val) => formatCurrencyBRL(Number(val))}
+                    className="tabular-nums"
+                  />
+                }
+              />
+              <Bar dataKey="value" fill="hsl(var(--chart-2))" radius={4} />
+            </BarChart>
+          </ChartContainer>
         </Card>
-        <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
-          <CardHeader>
-            <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
-              Gasto por Unidade
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={{}} className="w-full h-[300px]">
-              <BarChart data={dashboardData.gastoPorUnidadeData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis tickFormatter={(val) => formatCurrencyBRL(val)} />
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      formatter={(val) => formatCurrencyBRL(Number(val))}
-                      className="tabular-nums"
-                    />
-                  }
-                />
-                <Bar dataKey="value" fill="hsl(var(--chart-2))" radius={4} />
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
+        <Card className="rounded-2xl shadow-sm p-4 border border-neutral-200 dark:border-neutral-800">
+          <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-200 mb-3">
+            Gasto por Unidade
+          </h3>
+          <ChartContainer config={{}} className="w-full h-[300px]">
+            <BarChart data={dashboardData.gastoPorUnidadeData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis tickFormatter={(val) => formatCurrencyBRL(val)} />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    formatter={(val) => formatCurrencyBRL(Number(val))}
+                    className="tabular-nums"
+                  />
+                }
+              />
+              <Bar dataKey="value" fill="hsl(var(--chart-3))" radius={4} />
+            </BarChart>
+          </ChartContainer>
         </Card>
-        <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
-          <CardHeader>
-            <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
-              Gasto por Demanda
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={{}} className="w-full h-[300px]">
-              <BarChart data={dashboardData.gastoPorDemandaData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis tickFormatter={(val) => formatCurrencyBRL(val)} />
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      formatter={(val) => formatCurrencyBRL(Number(val))}
-                      className="tabular-nums"
-                    />
-                  }
-                />
-                <Bar dataKey="value" fill="hsl(var(--chart-3))" radius={4} />
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
+        <Card className="rounded-2xl shadow-sm p-4 border border-neutral-200 dark:border-neutral-800">
+          <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-200 mb-3">
+            Gasto por Demanda
+          </h3>
+          <ChartContainer config={{}} className="w-full h-[300px]">
+            <BarChart data={dashboardData.gastoPorDemandaData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis tickFormatter={(val) => formatCurrencyBRL(val)} />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    formatter={(val) => formatCurrencyBRL(Number(val))}
+                    className="tabular-nums"
+                  />
+                }
+              />
+              <Bar dataKey="value" fill="hsl(var(--chart-4))" radius={4} />
+            </BarChart>
+          </ChartContainer>
         </Card>
       </div>
     </div>

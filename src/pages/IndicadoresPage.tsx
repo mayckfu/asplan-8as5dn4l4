@@ -79,8 +79,8 @@ const chartData = [
 
 const IndicatorCard = ({ indicator, onClick }: any) => {
   const statusStyles: any = {
-    batido: 'bg-success text-success-foreground',
-    abaixo: 'bg-warning text-warning-foreground',
+    batido: 'bg-success text-primary-foreground',
+    abaixo: 'bg-warning text-primary-foreground',
     pendente: 'bg-destructive text-destructive-foreground',
   }
   const TrendIcon =
@@ -91,7 +91,7 @@ const IndicatorCard = ({ indicator, onClick }: any) => {
         : ArrowRight
   return (
     <Card
-      className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 cursor-pointer hover:border-primary"
+      className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 cursor-pointer hover:border-primary transition"
       onClick={onClick}
     >
       <CardHeader>

@@ -187,7 +187,7 @@ const ApsPage = () => {
         <CardContent>
           <Table>
             <TableHeader>
-              <TableRow>
+              <TableRow className="sticky top-0 bg-background/90 backdrop-blur-sm z-10">
                 <TableHead>UBS</TableHead>
                 <TableHead className="text-right tabular-nums">
                   Visitas ACS
@@ -206,7 +206,10 @@ const ApsPage = () => {
             </TableHeader>
             <TableBody>
               {tableData.map((row) => (
-                <TableRow key={row.ubs}>
+                <TableRow
+                  key={row.ubs}
+                  className="h-10 py-2 odd:bg-white even:bg-neutral-50 hover:bg-neutral-100 dark:odd:bg-card dark:even:bg-muted/50 dark:hover:bg-muted"
+                >
                   <TableCell className="font-medium">{row.ubs}</TableCell>
                   <TableCell className="text-right tabular-nums">
                     {row.visits}
