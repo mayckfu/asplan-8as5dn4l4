@@ -166,29 +166,6 @@ const Index = () => {
       ([name, value]) => ({ name, value }),
     )
 
-    const gastoPorUnidade = allDespesas.reduce(
-      (acc, { unidade_destino, valor }) => {
-        acc[unidade_destino] = (acc[unidade_destino] || 0) + valor
-        return acc
-      },
-      {} as Record<string, number>,
-    )
-    const gastoPorUnidadeData = Object.entries(gastoPorUnidade).map(
-      ([name, value]) => ({ name, value }),
-    )
-
-    const gastoPorDemanda = allDespesas.reduce(
-      (acc, { demanda, valor }) => {
-        const key = demanda || 'Sem Demanda'
-        acc[key] = (acc[key] || 0) + valor
-        return acc
-      },
-      {} as Record<string, number>,
-    )
-    const gastoPorDemandaData = Object.entries(gastoPorDemanda).map(
-      ([name, value]) => ({ name, value }),
-    )
-
     const monthlyData = [...allRepasses, ...allDespesas].reduce(
       (acc, item) => {
         const month = format(new Date(item.data), 'yyyy-MM')
@@ -210,8 +187,6 @@ const Index = () => {
       kpis,
       alerts,
       gastoPorResponsavelData,
-      gastoPorUnidadeData,
-      gastoPorDemandaData,
       lineChartData,
     }
   }, [])
@@ -236,9 +211,11 @@ const Index = () => {
                 <p className="text-xs text-neutral-500 dark:text-neutral-400">
                   {kpi.title}
                 </p>
-                <p className="text-xl sm:text-2xl font-semibold text-neutral-900 dark:text-neutral-200 tabular-nums whitespace-nowrap overflow-hidden text-ellipsis">
-                  {kpi.value}
-                </p>
+                <div className="flex justify-end items-center h-full max-w-full overflow-hidden">
+                  <p className="text-2xl sm:text-xl font-semibold text-neutral-900 dark:text-neutral-200 text-right tabular-nums whitespace-nowrap overflow-hidden text-ellipsis">
+                    {kpi.value}
+                  </p>
+                </div>
               </div>
             </div>
           </Card>
@@ -332,48 +309,6 @@ const Index = () => {
                 }
               />
               <Bar dataKey="value" fill="hsl(var(--chart-2))" radius={4} />
-            </BarChart>
-          </ChartContainer>
-        </Card>
-        <Card className="rounded-2xl shadow-sm p-4 border border-neutral-200 dark:border-neutral-800">
-          <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-200 mb-3">
-            Gasto por Unidade
-          </h3>
-          <ChartContainer config={{}} className="w-full h-[300px]">
-            <BarChart data={dashboardData.gastoPorUnidadeData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis tickFormatter={(val) => formatCurrencyBRL(val)} />
-              <ChartTooltip
-                content={
-                  <ChartTooltipContent
-                    formatter={(val) => formatCurrencyBRL(Number(val))}
-                    className="tabular-nums"
-                  />
-                }
-              />
-              <Bar dataKey="value" fill="hsl(var(--chart-3))" radius={4} />
-            </BarChart>
-          </ChartContainer>
-        </Card>
-        <Card className="rounded-2xl shadow-sm p-4 border border-neutral-200 dark:border-neutral-800">
-          <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-200 mb-3">
-            Gasto por Demanda
-          </h3>
-          <ChartContainer config={{}} className="w-full h-[300px]">
-            <BarChart data={dashboardData.gastoPorDemandaData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis tickFormatter={(val) => formatCurrencyBRL(val)} />
-              <ChartTooltip
-                content={
-                  <ChartTooltipContent
-                    formatter={(val) => formatCurrencyBRL(Number(val))}
-                    className="tabular-nums"
-                  />
-                }
-              />
-              <Bar dataKey="value" fill="hsl(var(--chart-4))" radius={4} />
             </BarChart>
           </ChartContainer>
         </Card>

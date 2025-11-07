@@ -1,16 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import {
-  Home,
-  List,
-  BarChart2,
-  Upload,
-  HeartPulse,
-  Smile,
-  Target,
-  Database,
-  Map,
-  Shield,
-} from 'lucide-react'
+import { Home, FileText, BarChart2, Shield } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -26,14 +15,8 @@ import {
 
 const navLinks = [
   { href: '/', label: 'Dashboard', icon: Home },
-  { href: '/emendas', label: 'Emendas', icon: List },
-  { href: '/aps', label: 'APS', icon: HeartPulse },
-  { href: '/saude-bucal', label: 'Saúde Bucal', icon: Smile },
-  { href: '/indicadores', label: 'Indicadores', icon: Target },
-  { href: '/producao-esus', label: 'Produção e-SUS', icon: Database },
-  { href: '/mapa', label: 'Mapa', icon: Map },
+  { href: '/emendas', label: 'Emendas', icon: FileText },
   { href: '/relatorios', label: 'Relatórios', icon: BarChart2 },
-  { href: '/importacao', label: 'Importação', icon: Upload },
   { href: '/admin', label: 'Admin', icon: Shield },
 ]
 

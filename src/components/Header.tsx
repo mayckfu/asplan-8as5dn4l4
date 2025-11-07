@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Menu, User, Upload, ChevronLeft } from 'lucide-react'
+import { Menu, User, ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -47,18 +47,12 @@ export const Header = () => {
         <Link to="/" className="flex items-center gap-3">
           <img src="/asplan-logo.png" alt="ASPLAN Logo" className="h-7" />
           <span className="font-semibold text-lg text-asplan-deep dark:text-neutral-200 hidden md:block">
-            ASPLAN — Planejamento & Saúde
+            ASPLAN — Controle de Emendas Parlamentares
           </span>
         </Link>
       </div>
 
       <div className="flex items-center gap-4">
-        <Link to="/importacao">
-          <Button variant="outline" size="sm">
-            <Upload className="h-4 w-4 mr-2" />
-            Importar
-          </Button>
-        </Link>
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
