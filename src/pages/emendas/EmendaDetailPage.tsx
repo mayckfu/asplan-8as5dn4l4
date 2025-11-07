@@ -8,6 +8,7 @@ import {
   DetailedAmendment,
   Despesa,
   Anexo,
+  Pendencia,
 } from '@/lib/mock-data'
 import { EmendaDetailHeader } from '@/components/emendas/EmendaDetailHeader'
 import { EmendaDadosTecnicos } from '@/components/emendas/EmendaDadosTecnicos'
@@ -28,6 +29,46 @@ const EmendaDetailPage = () => {
     const data = getAmendmentDetails(id || '')
     setEmendaData(data || null)
   }, [id])
+
+  const handleEmendaDataChange = (updatedEmenda: DetailedAmendment) => {
+    const pendencias: Pendencia[] = []
+    if (!updatedEmenda.portaria) {
+      pendencias.push({
+        id: `p-${id}-portaria`,
+        descricao: 'Falta Portaria',
+        dispensada: false,
+      })
+    }
+    if (!updatedEmenda.deliberacao_cie) {
+      pendencias.push({
+        id: `p-${id}-cie`,
+        descricao: 'Falta Deliberação CIE',
+        dispensada: false,
+      })
+    }
+    if (!updatedEmenda.objeto_emenda) {
+      pendencias.push({
+        id: `p-${id}-objeto`,
+        descricao: 'Falta Objeto',
+        dispensada: false,
+      })
+    }
+    if (!updatedEmenda.meta_operacional) {
+      pendencias.push({
+        id: `p-${id}-meta`,
+        descricao: 'Falta Meta Operacional',
+        dispensada: false,
+      })
+    }
+    if (updatedEmenda.total_gasto > updatedEmenda.total_repassado) {
+      pendencias.push({
+        id: `p-${id}-despesas`,
+        descricao: 'Despesas > Repasses',
+        dispensada: false,
+      })
+    }
+    setEmendaData({ ...updatedEmenda, pendencias })
+  }
 
   const handleDespesasChange = (newDespesas: Despesa[]) => {
     if (emendaData) {
@@ -75,7 +116,6 @@ const EmendaDetailPage = () => {
             <FileText className="mr-2 h-4 w-4" />
             Gerar Dossiê
           </Button>
-          <Button size="sm">Salvar Emenda</Button>
         </div>
       </div>
 
@@ -84,7 +124,10 @@ const EmendaDetailPage = () => {
         onPendencyClick={() => setActiveTab('checklist')}
       />
 
-      <EmendaDadosTecnicos emenda={emendaData} />
+      <EmendaDadosTecnicos
+        emenda={emendaData}
+        onEmendaChange={handleEmendaDataChange}
+      />
 
       <EmendaObjetoFinalidade description={emendaData.descricao_completa} />
 

@@ -112,6 +112,7 @@ export type DetailedAmendment = Amendment & {
   meta_operacional?: string
   destino_recurso?: string
   data_repasse?: string
+  valor_repasse?: number
   situacao_recurso?: string
   observacoes?: string
 }
@@ -232,17 +233,6 @@ export const amendments: Amendment[] = [
   }),
 ]
 
-const getPendenciasFromAmendment = (amendment: Amendment): string[] => {
-  const pendencias: string[] = []
-  if (!amendment.portaria) pendencias.push('Falta Portaria')
-  if (!amendment.deliberacao_cie) pendencias.push('Falta CIE')
-  if (!amendment.anexos_essenciais) pendencias.push('Sem Anexos Essenciais')
-  if (amendment.total_repassado <= 0) pendencias.push('Sem Repasses')
-  if (amendment.total_gasto > amendment.total_repassado)
-    pendencias.push('Despesas > Repasses')
-  return pendencias
-}
-
 const detailedAmendmentsData: Record<
   string,
   Omit<DetailedAmendment, keyof Amendment>
@@ -341,6 +331,7 @@ const detailedAmendmentsData: Record<
     destino_recurso:
       'Secretaria Municipal de Saúde de Lagarto — Diretoria de Atenção Especializada',
     data_repasse: '2025-07-17',
+    valor_repasse: 150000,
     situacao_recurso: 'Paga',
     observacoes:
       'Repasse executado conforme cronograma PMAE; aguardando relatório de execução.',
@@ -392,15 +383,11 @@ const detailedAmendmentsData: Record<
         criado_em: '2023-03-20 09:00',
       },
     ],
-    pendencias: [
-      { id: 'P2-1', descricao: 'Falta Portaria', dispensada: false },
-      {
-        id: 'P2-2',
-        descricao: 'Sem Anexos Essenciais',
-        dispensada: true,
-        justificativa: 'Anexos serão adicionados após a obra.',
-      },
-    ],
+    pendencias: [],
+    valor_repasse: 250000,
+    objeto_emenda: '',
+    meta_operacional:
+      'Aumentar em 20 leitos a capacidade de internação infantil.',
   },
   '4': {
     descricao_completa:
@@ -431,13 +418,10 @@ const detailedAmendmentsData: Record<
     ],
     anexos: [],
     historico: [],
-    pendencias: [
-      {
-        id: 'P4-1',
-        descricao: 'Despesas > Repasses',
-        dispensada: false,
-      },
-    ],
+    pendencias: [],
+    valor_repasse: 100000,
+    objeto_emenda: 'Aquisição de ambulância tipo A',
+    meta_operacional: '',
   },
 }
 
@@ -453,15 +437,57 @@ export const getAmendmentDetails = (
     despesas: [],
     anexos: [],
     historico: [],
-    pendencias: getPendenciasFromAmendment(baseAmendment).map((p, i) => ({
-      id: `P${id}-${i}`,
-      descricao: p,
-      dispensada: false,
-    })),
+    pendencias: [],
+    objeto_emenda:
+      id === '3' ? '' : 'Objeto de teste para emenda sem detalhes.',
+    meta_operacional:
+      id === '5' ? '' : 'Meta de teste para emenda sem detalhes.',
+    valor_repasse: baseAmendment.total_repassado,
   }
 
-  return {
+  const fullAmendmentData = {
     ...baseAmendment,
     ...details,
   }
+
+  const pendencias: Pendencia[] = []
+  if (!fullAmendmentData.portaria) {
+    pendencias.push({
+      id: `p-${id}-portaria`,
+      descricao: 'Falta Portaria',
+      dispensada: false,
+    })
+  }
+  if (!fullAmendmentData.deliberacao_cie) {
+    pendencias.push({
+      id: `p-${id}-cie`,
+      descricao: 'Falta Deliberação CIE',
+      dispensada: false,
+    })
+  }
+  if (!fullAmendmentData.objeto_emenda) {
+    pendencias.push({
+      id: `p-${id}-objeto`,
+      descricao: 'Falta Objeto',
+      dispensada: false,
+    })
+  }
+  if (!fullAmendmentData.meta_operacional) {
+    pendencias.push({
+      id: `p-${id}-meta`,
+      descricao: 'Falta Meta Operacional',
+      dispensada: false,
+    })
+  }
+  if (fullAmendmentData.total_gasto > fullAmendmentData.total_repassado) {
+    pendencias.push({
+      id: `p-${id}-despesas`,
+      descricao: 'Despesas > Repasses',
+      dispensada: false,
+    })
+  }
+
+  fullAmendmentData.pendencias = pendencias
+
+  return fullAmendmentData
 }
