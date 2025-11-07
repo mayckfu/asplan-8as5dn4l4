@@ -44,8 +44,13 @@ export const Header = () => {
             />
           </Button>
         )}
-        <Link to="/" className="flex items-center gap-3">
-          <img src="/asplan-logo.png" alt="ASPLAN Logo" className="h-7" />
+        <Link to="/" className="flex items-center">
+          <img
+            src="/asplan-logo.png"
+            alt=""
+            aria-hidden="true"
+            className="h-7 w-auto mr-2"
+          />
           <span className="font-semibold text-lg text-asplan-deep dark:text-neutral-200 hidden md:block">
             ASPLAN — Controle de Emendas Parlamentares
           </span>
