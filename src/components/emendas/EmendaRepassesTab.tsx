@@ -21,64 +21,107 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Repasse } from '@/lib/mock-data'
 import { formatCurrencyBRL } from '@/lib/utils'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+import { useToast } from '@/components/ui/use-toast'
+import { RepasseForm } from './RepasseForm'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 
 interface EmendaRepassesTabProps {
   repasses: Repasse[]
+  onRepassesChange: (repasses: Repasse[]) => void
 }
 
-export const EmendaRepassesTab = ({ repasses }: EmendaRepassesTabProps) => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+const statusVariant: Record<Repasse['status'], string> = {
+  REPASSADO: 'bg-success text-primary-foreground',
+  PENDENTE: 'bg-warning text-primary-foreground',
+  CANCELADO: 'bg-destructive text-destructive-foreground',
+}
+
+export const EmendaRepassesTab = ({
+  repasses,
+  onRepassesChange,
+}: EmendaRepassesTabProps) => {
+  const { toast } = useToast()
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [selectedRepasse, setSelectedRepasse] = useState<Repasse | null>(null)
 
   const sortedRepasses = [...repasses].sort(
     (a, b) => new Date(b.data).getTime() - new Date(a.data).getTime(),
   )
 
-  const handleEdit = (repasse: Repasse) => {
-    setSelectedRepasse(repasse)
-    setIsDialogOpen(true)
-  }
-
   const handleAddNew = () => {
     setSelectedRepasse(null)
-    setIsDialogOpen(true)
+    setIsFormOpen(true)
+  }
+
+  const handleEdit = (repasse: Repasse) => {
+    setSelectedRepasse(repasse)
+    setIsFormOpen(true)
+  }
+
+  const handleDelete = (repasse: Repasse) => {
+    setSelectedRepasse(repasse)
+    setIsDeleteOpen(true)
+  }
+
+  const handleConfirmDelete = () => {
+    if (selectedRepasse) {
+      onRepassesChange(repasses.filter((r) => r.id !== selectedRepasse.id))
+      toast({ title: 'Repasse excluído com sucesso!' })
+    }
+    setIsDeleteOpen(false)
+    setSelectedRepasse(null)
+  }
+
+  const handleFormSubmit = (repasse: Repasse) => {
+    if (selectedRepasse) {
+      onRepassesChange(repasses.map((r) => (r.id === repasse.id ? repasse : r)))
+      toast({ title: 'Repasse atualizado com sucesso!' })
+    } else {
+      onRepassesChange([...repasses, repasse])
+      toast({ title: 'Repasse adicionado com sucesso!' })
+    }
+    setIsFormOpen(false)
+    setSelectedRepasse(null)
   }
 
   return (
-    <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
-            Repasses Financeiros
-          </CardTitle>
-          <Button size="sm" onClick={handleAddNew}>
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Adicionar Repasse
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="relative overflow-x-auto">
+    <>
+      <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
+              Repasses Financeiros
+            </CardTitle>
+            <Button size="sm" onClick={handleAddNew}>
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Adicionar Repasse
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
           <Table>
             <TableHeader>
-              <TableRow className="sticky top-0 bg-background/90 backdrop-blur-sm z-10">
-                <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
-                  Data
-                </TableHead>
-                <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
-                  Fonte
-                </TableHead>
-                <TableHead className="text-right font-medium text-neutral-900 dark:text-neutral-200">
-                  Valor
-                </TableHead>
+              <TableRow>
+                <TableHead>Data</TableHead>
+                <TableHead>Fonte</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Valor</TableHead>
                 <TableHead>
                   <span className="sr-only">Ações</span>
                 </TableHead>
@@ -86,59 +129,81 @@ export const EmendaRepassesTab = ({ repasses }: EmendaRepassesTabProps) => {
             </TableHeader>
             <TableBody>
               {sortedRepasses.map((repasse) => (
-                <TableRow
-                  key={repasse.id}
-                  className="h-10 py-2 text-neutral-600 dark:text-neutral-400 odd:bg-white even:bg-neutral-50 hover:bg-neutral-100 dark:odd:bg-card dark:even:bg-muted/50 dark:hover:bg-muted"
-                >
+                <TableRow key={repasse.id}>
                   <TableCell>
                     {new Date(repasse.data).toLocaleDateString('pt-BR')}
                   </TableCell>
                   <TableCell>{repasse.fonte}</TableCell>
+                  <TableCell>
+                    <Badge className={cn(statusVariant[repasse.status])}>
+                      {repasse.status}
+                    </Badge>
+                  </TableCell>
                   <TableCell className="text-right tabular-nums">
                     {formatCurrencyBRL(repasse.valor)}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <DropdownMenuItem
-                              onClick={() => handleEdit(repasse)}
-                            >
-                              <Edit className="mr-2 h-4 w-4" /> Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">
-                              <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Mais ações</p>
-                      </TooltipContent>
-                    </Tooltip>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => handleEdit(repasse)}>
+                          <Edit className="mr-2 h-4 w-4" /> Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onClick={() => handleDelete(repasse)}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-        </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {selectedRepasse ? 'Editar Repasse' : 'Adicionar Repasse'}
-              </DialogTitle>
-            </DialogHeader>
-            <p>Formulário de repasse aqui.</p>
-          </DialogContent>
-        </Dialog>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {selectedRepasse ? 'Editar Repasse' : 'Adicionar Repasse'}
+            </DialogTitle>
+            <DialogDescription>
+              Preencha os detalhes do repasse financeiro.
+            </DialogDescription>
+          </DialogHeader>
+          <RepasseForm
+            repasse={selectedRepasse}
+            onSubmit={handleFormSubmit}
+            onCancel={() => setIsFormOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este repasse? Esta ação não pode
+              ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete}>
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }

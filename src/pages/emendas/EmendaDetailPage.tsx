@@ -9,6 +9,7 @@ import {
   Despesa,
   Anexo,
   Pendencia,
+  Repasse,
 } from '@/lib/mock-data'
 import { EmendaDetailHeader } from '@/components/emendas/EmendaDetailHeader'
 import { EmendaDadosTecnicos } from '@/components/emendas/EmendaDadosTecnicos'
@@ -72,7 +73,26 @@ const EmendaDetailPage = () => {
 
   const handleDespesasChange = (newDespesas: Despesa[]) => {
     if (emendaData) {
-      setEmendaData({ ...emendaData, despesas: newDespesas })
+      const newTotalGasto = newDespesas.reduce((sum, d) => sum + d.valor, 0)
+      setEmendaData({
+        ...emendaData,
+        despesas: newDespesas,
+        total_gasto: newTotalGasto,
+      })
+    }
+  }
+
+  const handleRepassesChange = (newRepasses: Repasse[]) => {
+    if (emendaData) {
+      const newTotalRepassado = newRepasses.reduce(
+        (sum, r) => (r.status === 'REPASSADO' ? sum + r.valor : sum),
+        0,
+      )
+      setEmendaData({
+        ...emendaData,
+        repasses: newRepasses,
+        total_repassado: newTotalRepassado,
+      })
     }
   }
 
@@ -145,7 +165,10 @@ const EmendaDetailPage = () => {
           <TabsTrigger value="historico">Histórico</TabsTrigger>
         </TabsList>
         <TabsContent value="repasses" className="mt-4">
-          <EmendaRepassesTab repasses={emendaData.repasses} />
+          <EmendaRepassesTab
+            repasses={emendaData.repasses}
+            onRepassesChange={handleRepassesChange}
+          />
         </TabsContent>
         <TabsContent value="despesas" className="mt-4">
           <EmendaDespesasTab

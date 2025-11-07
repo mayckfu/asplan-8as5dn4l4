@@ -52,6 +52,8 @@ export type Repasse = {
   valor: number
   fonte: string
   comprovante_url?: string
+  status: 'REPASSADO' | 'PENDENTE' | 'CANCELADO'
+  observacoes?: string
 }
 
 export type Despesa = {
@@ -246,6 +248,8 @@ const detailedAmendmentsData: Record<
         data: '2023-02-01',
         valor: 150000,
         fonte: 'Fundo Nacional de Saúde',
+        status: 'REPASSADO',
+        observacoes: 'Repasse integral referente à portaria X.',
       },
     ],
     despesas: [
@@ -345,6 +349,8 @@ const detailedAmendmentsData: Record<
         data: '2023-04-01',
         valor: 250000,
         fonte: 'Fundo Nacional de Saúde',
+        status: 'REPASSADO',
+        observacoes: 'Primeira parcela do repasse.',
       },
     ],
     despesas: [
@@ -398,6 +404,8 @@ const detailedAmendmentsData: Record<
         data: '2024-04-15',
         valor: 100000,
         fonte: 'Fundo Municipal de Saúde',
+        status: 'REPASSADO',
+        observacoes: 'Repasse parcial para aquisição.',
       },
     ],
     despesas: [
