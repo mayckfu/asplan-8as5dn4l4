@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, FileText, BarChart2, Shield } from 'lucide-react'
+import { Home, FileText, BarChart2, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -17,7 +17,7 @@ const navLinks = [
   { href: '/', label: 'Dashboard', icon: Home },
   { href: '/emendas', label: 'Emendas', icon: FileText },
   { href: '/relatorios', label: 'Relatórios', icon: BarChart2 },
-  { href: '/admin', label: 'Admin', icon: Shield },
+  { href: '/admin', label: 'Admin', icon: Settings },
 ]
 
 export const AppSidebar = () => {
@@ -30,7 +30,8 @@ export const AppSidebar = () => {
       <SidebarHeader className="justify-center">
         <img
           src="/asplan-logo.png"
-          alt="ASPLAN Logo"
+          alt=""
+          aria-hidden="true"
           className={cn('transition-all', isExpanded ? 'h-7' : 'h-6')}
         />
       </SidebarHeader>
