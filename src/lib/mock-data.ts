@@ -1,16 +1,49 @@
+export const TipoRecurso = {
+  CUSTEIO_MAC: 'Custeio MAC',
+  CUSTEIO_PAP: 'Custeio PAP',
+  EQUIPAMENTO: 'Equipamento',
+  INCREMENTO_MAC: 'Incremento MAC',
+  INCREMENTO_PAP: 'Incremento PAP',
+  OUTRO: 'Outro',
+} as const
+
+export const SituacaoOficial = {
+  PAGA: 'Paga',
+  EMPENHADA_AGUARDANDO_FORMALIZACAO: 'Empenhada (Aguardando Formalização)',
+  FAVORAVEL: 'Favorável',
+  EM_ANALISE: 'Em Análise',
+  LIBERADO_PAGAMENTO_FNS: 'Liberado Pagamento FNS',
+  OUTRA: 'Outra',
+} as const
+
+export const StatusInterno = {
+  RASCUNHO: 'Rascunho',
+  EM_EXECUCAO: 'Em Execução',
+  PAGA_SEM_DOCUMENTOS: 'Paga (Sem Documentos)',
+  PAGA_COM_PENDENCIAS: 'Paga (Com Pendências)',
+  CONCLUIDA: 'Concluída',
+} as const
+
+export type TipoRecursoEnum = keyof typeof TipoRecurso
+export type SituacaoOficialEnum = keyof typeof SituacaoOficial
+export type StatusInternoEnum = keyof typeof StatusInterno
+
 export type Amendment = {
   id: string
-  title: string
-  officialStatus: 'Pendente' | 'Aprovado' | 'Rejeitado' | 'Em Análise'
-  internalStatus: 'Rascunho' | 'Em Revisão' | 'Aguardando Repasse' | 'Concluído'
-  responsible: string
-  creationDate: string
-  totalValue: number
-  description: string
-  origin: string
-  type: string
-  observations: string
-  lastUpdate: string
+  tipo: string
+  tipo_recurso: TipoRecursoEnum
+  autor: string
+  numero_emenda: string
+  numero_proposta: string
+  valor_total: number
+  situacao: SituacaoOficialEnum
+  status_interno: StatusInternoEnum
+  portaria: string | null
+  deliberacao_cie: string | null
+  created_at: string
+  total_repassado: number
+  total_gasto: number
+  anexos_essenciais: boolean
 }
 
 export const kpiData = [
@@ -22,81 +55,123 @@ export const kpiData = [
 
 export const amendments: Amendment[] = [
   {
-    id: 'EM12345',
-    title: 'Projeto de Infraestrutura Urbana',
-    officialStatus: 'Aprovado',
-    internalStatus: 'Concluído',
-    responsible: 'Ana Silva',
-    creationDate: '2023-01-15',
-    totalValue: 500000,
-    description:
-      'Melhoria da pavimentação e iluminação pública no bairro central.',
-    origin: 'Emenda Parlamentar Federal',
-    type: 'Investimento',
-    observations: 'Projeto concluído com sucesso dentro do prazo.',
-    lastUpdate: '2023-12-20',
+    id: '1',
+    tipo: 'Individual',
+    tipo_recurso: 'CUSTEIO_MAC',
+    autor: 'Dep. João da Silva',
+    numero_emenda: '20231234-1',
+    numero_proposta: 'PROPOSTA001',
+    valor_total: 150000,
+    situacao: 'PAGA',
+    status_interno: 'CONCLUIDA',
+    portaria: 'PORTARIA-123',
+    deliberacao_cie: 'CIE-456',
+    created_at: '2023-01-15',
+    total_repassado: 150000,
+    total_gasto: 145000,
+    anexos_essenciais: true,
   },
   {
-    id: 'EM67890',
-    title: 'Aquisição de Equipamentos Hospitalares',
-    officialStatus: 'Em Análise',
-    internalStatus: 'Em Revisão',
-    responsible: 'Carlos Pereira',
-    creationDate: '2023-03-22',
-    totalValue: 750000,
-    description: 'Compra de novos equipamentos para o hospital municipal.',
-    origin: 'Emenda de Bancada Estadual',
-    type: 'Custeio',
-    observations: 'Aguardando parecer técnico da secretaria de saúde.',
-    lastUpdate: '2024-05-10',
+    id: '2',
+    tipo: 'Bancada',
+    tipo_recurso: 'EQUIPAMENTO',
+    autor: 'Dep. Maria Oliveira',
+    numero_emenda: '20235678-2',
+    numero_proposta: 'PROPOSTA002',
+    valor_total: 500000,
+    situacao: 'EM_ANALISE',
+    status_interno: 'EM_EXECUCAO',
+    portaria: null,
+    deliberacao_cie: 'CIE-789',
+    created_at: '2023-03-20',
+    total_repassado: 250000,
+    total_gasto: 100000,
+    anexos_essenciais: false,
   },
   {
-    id: 'EM54321',
-    title: 'Reforma de Escolas Municipais',
-    officialStatus: 'Pendente',
-    internalStatus: 'Rascunho',
-    responsible: 'Mariana Costa',
-    creationDate: '2024-02-10',
-    totalValue: 1200000,
-    description:
-      'Reforma estrutural e modernização de 5 escolas da rede municipal.',
-    origin: 'Emenda Parlamentar Federal',
-    type: 'Investimento',
-    observations: 'Documentação inicial em fase de elaboração.',
-    lastUpdate: '2024-04-30',
+    id: '3',
+    tipo: 'Comissão',
+    tipo_recurso: 'INCREMENTO_PAP',
+    autor: 'Sen. Carlos Santos',
+    numero_emenda: '20241122-3',
+    numero_proposta: 'PROPOSTA003',
+    valor_total: 300000,
+    situacao: 'FAVORAVEL',
+    status_interno: 'RASCUNHO',
+    portaria: 'PORTARIA-321',
+    deliberacao_cie: null,
+    created_at: '2024-02-10',
+    total_repassado: 0,
+    total_gasto: 0,
+    anexos_essenciais: true,
   },
   {
-    id: 'EM09876',
-    title: 'Incentivo ao Esporte Amador',
-    officialStatus: 'Rejeitado',
-    internalStatus: 'Concluído',
-    responsible: 'João Santos',
-    creationDate: '2023-05-01',
-    totalValue: 150000,
-    description: 'Apoio a projetos de esporte em comunidades carentes.',
-    origin: 'Emenda Individual Municipal',
-    type: 'Custeio',
-    observations: 'Projeto não atendeu aos critérios de elegibilidade.',
-    lastUpdate: '2023-06-15',
+    id: '4',
+    tipo: 'Individual',
+    tipo_recurso: 'CUSTEIO_PAP',
+    autor: 'Dep. Ana Pereira',
+    numero_emenda: '20243344-4',
+    numero_proposta: 'PROPOSTA004',
+    valor_total: 200000,
+    situacao: 'EMPENHADA_AGUARDANDO_FORMALIZACAO',
+    status_interno: 'PAGA_COM_PENDENCIAS',
+    portaria: 'PORTARIA-444',
+    deliberacao_cie: 'CIE-555',
+    created_at: '2024-04-01',
+    total_repassado: 100000,
+    total_gasto: 110000,
+    anexos_essenciais: true,
   },
   {
-    id: 'EM11223',
-    title: 'Digitalização de Acervo Público',
-    officialStatus: 'Aprovado',
-    internalStatus: 'Aguardando Repasse',
-    responsible: 'Ana Silva',
-    creationDate: '2023-08-19',
-    totalValue: 300000,
-    description: 'Modernização do arquivo histórico da cidade.',
-    origin: 'Emenda de Bancada Estadual',
-    type: 'Investimento',
-    observations: 'Aguardando liberação dos recursos pelo governo estadual.',
-    lastUpdate: '2024-03-05',
+    id: '5',
+    tipo: 'Bancada',
+    tipo_recurso: 'OUTRO',
+    autor: 'Dep. João da Silva',
+    numero_emenda: '20245566-5',
+    numero_proposta: 'PROPOSTA005',
+    valor_total: 750000,
+    situacao: 'LIBERADO_PAGAMENTO_FNS',
+    status_interno: 'PAGA_SEM_DOCUMENTOS',
+    portaria: null,
+    deliberacao_cie: null,
+    created_at: '2024-05-05',
+    total_repassado: 750000,
+    total_gasto: 750000,
+    anexos_essenciais: false,
   },
+  ...Array.from({ length: 15 }, (_, i) => ({
+    id: `${i + 6}`,
+    tipo: i % 2 === 0 ? 'Individual' : 'Bancada',
+    tipo_recurso: 'CUSTEIO_MAC' as TipoRecursoEnum,
+    autor: 'Dep. Fulano de Tal',
+    numero_emenda: `202499${i}${i}`,
+    numero_proposta: `PROPOSTA${100 + i}`,
+    valor_total: 100000 + i * 5000,
+    situacao: 'PAGA' as SituacaoOficialEnum,
+    status_interno: 'CONCLUIDA' as StatusInternoEnum,
+    portaria: `PORTARIA-${100 + i}`,
+    deliberacao_cie: `CIE-${200 + i}`,
+    created_at: `2023-06-${10 + i}`,
+    total_repassado: 100000 + i * 5000,
+    total_gasto: 90000 + i * 5000,
+    anexos_essenciais: true,
+  })),
 ]
 
 export const amendmentDetails = {
-  ...amendments[0],
+  id: 'EM12345',
+  title: 'Projeto de Infraestrutura Urbana',
+  officialStatus: 'Aprovado',
+  internalStatus: 'Concluído',
+  responsible: 'Ana Silva',
+  creationDate: '2023-01-15',
+  totalValue: 500000,
+  description:
+    'Melhoria da pavimentação e iluminação pública no bairro central.',
+  origin: 'Emenda Parlamentar Federal',
+  type: 'Investimento',
+  observations: 'Projeto concluído com sucesso dentro do prazo.',
+  lastUpdate: '2023-12-20',
   transfers: [
     {
       id: 'REP001',
