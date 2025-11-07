@@ -1,0 +1,109 @@
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '@/components/ui/sheet'
+import { Separator } from '@/components/ui/separator'
+import { Despesa } from '@/lib/mock-data'
+import { StatusBadge } from '@/components/StatusBadge'
+
+interface ExpenseDossierDrawerProps {
+  expense: Despesa | null
+  isOpen: boolean
+  onOpenChange: (isOpen: boolean) => void
+}
+
+const DetailItem = ({
+  label,
+  children,
+}: {
+  label: string
+  children: React.ReactNode
+}) => (
+  <div>
+    <p className="text-sm font-medium text-muted-foreground">{label}</p>
+    <p className="text-base">{children || '-'}</p>
+  </div>
+)
+
+export const ExpenseDossierDrawer = ({
+  expense,
+  isOpen,
+  onOpenChange,
+}: ExpenseDossierDrawerProps) => {
+  if (!expense) return null
+
+  return (
+    <Sheet open={isOpen} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>Dossiê da Despesa: {expense.id}</SheetTitle>
+          <SheetDescription>{expense.descricao}</SheetDescription>
+        </SheetHeader>
+        <div className="py-6 space-y-6">
+          <div className="space-y-4">
+            <h4 className="font-semibold">Detalhes da Despesa</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <DetailItem label="Valor">
+                {expense.valor.toLocaleString('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL',
+                })}
+              </DetailItem>
+              <DetailItem label="Data">
+                {new Date(expense.data).toLocaleDateString('pt-BR')}
+              </DetailItem>
+              <DetailItem label="Categoria">{expense.categoria}</DetailItem>
+              <DetailItem label="Status">
+                <StatusBadge status={expense.status_execucao as any} />
+              </DetailItem>
+              <DetailItem label="Fornecedor">
+                {expense.fornecedor_nome}
+              </DetailItem>
+              <DetailItem label="Unidade de Destino">
+                {expense.unidade_destino}
+              </DetailItem>
+            </div>
+          </div>
+          <Separator />
+          <div className="space-y-4">
+            <h4 className="font-semibold">Responsáveis</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <DetailItem label="Lançado por">
+                {expense.registrada_por}
+              </DetailItem>
+              <DetailItem label="Autorizado por">
+                {expense.autorizada_por}
+              </DetailItem>
+              <DetailItem label="Executado por">
+                {expense.responsavel_execucao}
+              </DetailItem>
+            </div>
+          </div>
+          <Separator />
+          <div className="space-y-4">
+            <h4 className="font-semibold">Anexos</h4>
+            <p className="text-sm text-muted-foreground">
+              Nota Fiscal:{' '}
+              <a
+                href={expense.nota_fiscal_url || '#'}
+                className="text-primary hover:underline"
+              >
+                {expense.nota_fiscal_url ? 'Visualizar' : 'N/A'}
+              </a>
+            </p>
+          </div>
+          <Separator />
+          <div className="space-y-4">
+            <h4 className="font-semibold">Histórico de Status</h4>
+            <p className="text-sm text-muted-foreground">
+              Histórico não implementado.
+            </p>
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  )
+}
