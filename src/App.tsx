@@ -10,6 +10,12 @@ import EmendasListPage from './pages/emendas/EmendasListPage'
 import EmendaDetailPage from './pages/emendas/EmendaDetailPage'
 import RelatoriosPage from './pages/RelatoriosPage'
 import ImportacaoPage from './pages/ImportacaoPage'
+import ApsPage from './pages/ApsPage'
+import SaudeBucalPage from './pages/SaudeBucalPage'
+import IndicadoresPage from './pages/IndicadoresPage'
+import ProducaoEsusPage from './pages/ProducaoEsusPage'
+import MapaPage from './pages/MapaPage'
+import AdminPage from './pages/AdminPage'
 
 const App = () => (
   <BrowserRouter
@@ -24,8 +30,14 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/emendas" element={<EmendasListPage />} />
             <Route path="/emenda/:id" element={<EmendaDetailPage />} />
+            <Route path="/aps" element={<ApsPage />} />
+            <Route path="/saude-bucal" element={<SaudeBucalPage />} />
+            <Route path="/indicadores" element={<IndicadoresPage />} />
+            <Route path="/producao-esus" element={<ProducaoEsusPage />} />
+            <Route path="/mapa" element={<MapaPage />} />
             <Route path="/relatorios" element={<RelatoriosPage />} />
             <Route path="/importacao" element={<ImportacaoPage />} />
+            <Route path="/admin" element={<AdminPage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

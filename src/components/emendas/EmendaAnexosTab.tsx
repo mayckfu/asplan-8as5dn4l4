@@ -57,22 +57,26 @@ export const EmendaAnexosTab = ({ anexos }: EmendaAnexosTabProps) => {
   }
 
   return (
-    <Card className="rounded-2xl shadow-sm border border-neutral-200">
+    <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
       <CardHeader>
         <div className="flex justify-between items-center">
-          <CardTitle className="font-medium text-neutral-800">
+          <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
             Anexos ({anexos.length})
           </CardTitle>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="p-4 border rounded-lg space-y-4">
-          <h4 className="font-semibold text-neutral-800">Novo Anexo</h4>
+          <h4 className="font-semibold text-neutral-900 dark:text-neutral-200">
+            Novo Anexo
+          </h4>
           <FileUpload onFilesAccepted={setFilesToUpload} />
           {filesToUpload.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
               <div className="space-y-2">
-                <Label className="text-neutral-600">Tipo de Anexo</Label>
+                <Label className="text-neutral-600 dark:text-neutral-400">
+                  Tipo de Anexo
+                </Label>
                 <Select
                   value={anexoType}
                   onValueChange={(v) => setAnexoType(v as AnexoType)}
@@ -99,7 +103,10 @@ export const EmendaAnexosTab = ({ anexos }: EmendaAnexosTabProps) => {
                   checked={isEssential}
                   onCheckedChange={(c) => setIsEssential(Boolean(c))}
                 />
-                <Label htmlFor="essential" className="text-neutral-600">
+                <Label
+                  htmlFor="essential"
+                  className="text-neutral-600 dark:text-neutral-400"
+                >
                   Anexo essencial
                 </Label>
               </div>
@@ -111,7 +118,7 @@ export const EmendaAnexosTab = ({ anexos }: EmendaAnexosTabProps) => {
           )}
         </div>
         <div>
-          <h4 className="font-semibold mb-4 text-neutral-800">
+          <h4 className="font-semibold mb-4 text-neutral-900 dark:text-neutral-200">
             Anexos Enviados
           </h4>
           <ul className="space-y-2">
@@ -129,10 +136,10 @@ export const EmendaAnexosTab = ({ anexos }: EmendaAnexosTabProps) => {
                   <div className="flex items-center gap-3">
                     <Icon className="h-6 w-6 text-primary" />
                     <div>
-                      <p className="font-medium text-neutral-800">
+                      <p className="font-medium text-neutral-900 dark:text-neutral-200">
                         {anexo.titulo}
                       </p>
-                      <p className="text-xs text-neutral-600">
+                      <p className="text-xs text-neutral-600 dark:text-neutral-400">
                         Tipo: {anexo.tipo} | Enviado por {anexo.uploader} em{' '}
                         {new Date(anexo.created_at).toLocaleDateString('pt-BR')}
                       </p>

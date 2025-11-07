@@ -24,8 +24,12 @@ const DetailItem = ({
   children: React.ReactNode
 }) => (
   <div>
-    <p className="text-sm font-medium text-neutral-600">{label}</p>
-    <p className="text-base text-neutral-800">{children || '-'}</p>
+    <p className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
+      {label}
+    </p>
+    <p className="text-base text-neutral-900 dark:text-neutral-200">
+      {children || '-'}
+    </p>
   </div>
 )
 
@@ -40,16 +44,16 @@ export const ExpenseDossierDrawer = ({
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="text-neutral-800">
+          <SheetTitle className="text-neutral-900 dark:text-neutral-200">
             Dossiê da Despesa: {expense.id}
           </SheetTitle>
-          <SheetDescription className="text-neutral-600">
+          <SheetDescription className="text-neutral-600 dark:text-neutral-400">
             {expense.descricao}
           </SheetDescription>
         </SheetHeader>
         <div className="py-6 space-y-6">
           <div className="space-y-4">
-            <h4 className="font-semibold text-neutral-800">
+            <h4 className="font-semibold text-neutral-900 dark:text-neutral-200">
               Detalhes da Despesa
             </h4>
             <div className="grid grid-cols-2 gap-4">
@@ -75,7 +79,9 @@ export const ExpenseDossierDrawer = ({
           </div>
           <Separator />
           <div className="space-y-4">
-            <h4 className="font-semibold text-neutral-800">Responsáveis</h4>
+            <h4 className="font-semibold text-neutral-900 dark:text-neutral-200">
+              Responsáveis
+            </h4>
             <div className="grid grid-cols-2 gap-4">
               <DetailItem label="Lançado por">
                 {expense.registrada_por}
@@ -90,8 +96,10 @@ export const ExpenseDossierDrawer = ({
           </div>
           <Separator />
           <div className="space-y-4">
-            <h4 className="font-semibold text-neutral-800">Anexos</h4>
-            <p className="text-sm text-neutral-600">
+            <h4 className="font-semibold text-neutral-900 dark:text-neutral-200">
+              Anexos
+            </h4>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400">
               Nota Fiscal:{' '}
               <a
                 href={expense.nota_fiscal_url || '#'}
@@ -103,10 +111,10 @@ export const ExpenseDossierDrawer = ({
           </div>
           <Separator />
           <div className="space-y-4">
-            <h4 className="font-semibold text-neutral-800">
+            <h4 className="font-semibold text-neutral-900 dark:text-neutral-200">
               Histórico de Status
             </h4>
-            <p className="text-sm text-neutral-600">
+            <p className="text-sm text-neutral-600 dark:text-neutral-400">
               Histórico não implementado.
             </p>
           </div>

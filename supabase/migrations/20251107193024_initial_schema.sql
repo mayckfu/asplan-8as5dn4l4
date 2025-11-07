@@ -204,7 +204,7 @@ ORDER BY i.nome, s.data;
 -- =============================================
 
 CREATE OR REPLACE FUNCTION public.log_changes()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER AS $
 DECLARE
     user_id uuid := auth.uid();
     details jsonb;
@@ -227,7 +227,7 @@ BEGIN
     END IF;
     RETURN NULL;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Apply audit triggers to critical tables
 CREATE TRIGGER series_indicadores_audit AFTER INSERT OR UPDATE OR DELETE ON public.series_indicadores FOR EACH ROW EXECUTE FUNCTION public.log_changes();
@@ -239,13 +239,13 @@ CREATE TRIGGER indicadores_audit AFTER INSERT OR UPDATE OR DELETE ON public.indi
 -- SECURITY & RLS
 -- =============================================
 
-CREATE OR REPLACE FUNCTION public.get_my_claim(claim TEXT) RETURNS TEXT AS $$
+CREATE OR REPLACE FUNCTION public.get_my_claim(claim TEXT) RETURNS TEXT AS $
     SELECT nullif(current_setting('request.jwt.claims', true)::jsonb ->> claim, '')::TEXT;
-$$ LANGUAGE sql STABLE;
+$ LANGUAGE sql STABLE;
 
-CREATE OR REPLACE FUNCTION public.get_my_role() RETURNS public.papel_usuario AS $$
+CREATE OR REPLACE FUNCTION public.get_my_role() RETURNS public.papel_usuario AS $
     SELECT public.get_my_claim('role')::public.papel_usuario;
-$$ LANGUAGE sql STABLE;
+$ LANGUAGE sql STABLE;
 
 -- Enable RLS for all tables
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
@@ -298,3 +298,4 @@ USING ( bucket_id = 'anexos' AND auth.role() = 'authenticated' );
 
 CREATE POLICY "Allow write access to anexos for tecnico/admin" ON storage.objects FOR INSERT, UPDATE, DELETE
 USING ( bucket_id = 'anexos' AND get_my_role() IN ('admin', 'tecnico') );
+

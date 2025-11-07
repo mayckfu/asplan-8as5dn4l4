@@ -301,7 +301,7 @@ const EmendasListPage = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-neutral-800">
+        <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-200">
           Lista de Emendas
         </h1>
         <div className="flex items-center gap-2">
@@ -325,12 +325,12 @@ const EmendasListPage = () => {
         </div>
       </div>
 
-      <Card className="rounded-2xl shadow-sm border border-neutral-200">
+      <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
         <CardHeader>
           <Collapsible defaultOpen>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <CardTitle className="font-medium text-neutral-800">
+                <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
                   Filtros
                 </CardTitle>
                 <DropdownMenu>
@@ -378,28 +378,28 @@ const EmendasListPage = () => {
             <Table>
               <TableHeader>
                 <TableRow className="sticky top-0 bg-background/90 backdrop-blur-sm z-10">
-                  <TableHead className="font-medium text-neutral-800">
+                  <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
                     Tipo
                   </TableHead>
-                  <TableHead className="font-medium text-neutral-800">
+                  <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
                     Autor
                   </TableHead>
-                  <TableHead className="font-medium text-neutral-800">
+                  <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
                     Nº Emenda
                   </TableHead>
-                  <TableHead className="font-medium text-neutral-800">
+                  <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
                     Nº Proposta
                   </TableHead>
-                  <TableHead className="text-right font-medium text-neutral-800">
+                  <TableHead className="text-right font-medium text-neutral-900 dark:text-neutral-200">
                     Valor Total
                   </TableHead>
-                  <TableHead className="font-medium text-neutral-800">
+                  <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
                     Situação Oficial
                   </TableHead>
-                  <TableHead className="font-medium text-neutral-800">
+                  <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
                     Status Interno
                   </TableHead>
-                  <TableHead className="font-medium text-neutral-800">
+                  <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
                     Pendências
                   </TableHead>
                   <TableHead>
@@ -411,7 +411,7 @@ const EmendasListPage = () => {
                 {paginatedData.map((amendment) => (
                   <TableRow
                     key={amendment.id}
-                    className="h-10 py-2 cursor-pointer odd:bg-white even:bg-neutral-50 hover:bg-neutral-100 dark:odd:bg-card dark:even:bg-muted/50 dark:hover:bg-muted text-neutral-600"
+                    className="h-10 py-2 cursor-pointer odd:bg-white even:bg-neutral-50 hover:bg-neutral-100 dark:odd:bg-card dark:even:bg-muted/50 dark:hover:bg-muted text-neutral-600 dark:text-neutral-400"
                     onClick={() => navigate(`/emenda/${amendment.id}`)}
                   >
                     <TableCell>{amendment.tipo}</TableCell>

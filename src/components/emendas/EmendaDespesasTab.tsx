@@ -52,10 +52,10 @@ export const EmendaDespesasTab = ({ despesas }: EmendaDespesasTabProps) => {
 
   return (
     <>
-      <Card className="rounded-2xl shadow-sm border border-neutral-200">
+      <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
         <CardHeader>
           <div className="flex justify-between items-center mb-4">
-            <CardTitle className="font-medium text-neutral-800">
+            <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
               Despesas
             </CardTitle>
             <Button size="sm">
@@ -85,17 +85,17 @@ export const EmendaDespesasTab = ({ despesas }: EmendaDespesasTabProps) => {
           <div className="relative overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="sticky top-0 bg-card/90 backdrop-blur-sm z-10">
-                  <TableHead className="font-medium text-neutral-800">
+                <TableRow className="sticky top-0 bg-background/90 backdrop-blur-sm z-10">
+                  <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
                     Data
                   </TableHead>
-                  <TableHead className="font-medium text-neutral-800">
+                  <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
                     Descrição
                   </TableHead>
-                  <TableHead className="font-medium text-neutral-800">
+                  <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
                     Status
                   </TableHead>
-                  <TableHead className="text-right font-medium text-neutral-800">
+                  <TableHead className="text-right font-medium text-neutral-900 dark:text-neutral-200">
                     Valor
                   </TableHead>
                   <TableHead>
@@ -107,7 +107,7 @@ export const EmendaDespesasTab = ({ despesas }: EmendaDespesasTabProps) => {
                 {despesas.map((despesa) => (
                   <TableRow
                     key={despesa.id}
-                    className="h-10 py-2 text-neutral-600 odd:bg-white even:bg-neutral-50 hover:bg-neutral-100 dark:odd:bg-card dark:even:bg-muted/50 dark:hover:bg-muted"
+                    className="h-10 py-2 text-neutral-600 dark:text-neutral-400 odd:bg-white even:bg-neutral-50 hover:bg-neutral-100 dark:odd:bg-card dark:even:bg-muted/50 dark:hover:bg-muted"
                   >
                     <TableCell>
                       {new Date(despesa.data).toLocaleDateString('pt-BR')}

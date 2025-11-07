@@ -1,24 +1,17 @@
 import { useState, useEffect } from 'react'
 
-const MOBILE_BREAKPOINT = 768 // md breakpoint
-
-/**
- * Custom hook to check if the user is on a mobile device
- * @returns {boolean} - True if the user is on a mobile device, false otherwise
- */
-export function useIsMobile(): boolean {
-  const [isMobile, setIsMobile] = useState(false)
+export const useMediaQuery = (query: string) => {
+  const [matches, setMatches] = useState(false)
 
   useEffect(() => {
-    const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+    const media = window.matchMedia(query)
+    if (media.matches !== matches) {
+      setMatches(media.matches)
     }
+    const listener = () => setMatches(media.matches)
+    window.addEventListener('resize', listener)
+    return () => window.removeEventListener('resize', listener)
+  }, [matches, query])
 
-    checkScreenSize()
-    window.addEventListener('resize', checkScreenSize)
-
-    return () => window.removeEventListener('resize', checkScreenSize)
-  }, [])
-
-  return isMobile
+  return matches
 }

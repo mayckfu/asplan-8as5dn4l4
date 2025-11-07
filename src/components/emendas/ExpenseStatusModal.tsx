@@ -40,14 +40,14 @@ export const ExpenseStatusModal = ({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-neutral-800">
+          <DialogTitle className="text-neutral-900 dark:text-neutral-200">
             Alterar Status da Despesa
           </DialogTitle>
         </DialogHeader>
-        <div className="py-4 space-y-4 text-neutral-600">
+        <div className="py-4 space-y-4 text-neutral-600 dark:text-neutral-400">
           <p>
             Despesa:{' '}
-            <span className="font-semibold text-neutral-800">
+            <span className="font-semibold text-neutral-900 dark:text-neutral-200">
               {expense.descricao}
             </span>
           </p>

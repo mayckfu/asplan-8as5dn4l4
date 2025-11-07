@@ -33,7 +33,7 @@ import {
   getAmendmentDetails,
   DetailedAmendment,
 } from '@/lib/mock-data'
-import { formatCurrencyBRL } from '@/lib/utils'
+import { formatCurrencyBRL, formatPercent } from '@/lib/utils'
 
 const Index = () => {
   const dashboardData = useMemo(() => {
@@ -74,12 +74,12 @@ const Index = () => {
       },
       {
         title: 'Execução Média',
-        value: `${execucaoMedia.toFixed(1)}%`,
+        value: formatPercent(execucaoMedia),
         icon: Percent,
       },
       {
         title: 'Cobertura Média',
-        value: `${coberturaMedia.toFixed(1)}%`,
+        value: formatPercent(coberturaMedia),
         icon: Percent,
       },
     ]
@@ -187,22 +187,24 @@ const Index = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-neutral-800">Dashboard</h1>
+      <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-200">
+        Dashboard
+      </h1>
 
       <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
         {dashboardData.kpis.map((kpi) => (
           <Card
             key={kpi.title}
-            className="rounded-2xl shadow-sm border border-neutral-200"
+            className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800"
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs text-neutral-500">
+              <CardTitle className="text-xs text-neutral-500 dark:text-neutral-400">
                 {kpi.title}
               </CardTitle>
-              <kpi.icon className="h-5 w-5 text-neutral-600" />
+              <kpi.icon className="h-5 w-5 text-neutral-600 dark:text-neutral-300" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-semibold tabular-nums leading-tight text-neutral-800">
+              <div className="text-2xl font-semibold tabular-nums leading-tight text-neutral-900 dark:text-neutral-200">
                 {kpi.value}
               </div>
             </CardContent>
@@ -215,15 +217,15 @@ const Index = () => {
           .filter((alert) => alert.count > 0)
           .map((alert) => (
             <Link to={alert.link} key={alert.title}>
-              <Card className="rounded-2xl shadow-sm border border-neutral-200 hover:bg-destructive/10 transition-colors">
+              <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 hover:bg-warning/10 transition-colors">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-destructive">
+                  <CardTitle className="text-sm font-medium text-amber-700 dark:text-amber-500">
                     {alert.title}
                   </CardTitle>
-                  <alert.icon className="h-5 w-5 text-destructive" />
+                  <alert.icon className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-destructive tabular-nums">
+                  <div className="text-2xl font-bold text-amber-700 dark:text-amber-500 tabular-nums">
                     {alert.count}
                   </div>
                 </CardContent>
@@ -233,9 +235,9 @@ const Index = () => {
       </div>
 
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-        <Card className="rounded-2xl shadow-sm border border-neutral-200">
+        <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
           <CardHeader>
-            <CardTitle className="font-medium text-neutral-800">
+            <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
               Repasses e Despesas por Mês
             </CardTitle>
           </CardHeader>
@@ -270,9 +272,9 @@ const Index = () => {
             </ChartContainer>
           </CardContent>
         </Card>
-        <Card className="rounded-2xl shadow-sm border border-neutral-200">
+        <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
           <CardHeader>
-            <CardTitle className="font-medium text-neutral-800">
+            <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
               Gasto por Responsável
             </CardTitle>
           </CardHeader>
@@ -295,9 +297,9 @@ const Index = () => {
             </ChartContainer>
           </CardContent>
         </Card>
-        <Card className="rounded-2xl shadow-sm border border-neutral-200">
+        <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
           <CardHeader>
-            <CardTitle className="font-medium text-neutral-800">
+            <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
               Gasto por Unidade
             </CardTitle>
           </CardHeader>
@@ -320,9 +322,9 @@ const Index = () => {
             </ChartContainer>
           </CardContent>
         </Card>
-        <Card className="rounded-2xl shadow-sm border border-neutral-200">
+        <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
           <CardHeader>
-            <CardTitle className="font-medium text-neutral-800">
+            <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
               Gasto por Demanda
             </CardTitle>
           </CardHeader>

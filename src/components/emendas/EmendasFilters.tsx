@@ -142,7 +142,10 @@ export const EmendasFilters = ({
             checked={filters.comPortaria}
             onCheckedChange={handleCheckboxChange('comPortaria')}
           />
-          <Label htmlFor="comPortaria" className="text-neutral-600">
+          <Label
+            htmlFor="comPortaria"
+            className="text-neutral-600 dark:text-neutral-400"
+          >
             Com Portaria
           </Label>
         </div>
@@ -152,7 +155,10 @@ export const EmendasFilters = ({
             checked={filters.comCIE}
             onCheckedChange={handleCheckboxChange('comCIE')}
           />
-          <Label htmlFor="comCIE" className="text-neutral-600">
+          <Label
+            htmlFor="comCIE"
+            className="text-neutral-600 dark:text-neutral-400"
+          >
             Com Deliberação CIE
           </Label>
         </div>
@@ -162,7 +168,10 @@ export const EmendasFilters = ({
             checked={filters.comAnexos}
             onCheckedChange={handleCheckboxChange('comAnexos')}
           />
-          <Label htmlFor="comAnexos" className="text-neutral-600">
+          <Label
+            htmlFor="comAnexos"
+            className="text-neutral-600 dark:text-neutral-400"
+          >
             Com Anexos Essenciais
           </Label>
         </div>
@@ -172,7 +181,10 @@ export const EmendasFilters = ({
             checked={filters.apenasPendencias}
             onCheckedChange={handleCheckboxChange('apenasPendencias')}
           />
-          <Label htmlFor="apenasPendencias" className="text-neutral-600">
+          <Label
+            htmlFor="apenasPendencias"
+            className="text-neutral-600 dark:text-neutral-400"
+          >
             Apenas com pendências
           </Label>
         </div>

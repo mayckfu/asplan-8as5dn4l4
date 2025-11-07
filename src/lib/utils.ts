@@ -11,3 +11,15 @@ export function formatCurrencyBRL(value: number) {
     currency: 'BRL',
   }).format(value)
 }
+
+export function formatPercent(
+  value: number,
+  options: Intl.NumberFormatOptions = {},
+) {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'percent',
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+    ...options,
+  }).format(value / 100)
+}

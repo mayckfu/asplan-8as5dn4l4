@@ -310,7 +310,9 @@ const RelatoriosPage = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-neutral-800">Relatórios</h1>
+        <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-200">
+          Relatórios
+        </h1>
         <Button
           size="sm"
           variant="outline"
@@ -320,11 +322,11 @@ const RelatoriosPage = () => {
         </Button>
       </div>
 
-      <Card className="rounded-2xl shadow-sm border border-neutral-200">
+      <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
         <CardHeader>
           <Collapsible defaultOpen>
             <div className="flex items-center justify-between">
-              <CardTitle className="font-medium text-neutral-800">
+              <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
                 Filtros
               </CardTitle>
               <CollapsibleTrigger asChild>
@@ -346,9 +348,9 @@ const RelatoriosPage = () => {
       </Card>
 
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-        <Card className="rounded-2xl shadow-sm border border-neutral-200">
+        <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
           <CardHeader>
-            <CardTitle className="font-medium text-neutral-800">
+            <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
               Consolidado por Autor
             </CardTitle>
           </CardHeader>
@@ -386,9 +388,9 @@ const RelatoriosPage = () => {
           </CardFooter>
         </Card>
 
-        <Card className="rounded-2xl shadow-sm border border-neutral-200">
+        <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
           <CardHeader>
-            <CardTitle className="font-medium text-neutral-800">
+            <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
               Consolidado por Tipo de Recurso
             </CardTitle>
           </CardHeader>
@@ -439,9 +441,9 @@ const RelatoriosPage = () => {
           </CardFooter>
         </Card>
 
-        <Card className="rounded-2xl shadow-sm border border-neutral-200">
+        <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
           <CardHeader>
-            <CardTitle className="font-medium text-neutral-800">
+            <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
               Consolidado por Situação Oficial
             </CardTitle>
           </CardHeader>
@@ -481,9 +483,9 @@ const RelatoriosPage = () => {
           </CardFooter>
         </Card>
 
-        <Card className="rounded-2xl shadow-sm border border-neutral-200">
+        <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
           <CardHeader>
-            <CardTitle className="font-medium text-neutral-800">
+            <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
               Execução por Responsável (Lançamento)
             </CardTitle>
           </CardHeader>
@@ -521,9 +523,9 @@ const RelatoriosPage = () => {
           </CardFooter>
         </Card>
 
-        <Card className="rounded-2xl shadow-sm border border-neutral-200">
+        <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
           <CardHeader>
-            <CardTitle className="font-medium text-neutral-800">
+            <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
               Execução por Unidade
             </CardTitle>
           </CardHeader>
@@ -561,9 +563,9 @@ const RelatoriosPage = () => {
           </CardFooter>
         </Card>
 
-        <Card className="rounded-2xl shadow-sm border border-neutral-200">
+        <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
           <CardHeader>
-            <CardTitle className="font-medium text-neutral-800">
+            <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
               Execução por Demanda
             </CardTitle>
           </CardHeader>
@@ -601,9 +603,9 @@ const RelatoriosPage = () => {
           </CardFooter>
         </Card>
 
-        <Card className="lg:col-span-2 rounded-2xl shadow-sm border border-neutral-200">
+        <Card className="lg:col-span-2 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
           <CardHeader>
-            <CardTitle className="font-medium text-neutral-800">
+            <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
               Status de Execução das Despesas
             </CardTitle>
           </CardHeader>

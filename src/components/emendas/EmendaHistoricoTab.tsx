@@ -19,9 +19,9 @@ export const EmendaHistoricoTab = ({ historico }: EmendaHistoricoTabProps) => {
   )
 
   return (
-    <Card className="rounded-2xl shadow-sm border border-neutral-200">
+    <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
       <CardHeader>
-        <CardTitle className="font-medium text-neutral-800">
+        <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
           Histórico de Alterações
         </CardTitle>
       </CardHeader>
@@ -29,17 +29,17 @@ export const EmendaHistoricoTab = ({ historico }: EmendaHistoricoTabProps) => {
         <div className="relative overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="sticky top-0 bg-card/90 backdrop-blur-sm z-10">
-                <TableHead className="font-medium text-neutral-800">
+              <TableRow className="sticky top-0 bg-background/90 backdrop-blur-sm z-10">
+                <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
                   Data/Hora
                 </TableHead>
-                <TableHead className="font-medium text-neutral-800">
+                <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
                   Usuário
                 </TableHead>
-                <TableHead className="font-medium text-neutral-800">
+                <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
                   Evento
                 </TableHead>
-                <TableHead className="font-medium text-neutral-800">
+                <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
                   Detalhes
                 </TableHead>
               </TableRow>
@@ -48,7 +48,7 @@ export const EmendaHistoricoTab = ({ historico }: EmendaHistoricoTabProps) => {
               {sortedHistory.map((h) => (
                 <TableRow
                   key={h.id}
-                  className="h-10 py-2 text-neutral-600 odd:bg-white even:bg-neutral-50 hover:bg-neutral-100 dark:odd:bg-card dark:even:bg-muted/50 dark:hover:bg-muted"
+                  className="h-10 py-2 text-neutral-600 dark:text-neutral-400 odd:bg-white even:bg-neutral-50 hover:bg-neutral-100 dark:odd:bg-card dark:even:bg-muted/50 dark:hover:bg-muted"
                 >
                   <TableCell>
                     {new Date(h.criado_em).toLocaleString('pt-BR')}

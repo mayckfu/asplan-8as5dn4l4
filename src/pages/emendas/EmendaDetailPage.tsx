@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -14,6 +15,7 @@ import { EmendaHistoricoTab } from '@/components/emendas/EmendaHistoricoTab'
 const EmendaDetailPage = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [activeTab, setActiveTab] = useState('resumo')
 
   const emenda = getAmendmentDetails(id || '')
 
@@ -24,10 +26,10 @@ const EmendaDetailPage = () => {
   if (!emenda) {
     return (
       <div className="text-center py-10">
-        <h2 className="text-2xl font-bold text-neutral-800">
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-200">
           Emenda não encontrada
         </h2>
-        <p className="text-neutral-600">
+        <p className="text-neutral-600 dark:text-neutral-400">
           A emenda com o ID "{id}" não foi encontrada.
         </p>
         <Button onClick={() => navigate('/emendas')} className="mt-4">
@@ -49,7 +51,7 @@ const EmendaDetailPage = () => {
           <ArrowLeft className="h-4 w-4" />
           <span className="sr-only">Voltar</span>
         </Button>
-        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0 text-neutral-800">
+        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0 text-neutral-900 dark:text-neutral-200">
           Detalhes da Emenda
         </h1>
         <div className="hidden items-center gap-2 md:ml-auto md:flex">
@@ -61,9 +63,17 @@ const EmendaDetailPage = () => {
         </div>
       </div>
 
-      <EmendaDetailHeader emenda={emenda} />
+      <EmendaDetailHeader
+        emenda={emenda}
+        onPendencyClick={() => setActiveTab('checklist')}
+      />
 
-      <Tabs defaultValue="resumo" className="w-full">
+      <Tabs
+        defaultValue="resumo"
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="w-full"
+      >
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
           <TabsTrigger value="resumo">Resumo</TabsTrigger>
           <TabsTrigger value="repasses">Repasses</TabsTrigger>

@@ -37,10 +37,10 @@ export const ColumnMapper = ({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-neutral-800">
+        <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-200">
           Mapeamento de Colunas
         </h3>
-        <p className="text-sm text-neutral-600">
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">
           Associe as colunas do seu arquivo CSV aos campos do sistema.
         </p>
       </div>
@@ -48,10 +48,10 @@ export const ColumnMapper = ({
         <Table>
           <TableHeader>
             <TableRow className="sticky top-0 bg-background/90 backdrop-blur-sm z-10">
-              <TableHead className="font-medium text-neutral-800">
+              <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
                 Campo do Sistema
               </TableHead>
-              <TableHead className="font-medium text-neutral-800">
+              <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
                 Coluna do CSV
               </TableHead>
             </TableRow>
@@ -62,7 +62,7 @@ export const ColumnMapper = ({
                 key={field.key}
                 className="h-10 py-2 odd:bg-white even:bg-neutral-50 hover:bg-neutral-100 dark:odd:bg-card dark:even:bg-muted/50 dark:hover:bg-muted"
               >
-                <TableCell className="font-medium text-neutral-600">
+                <TableCell className="font-medium text-neutral-600 dark:text-neutral-400">
                   {field.label}
                   {field.required && (
                     <span className="text-destructive ml-1">*</span>

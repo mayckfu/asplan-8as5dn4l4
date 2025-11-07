@@ -10,9 +10,9 @@ interface EmendaChecklistTabProps {
 
 export const EmendaChecklistTab = ({ pendencias }: EmendaChecklistTabProps) => {
   return (
-    <Card className="rounded-2xl shadow-sm border border-neutral-200">
+    <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
       <CardHeader>
-        <CardTitle className="font-medium text-neutral-800">
+        <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
           Checklist & Pendências
         </CardTitle>
       </CardHeader>
@@ -39,7 +39,7 @@ export const EmendaChecklistTab = ({ pendencias }: EmendaChecklistTabProps) => {
                 )}
                 <div className="flex flex-col">
                   <span
-                    className={cn('text-neutral-600', {
+                    className={cn('text-neutral-600 dark:text-neutral-400', {
                       'line-through text-muted-foreground': item.dispensada,
                     })}
                   >

@@ -25,19 +25,23 @@ const DetailItem = ({
   children: React.ReactNode
 }) => (
   <div>
-    <p className="text-sm font-medium text-neutral-600">{label}</p>
-    <p className="text-base text-neutral-800">{children || '-'}</p>
+    <p className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
+      {label}
+    </p>
+    <p className="text-base text-neutral-900 dark:text-neutral-200">
+      {children || '-'}
+    </p>
   </div>
 )
 
 export const EmendaResumoTab = ({ emenda }: EmendaResumoTabProps) => {
   return (
-    <Card className="rounded-2xl shadow-sm border border-neutral-200">
+    <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
       <CardHeader>
-        <CardTitle className="font-medium text-neutral-800">
+        <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
           Resumo da Emenda
         </CardTitle>
-        <CardDescription className="text-neutral-600">
+        <CardDescription className="text-neutral-600 dark:text-neutral-400">
           Informações gerais sobre a emenda.
         </CardDescription>
       </CardHeader>
