@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useSidebar } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
+import { ThemeToggle } from './ThemeToggle'
 
 export const Header = () => {
   const { toggleSidebar, state, isMobile, setOpenMobile } = useSidebar()
@@ -50,6 +51,7 @@ export const Header = () => {
             Importar
           </Button>
         </Link>
+        <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="secondary" size="icon" className="rounded-full">

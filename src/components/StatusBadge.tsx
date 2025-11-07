@@ -41,26 +41,26 @@ const statusDisplayMap: Record<string, string> = {
 }
 
 const statusColors: Record<string, string> = {
-  PAGA: 'bg-success text-white',
+  PAGA: 'bg-success text-primary-foreground',
   EMPENHADA_AGUARDANDO_FORMALIZACAO: 'bg-blue-500 text-white',
   FAVORAVEL: 'bg-sky-500 text-white',
-  EM_ANALISE: 'bg-info text-white',
+  EM_ANALISE: 'bg-info text-primary-foreground',
   LIBERADO_PAGAMENTO_FNS: 'bg-teal-500 text-white',
-  OUTRA: 'bg-gray-500 text-white',
-  RASCUNHO: 'bg-gray-400 text-white',
-  EM_EXECUCAO: 'bg-purple-500 text-white',
-  PAGA_SEM_DOCUMENTOS: 'bg-orange-400 text-white',
-  PAGA_COM_PENDENCIAS: 'bg-amber-500 text-black',
-  CONCLUIDA: 'bg-green-700 text-white',
-  Pendente: 'bg-warning text-gray-800',
-  Aprovado: 'bg-success text-white',
-  Rejeitado: 'bg-danger text-white',
-  'Em Análise': 'bg-info text-white',
+  OUTRA: 'bg-muted text-muted-foreground',
+  RASCUNHO: 'bg-muted text-muted-foreground',
+  EM_EXECUCAO: 'bg-primary/80 text-primary-foreground',
+  PAGA_SEM_DOCUMENTOS: 'bg-warning text-primary-foreground',
+  PAGA_COM_PENDENCIAS: 'bg-warning text-primary-foreground',
+  CONCLUIDA: 'bg-success text-primary-foreground',
+  Pendente: 'bg-warning text-primary-foreground',
+  Aprovado: 'bg-success text-primary-foreground',
+  Rejeitado: 'bg-destructive text-destructive-foreground',
+  'Em Análise': 'bg-info text-primary-foreground',
   'Em Revisão': 'bg-blue-400 text-white',
   'Aguardando Repasse': 'bg-purple-500 text-white',
-  Concluído: 'bg-green-700 text-white',
-  Realizado: 'bg-success text-white',
-  Aprovada: 'bg-success text-white',
+  Concluído: 'bg-success text-primary-foreground',
+  Realizado: 'bg-success text-primary-foreground',
+  Aprovada: 'bg-success text-primary-foreground',
 }
 
 export const StatusBadge = ({ status }: StatusBadgeProps) => {
@@ -69,7 +69,7 @@ export const StatusBadge = ({ status }: StatusBadgeProps) => {
     <Badge
       className={cn(
         'border-transparent whitespace-nowrap',
-        statusColors[status],
+        statusColors[status] || 'bg-secondary text-secondary-foreground',
       )}
     >
       {displayText}

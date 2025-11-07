@@ -70,6 +70,7 @@ export default {
           200: 'hsl(var(--neutral-200))',
           600: 'hsl(var(--neutral-600))',
           800: 'hsl(var(--neutral-800))',
+          900: 'hsl(var(--neutral-900))',
         },
       },
       borderRadius: {
