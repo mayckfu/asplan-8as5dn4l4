@@ -84,6 +84,7 @@ export default {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+        xl: 'calc(var(--radius) + 4px)',
       },
       boxShadow: {
         DEFAULT: '0 4px 6px rgba(0, 0, 0, 0.1)',

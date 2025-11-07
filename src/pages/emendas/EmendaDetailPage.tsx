@@ -1,11 +1,17 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { getAmendmentDetails } from '@/lib/mock-data'
+import {
+  getAmendmentDetails,
+  DetailedAmendment,
+  Despesa,
+  Anexo,
+} from '@/lib/mock-data'
 import { EmendaDetailHeader } from '@/components/emendas/EmendaDetailHeader'
-import { EmendaResumoTab } from '@/components/emendas/EmendaResumoTab'
+import { EmendaDadosTecnicos } from '@/components/emendas/EmendaDadosTecnicos'
+import { EmendaObjetoFinalidade } from '@/components/emendas/EmendaObjetoFinalidade'
 import { EmendaRepassesTab } from '@/components/emendas/EmendaRepassesTab'
 import { EmendaDespesasTab } from '@/components/emendas/EmendaDespesasTab'
 import { EmendaAnexosTab } from '@/components/emendas/EmendaAnexosTab'
@@ -15,21 +21,31 @@ import { EmendaHistoricoTab } from '@/components/emendas/EmendaHistoricoTab'
 const EmendaDetailPage = () => {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState('resumo')
+  const [activeTab, setActiveTab] = useState('repasses')
+  const [emendaData, setEmendaData] = useState<DetailedAmendment | null>(null)
 
-  const emenda = getAmendmentDetails(id || '')
+  useEffect(() => {
+    const data = getAmendmentDetails(id || '')
+    setEmendaData(data || null)
+  }, [id])
 
-  const handleGenerateDossier = () => {
-    alert('Gerando Dossiê da Emenda em PDF...')
+  const handleDespesasChange = (newDespesas: Despesa[]) => {
+    if (emendaData) {
+      setEmendaData({ ...emendaData, despesas: newDespesas })
+    }
   }
 
-  if (!emenda) {
+  const handleAnexosChange = (newAnexos: Anexo[]) => {
+    if (emendaData) {
+      setEmendaData({ ...emendaData, anexos: newAnexos })
+    }
+  }
+
+  if (!emendaData) {
     return (
       <div className="text-center py-10">
-        <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-200">
-          Emenda não encontrada
-        </h2>
-        <p className="text-neutral-600 dark:text-neutral-400">
+        <h2 className="text-2xl font-bold">Emenda não encontrada</h2>
+        <p className="text-muted-foreground">
           A emenda com o ID "{id}" não foi encontrada.
         </p>
         <Button onClick={() => navigate('/emendas')} className="mt-4">
@@ -51,11 +67,11 @@ const EmendaDetailPage = () => {
           <ArrowLeft className="h-4 w-4" />
           <span className="sr-only">Voltar</span>
         </Button>
-        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0 text-neutral-900 dark:text-neutral-200">
+        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
           Detalhes da Emenda
         </h1>
         <div className="hidden items-center gap-2 md:ml-auto md:flex">
-          <Button variant="outline" size="sm" onClick={handleGenerateDossier}>
+          <Button variant="outline" size="sm">
             <FileText className="mr-2 h-4 w-4" />
             Gerar Dossiê
           </Button>
@@ -64,41 +80,47 @@ const EmendaDetailPage = () => {
       </div>
 
       <EmendaDetailHeader
-        emenda={emenda}
+        emenda={emendaData}
         onPendencyClick={() => setActiveTab('checklist')}
       />
 
+      <EmendaDadosTecnicos emenda={emendaData} />
+
+      <EmendaObjetoFinalidade description={emendaData.descricao_completa} />
+
       <Tabs
-        defaultValue="resumo"
         value={activeTab}
         onValueChange={setActiveTab}
+        defaultValue="repasses"
         className="w-full"
       >
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-          <TabsTrigger value="resumo">Resumo</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
           <TabsTrigger value="repasses">Repasses</TabsTrigger>
           <TabsTrigger value="despesas">Despesas</TabsTrigger>
           <TabsTrigger value="anexos">Anexos</TabsTrigger>
           <TabsTrigger value="checklist">Checklist</TabsTrigger>
           <TabsTrigger value="historico">Histórico</TabsTrigger>
         </TabsList>
-        <TabsContent value="resumo" className="mt-4">
-          <EmendaResumoTab emenda={emenda} />
-        </TabsContent>
         <TabsContent value="repasses" className="mt-4">
-          <EmendaRepassesTab repasses={emenda.repasses} />
+          <EmendaRepassesTab repasses={emendaData.repasses} />
         </TabsContent>
         <TabsContent value="despesas" className="mt-4">
-          <EmendaDespesasTab despesas={emenda.despesas} />
+          <EmendaDespesasTab
+            despesas={emendaData.despesas}
+            onDespesasChange={handleDespesasChange}
+          />
         </TabsContent>
         <TabsContent value="anexos" className="mt-4">
-          <EmendaAnexosTab anexos={emenda.anexos} />
+          <EmendaAnexosTab
+            anexos={emendaData.anexos}
+            onAnexosChange={handleAnexosChange}
+          />
         </TabsContent>
         <TabsContent value="checklist" className="mt-4">
-          <EmendaChecklistTab pendencias={emenda.pendencias} />
+          <EmendaChecklistTab pendencias={emendaData.pendencias} />
         </TabsContent>
         <TabsContent value="historico" className="mt-4">
-          <EmendaHistoricoTab historico={emenda.historico} />
+          <EmendaHistoricoTab historico={emendaData.historico} />
         </TabsContent>
       </Tabs>
     </div>

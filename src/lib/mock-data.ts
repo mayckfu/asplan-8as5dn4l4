@@ -107,6 +107,13 @@ export type DetailedAmendment = Amendment & {
   anexos: Anexo[]
   historico: Historico[]
   pendencias: Pendencia[]
+  natureza?: string
+  objeto_emenda?: string
+  meta_operacional?: string
+  destino_recurso?: string
+  data_repasse?: string
+  situacao_recurso?: string
+  observacoes?: string
 }
 
 export const amendments: Amendment[] = [
@@ -242,7 +249,7 @@ const detailedAmendmentsData: Record<
 > = {
   '1': {
     descricao_completa:
-      'Aquisição de equipamentos para o hospital municipal, visando melhorar o atendimento na ala de emergência.',
+      'Aquisição de equipamentos para o hospital municipal, visando melhorar o atendimento na ala de emergência. O objetivo é reduzir o tempo de espera e aumentar a capacidade de diagnóstico, beneficiando diretamente a população local com um serviço de saúde mais eficiente e moderno.',
     repasses: [
       {
         id: 'R1-1',
@@ -326,6 +333,17 @@ const detailedAmendmentsData: Record<
       },
     ],
     pendencias: [],
+    natureza: 'Outros Serviços Terceiros',
+    objeto_emenda:
+      'PMAE – componente cirúrgico (PNRF / Mutirão) – Otorrinolaringologia',
+    meta_operacional:
+      'Ofertar cirurgias de adenoidectomia, amigdalectomia e septoplastia para média de 600 pacientes; fornecer aparelhos auditivos.',
+    destino_recurso:
+      'Secretaria Municipal de Saúde de Lagarto — Diretoria de Atenção Especializada',
+    data_repasse: '2025-07-17',
+    situacao_recurso: 'Paga',
+    observacoes:
+      'Repasse executado conforme cronograma PMAE; aguardando relatório de execução.',
   },
   '2': {
     descricao_completa:

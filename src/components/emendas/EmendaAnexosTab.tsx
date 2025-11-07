@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import {
-  File,
   Download,
   Trash2,
   FileText,
@@ -20,16 +19,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Label } from '@/components/ui/label'
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { useToast } from '@/components/ui/use-toast'
 
 interface EmendaAnexosTabProps {
   anexos: Anexo[]
+  onAnexosChange: (anexos: Anexo[]) => void
 }
 
 type AnexoType = Anexo['tipo']
@@ -42,141 +46,158 @@ const anexoIcons: Record<AnexoType, React.ElementType> = {
   OUTRO: FileQuestion,
 }
 
-export const EmendaAnexosTab = ({ anexos }: EmendaAnexosTabProps) => {
-  const [filesToUpload, setFilesToUpload] = useState<File[]>([])
-  const [anexoType, setAnexoType] = useState<AnexoType>('OUTRO')
-  const [isEssential, setIsEssential] = useState(false)
+const MAX_FILE_SIZE = 25 * 1024 * 1024 // 25 MB
+const ACCEPTED_FILE_TYPES = [
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'image/jpeg',
+  'image/png',
+]
 
-  const handleUpload = () => {
-    console.log('Uploading:', {
-      files: filesToUpload,
-      type: anexoType,
-      essential: isEssential,
+export const EmendaAnexosTab = ({
+  anexos,
+  onAnexosChange,
+}: EmendaAnexosTabProps) => {
+  const { toast } = useToast()
+  const [filesToUpload, setFilesToUpload] = useState<File[]>([])
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [attachmentToDelete, setAttachmentToDelete] = useState<Anexo | null>(
+    null,
+  )
+
+  const handleFilesAccepted = (files: File[]) => {
+    const validatedFiles = files.filter((file) => {
+      if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
+        toast({
+          variant: 'destructive',
+          title: 'Arquivo inválido',
+          description: `Tipo de arquivo não suportado: ${file.name}`,
+        })
+        return false
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        toast({
+          variant: 'destructive',
+          title: 'Arquivo muito grande',
+          description: `O arquivo ${file.name} excede o limite de 25MB.`,
+        })
+        return false
+      }
+      return true
     })
-    setFilesToUpload([])
+    setFilesToUpload(validatedFiles)
+  }
+
+  const handleDeleteClick = (anexo: Anexo) => {
+    setAttachmentToDelete(anexo)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const handleConfirmDelete = () => {
+    if (attachmentToDelete) {
+      onAnexosChange(anexos.filter((a) => a.id !== attachmentToDelete.id))
+      toast({ title: 'Anexo excluído com sucesso!' })
+    }
+    setIsDeleteDialogOpen(false)
+    setAttachmentToDelete(null)
   }
 
   return (
-    <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
-      <CardHeader>
-        <div className="flex justify-between items-center">
+    <>
+      <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
+        <CardHeader>
           <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
             Anexos ({anexos.length})
           </CardTitle>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="p-4 border rounded-lg space-y-4">
-          <h4 className="font-semibold text-neutral-900 dark:text-neutral-200">
-            Novo Anexo
-          </h4>
-          <FileUpload onFilesAccepted={setFilesToUpload} />
-          {filesToUpload.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-              <div className="space-y-2">
-                <Label className="text-neutral-600 dark:text-neutral-400">
-                  Tipo de Anexo
-                </Label>
-                <Select
-                  value={anexoType}
-                  onValueChange={(v) => setAnexoType(v as AnexoType)}
-                >
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="p-4 border rounded-lg space-y-4">
+            <h4 className="font-semibold text-neutral-900 dark:text-neutral-200">
+              Novo Anexo
+            </h4>
+            <FileUpload onFilesAccepted={handleFilesAccepted} />
+            {filesToUpload.length > 0 && (
+              <div className="flex items-end gap-4">
+                <Select defaultValue="OUTRO">
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione o tipo" />
+                    <SelectValue placeholder="Tipo de Anexo" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="PORTARIA">Portaria</SelectItem>
-                    <SelectItem value="DELIBERACAO_CIE">
-                      Deliberação CIE
-                    </SelectItem>
-                    <SelectItem value="COMPROVANTE_FNS">
-                      Comprovante FNS
-                    </SelectItem>
-                    <SelectItem value="NOTA_FISCAL">Nota Fiscal</SelectItem>
                     <SelectItem value="OUTRO">Outro</SelectItem>
                   </SelectContent>
                 </Select>
+                <Button>
+                  <FileUp className="mr-2 h-4 w-4" />
+                  Enviar {filesToUpload.length} arquivo(s)
+                </Button>
               </div>
-              <div className="flex items-center space-x-2 pt-8">
-                <Checkbox
-                  id="essential"
-                  checked={isEssential}
-                  onCheckedChange={(c) => setIsEssential(Boolean(c))}
-                />
-                <Label
-                  htmlFor="essential"
-                  className="text-neutral-600 dark:text-neutral-400"
-                >
-                  Anexo essencial
-                </Label>
-              </div>
-              <Button onClick={handleUpload}>
-                <FileUp className="mr-2 h-4 w-4" />
-                Enviar {filesToUpload.length} arquivo(s)
-              </Button>
-            </div>
-          )}
-        </div>
-        <div>
-          <h4 className="font-semibold mb-4 text-neutral-900 dark:text-neutral-200">
-            Anexos Enviados
-          </h4>
+            )}
+          </div>
           <ul className="space-y-2">
-            {anexos.map((anexo, index) => {
-              const Icon = anexoIcons[anexo.tipo] || File
+            {anexos.map((anexo) => {
+              const Icon = anexoIcons[anexo.tipo]
               return (
                 <li
                   key={anexo.id}
-                  className={`flex items-center justify-between p-2 border rounded-lg h-10 ${
-                    index % 2 === 0
-                      ? 'bg-white dark:bg-card'
-                      : 'bg-neutral-50 dark:bg-muted/50'
-                  } hover:bg-neutral-100 dark:hover:bg-muted`}
+                  className="flex items-center justify-between p-2 border rounded-lg"
                 >
                   <div className="flex items-center gap-3">
                     <Icon className="h-6 w-6 text-primary" />
                     <div>
-                      <p className="font-medium text-neutral-900 dark:text-neutral-200">
+                      <a
+                        href={anexo.url}
+                        download={anexo.titulo}
+                        className="font-medium text-neutral-900 dark:text-neutral-200 hover:underline"
+                      >
                         {anexo.titulo}
-                      </p>
+                      </a>
                       <p className="text-xs text-neutral-600 dark:text-neutral-400">
-                        Tipo: {anexo.tipo} | Enviado por {anexo.uploader} em{' '}
+                        {anexo.tipo} | {anexo.uploader} em{' '}
                         {new Date(anexo.created_at).toLocaleDateString('pt-BR')}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Baixar anexo</p>
-                      </TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Excluir anexo</p>
-                      </TooltipContent>
-                    </Tooltip>
+                    <Button variant="ghost" size="icon" asChild>
+                      <a href={anexo.url} download={anexo.titulo}>
+                        <Download className="h-4 w-4" />
+                      </a>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive"
+                      onClick={() => handleDeleteClick(anexo)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </li>
               )
             })}
           </ul>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o anexo "
+              {attachmentToDelete?.titulo}"? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete}>
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }

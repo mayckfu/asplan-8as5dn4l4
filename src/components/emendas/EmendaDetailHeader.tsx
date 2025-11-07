@@ -72,7 +72,7 @@ export const EmendaDetailHeader = ({
           {kpis.map((kpi) => (
             <div
               key={kpi.label}
-              className="p-2 rounded-lg bg-muted dark:bg-muted/50"
+              className="p-3 rounded-xl bg-white shadow-sm border border-neutral-200 dark:bg-card"
             >
               <p className="text-xs text-neutral-500 dark:text-neutral-400">
                 {kpi.label}
