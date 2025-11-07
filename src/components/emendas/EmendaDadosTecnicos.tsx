@@ -1,4 +1,10 @@
-import { useState, useEffect } from 'react'
+import {
+  useState,
+  useEffect,
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+} from 'react'
 import { CalendarIcon, Edit, Save, X } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -29,6 +35,10 @@ interface EmendaDadosTecnicosProps {
   onEmendaChange: (updatedEmenda: DetailedAmendment) => void
 }
 
+export interface EmendaDadosTecnicosHandles {
+  triggerEditAndFocus: (fieldId: string) => void
+}
+
 const situacaoRecursoOptions = [
   'Paga',
   'Empenhada',
@@ -36,13 +46,27 @@ const situacaoRecursoOptions = [
   'Não Repassado',
 ]
 
-export const EmendaDadosTecnicos = ({
-  emenda,
-  onEmendaChange,
-}: EmendaDadosTecnicosProps) => {
+export const EmendaDadosTecnicos = forwardRef<
+  EmendaDadosTecnicosHandles,
+  EmendaDadosTecnicosProps
+>(({ emenda, onEmendaChange }, ref) => {
   const { toast } = useToast()
   const [isEditing, setIsEditing] = useState(false)
   const [editableEmenda, setEditableEmenda] = useState(emenda)
+  const fieldRefs = useRef<Record<string, HTMLElement | null>>({})
+
+  useImperativeHandle(ref, () => ({
+    triggerEditAndFocus: (fieldId: string) => {
+      setIsEditing(true)
+      setTimeout(() => {
+        const field = fieldRefs.current[fieldId]
+        if (field) {
+          field.focus()
+          field.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }, 100)
+    },
+  }))
 
   useEffect(() => {
     if (!isEditing) {
@@ -120,6 +144,7 @@ export const EmendaDadosTecnicos = ({
                 <Input
                   id="natureza"
                   name="natureza"
+                  ref={(el) => (fieldRefs.current['natureza'] = el)}
                   value={editableEmenda.natureza || ''}
                   onChange={handleInputChange}
                 />
@@ -129,6 +154,7 @@ export const EmendaDadosTecnicos = ({
                 <Input
                   id="objeto_emenda"
                   name="objeto_emenda"
+                  ref={(el) => (fieldRefs.current['objeto_emenda'] = el)}
                   value={editableEmenda.objeto_emenda || ''}
                   onChange={handleInputChange}
                 />
@@ -138,6 +164,7 @@ export const EmendaDadosTecnicos = ({
                 <Input
                   id="meta_operacional"
                   name="meta_operacional"
+                  ref={(el) => (fieldRefs.current['meta_operacional'] = el)}
                   value={editableEmenda.meta_operacional || ''}
                   onChange={handleInputChange}
                 />
@@ -149,6 +176,7 @@ export const EmendaDadosTecnicos = ({
                 <Input
                   id="destino_recurso"
                   name="destino_recurso"
+                  ref={(el) => (fieldRefs.current['destino_recurso'] = el)}
                   value={editableEmenda.destino_recurso || ''}
                   onChange={handleInputChange}
                 />
@@ -196,6 +224,7 @@ export const EmendaDadosTecnicos = ({
                   id="valor_repasse"
                   name="valor_repasse"
                   type="number"
+                  ref={(el) => (fieldRefs.current['valor_repasse'] = el)}
                   value={editableEmenda.valor_repasse || ''}
                   onChange={(e) =>
                     handleValueChange(
@@ -210,6 +239,7 @@ export const EmendaDadosTecnicos = ({
                 <Input
                   id="portaria"
                   name="portaria"
+                  ref={(el) => (fieldRefs.current['portaria'] = el)}
                   value={editableEmenda.portaria || ''}
                   onChange={handleInputChange}
                 />
@@ -219,6 +249,7 @@ export const EmendaDadosTecnicos = ({
                 <Input
                   id="deliberacao_cie"
                   name="deliberacao_cie"
+                  ref={(el) => (fieldRefs.current['deliberacao_cie'] = el)}
                   value={editableEmenda.deliberacao_cie || ''}
                   onChange={handleInputChange}
                 />
@@ -231,7 +262,9 @@ export const EmendaDadosTecnicos = ({
                     handleValueChange('situacao_recurso', value)
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger
+                    ref={(el) => (fieldRefs.current['situacao_recurso'] = el)}
+                  >
                     <SelectValue placeholder="Selecione a situação" />
                   </SelectTrigger>
                   <SelectContent>
@@ -248,6 +281,7 @@ export const EmendaDadosTecnicos = ({
                 <Textarea
                   id="observacoes"
                   name="observacoes"
+                  ref={(el) => (fieldRefs.current['observacoes'] = el)}
                   value={editableEmenda.observacoes || ''}
                   onChange={handleInputChange}
                 />
@@ -309,4 +343,4 @@ export const EmendaDadosTecnicos = ({
       </CardContent>
     </Card>
   )
-}
+})

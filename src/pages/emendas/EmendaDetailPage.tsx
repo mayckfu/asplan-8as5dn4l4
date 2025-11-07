@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -12,10 +12,19 @@ import {
   Repasse,
 } from '@/lib/mock-data'
 import { EmendaDetailHeader } from '@/components/emendas/EmendaDetailHeader'
-import { EmendaDadosTecnicos } from '@/components/emendas/EmendaDadosTecnicos'
+import {
+  EmendaDadosTecnicos,
+  EmendaDadosTecnicosHandles,
+} from '@/components/emendas/EmendaDadosTecnicos'
 import { EmendaObjetoFinalidade } from '@/components/emendas/EmendaObjetoFinalidade'
-import { EmendaRepassesTab } from '@/components/emendas/EmendaRepassesTab'
-import { EmendaDespesasTab } from '@/components/emendas/EmendaDespesasTab'
+import {
+  EmendaRepassesTab,
+  EmendaRepassesTabHandles,
+} from '@/components/emendas/EmendaRepassesTab'
+import {
+  EmendaDespesasTab,
+  EmendaDespesasTabHandles,
+} from '@/components/emendas/EmendaDespesasTab'
 import { EmendaAnexosTab } from '@/components/emendas/EmendaAnexosTab'
 import { EmendaChecklistTab } from '@/components/emendas/EmendaChecklistTab'
 import { EmendaHistoricoTab } from '@/components/emendas/EmendaHistoricoTab'
@@ -25,6 +34,11 @@ const EmendaDetailPage = () => {
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('repasses')
   const [emendaData, setEmendaData] = useState<DetailedAmendment | null>(null)
+
+  const dadosTecnicosRef = useRef<EmendaDadosTecnicosHandles>(null)
+  const repassesTabRef = useRef<EmendaRepassesTabHandles>(null)
+  const despesasTabRef = useRef<EmendaDespesasTabHandles>(null)
+  const anexosTabRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const data = getAmendmentDetails(id || '')
@@ -38,6 +52,8 @@ const EmendaDetailPage = () => {
         id: `p-${id}-portaria`,
         descricao: 'Falta Portaria',
         dispensada: false,
+        targetType: 'field',
+        targetId: 'portaria',
       })
     }
     if (!updatedEmenda.deliberacao_cie) {
@@ -45,6 +61,8 @@ const EmendaDetailPage = () => {
         id: `p-${id}-cie`,
         descricao: 'Falta Deliberação CIE',
         dispensada: false,
+        targetType: 'field',
+        targetId: 'deliberacao_cie',
       })
     }
     if (!updatedEmenda.objeto_emenda) {
@@ -52,6 +70,8 @@ const EmendaDetailPage = () => {
         id: `p-${id}-objeto`,
         descricao: 'Falta Objeto',
         dispensada: false,
+        targetType: 'field',
+        targetId: 'objeto_emenda',
       })
     }
     if (!updatedEmenda.meta_operacional) {
@@ -59,6 +79,8 @@ const EmendaDetailPage = () => {
         id: `p-${id}-meta`,
         descricao: 'Falta Meta Operacional',
         dispensada: false,
+        targetType: 'field',
+        targetId: 'meta_operacional',
       })
     }
     if (updatedEmenda.total_gasto > updatedEmenda.total_repassado) {
@@ -66,6 +88,8 @@ const EmendaDetailPage = () => {
         id: `p-${id}-despesas`,
         descricao: 'Despesas > Repasses',
         dispensada: false,
+        targetType: 'tab',
+        targetId: 'despesas',
       })
     }
     setEmendaData({ ...updatedEmenda, pendencias })
@@ -99,6 +123,27 @@ const EmendaDetailPage = () => {
   const handleAnexosChange = (newAnexos: Anexo[]) => {
     if (emendaData) {
       setEmendaData({ ...emendaData, anexos: newAnexos })
+    }
+  }
+
+  const handlePendencyClick = (pendencia: Pendencia) => {
+    if (pendencia.targetType === 'field') {
+      dadosTecnicosRef.current?.triggerEditAndFocus(pendencia.targetId)
+    } else if (pendencia.targetType === 'tab') {
+      setActiveTab(pendencia.targetId)
+      setTimeout(() => {
+        switch (pendencia.targetId) {
+          case 'repasses':
+            repassesTabRef.current?.triggerAdd()
+            break
+          case 'despesas':
+            despesasTabRef.current?.triggerAdd()
+            break
+          case 'anexos':
+            anexosTabRef.current?.scrollIntoView({ behavior: 'smooth' })
+            break
+        }
+      }, 100)
     }
   }
 
@@ -145,6 +190,7 @@ const EmendaDetailPage = () => {
       />
 
       <EmendaDadosTecnicos
+        ref={dadosTecnicosRef}
         emenda={emendaData}
         onEmendaChange={handleEmendaDataChange}
       />
@@ -166,24 +212,31 @@ const EmendaDetailPage = () => {
         </TabsList>
         <TabsContent value="repasses" className="mt-4">
           <EmendaRepassesTab
+            ref={repassesTabRef}
             repasses={emendaData.repasses}
             onRepassesChange={handleRepassesChange}
           />
         </TabsContent>
         <TabsContent value="despesas" className="mt-4">
           <EmendaDespesasTab
+            ref={despesasTabRef}
             despesas={emendaData.despesas}
             onDespesasChange={handleDespesasChange}
           />
         </TabsContent>
         <TabsContent value="anexos" className="mt-4">
-          <EmendaAnexosTab
-            anexos={emendaData.anexos}
-            onAnexosChange={handleAnexosChange}
-          />
+          <div ref={anexosTabRef}>
+            <EmendaAnexosTab
+              anexos={emendaData.anexos}
+              onAnexosChange={handleAnexosChange}
+            />
+          </div>
         </TabsContent>
         <TabsContent value="checklist" className="mt-4">
-          <EmendaChecklistTab pendencias={emendaData.pendencias} />
+          <EmendaChecklistTab
+            pendencias={emendaData.pendencias}
+            onPendencyClick={handlePendencyClick}
+          />
         </TabsContent>
         <TabsContent value="historico" className="mt-4">
           <EmendaHistoricoTab historico={emendaData.historico} />

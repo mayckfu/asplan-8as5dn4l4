@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, forwardRef, useImperativeHandle } from 'react'
 import {
   PlusCircle,
   MoreHorizontal,
@@ -60,15 +60,26 @@ interface EmendaDespesasTabProps {
   onDespesasChange: (despesas: Despesa[]) => void
 }
 
-export const EmendaDespesasTab = ({
-  despesas,
-  onDespesasChange,
-}: EmendaDespesasTabProps) => {
+export interface EmendaDespesasTabHandles {
+  triggerAdd: () => void
+}
+
+export const EmendaDespesasTab = forwardRef<
+  EmendaDespesasTabHandles,
+  EmendaDespesasTabProps
+>(({ despesas, onDespesasChange }, ref) => {
   const { toast } = useToast()
   const [dossierExpense, setDossierExpense] = useState<Despesa | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [selectedExpense, setSelectedExpense] = useState<Despesa | null>(null)
+
+  useImperativeHandle(ref, () => ({
+    triggerAdd: () => {
+      setSelectedExpense(null)
+      setIsFormOpen(true)
+    },
+  }))
 
   const handleAddNew = () => {
     setSelectedExpense(null)
@@ -245,4 +256,4 @@ export const EmendaDespesasTab = ({
       </AlertDialog>
     </>
   )
-}
+})

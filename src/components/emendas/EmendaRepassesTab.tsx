@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, forwardRef, useImperativeHandle } from 'react'
 import { PlusCircle, MoreHorizontal, Edit, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -45,20 +45,31 @@ interface EmendaRepassesTabProps {
   onRepassesChange: (repasses: Repasse[]) => void
 }
 
+export interface EmendaRepassesTabHandles {
+  triggerAdd: () => void
+}
+
 const statusVariant: Record<Repasse['status'], string> = {
   REPASSADO: 'bg-success text-primary-foreground',
   PENDENTE: 'bg-warning text-primary-foreground',
   CANCELADO: 'bg-destructive text-destructive-foreground',
 }
 
-export const EmendaRepassesTab = ({
-  repasses,
-  onRepassesChange,
-}: EmendaRepassesTabProps) => {
+export const EmendaRepassesTab = forwardRef<
+  EmendaRepassesTabHandles,
+  EmendaRepassesTabProps
+>(({ repasses, onRepassesChange }, ref) => {
   const { toast } = useToast()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [selectedRepasse, setSelectedRepasse] = useState<Repasse | null>(null)
+
+  useImperativeHandle(ref, () => ({
+    triggerAdd: () => {
+      setSelectedRepasse(null)
+      setIsFormOpen(true)
+    },
+  }))
 
   const sortedRepasses = [...repasses].sort(
     (a, b) => new Date(b.data).getTime() - new Date(a.data).getTime(),
@@ -206,4 +217,4 @@ export const EmendaRepassesTab = ({
       </AlertDialog>
     </>
   )
-}
+})

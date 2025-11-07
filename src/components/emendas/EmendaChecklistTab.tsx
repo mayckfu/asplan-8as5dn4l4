@@ -6,9 +6,13 @@ import { cn } from '@/lib/utils'
 
 interface EmendaChecklistTabProps {
   pendencias: Pendencia[]
+  onPendencyClick: (pendencia: Pendencia) => void
 }
 
-export const EmendaChecklistTab = ({ pendencias }: EmendaChecklistTabProps) => {
+export const EmendaChecklistTab = ({
+  pendencias,
+  onPendencyClick,
+}: EmendaChecklistTabProps) => {
   return (
     <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
       <CardHeader>
@@ -31,7 +35,10 @@ export const EmendaChecklistTab = ({ pendencias }: EmendaChecklistTabProps) => {
               key={item.id}
               className="flex items-center justify-between p-3 border rounded-lg"
             >
-              <div className="flex items-center gap-3">
+              <div
+                className="flex items-center gap-3 cursor-pointer flex-grow hover:text-primary transition-colors"
+                onClick={() => onPendencyClick(item)}
+              >
                 {item.dispensada ? (
                   <CheckCircle className="h-5 w-5 text-muted-foreground" />
                 ) : (
@@ -53,7 +60,7 @@ export const EmendaChecklistTab = ({ pendencias }: EmendaChecklistTabProps) => {
                 </div>
               </div>
               {!item.dispensada && (
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="ml-4">
                   Dispensar
                 </Button>
               )}
