@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Menu, Package2, User, Upload } from 'lucide-react'
+import { Menu, User, Upload, ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -9,33 +9,39 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { AppSidebar } from '@/components/AppSidebar'
+import { useSidebar } from '@/components/ui/sidebar'
+import { cn } from '@/lib/utils'
 
 export const Header = () => {
-  return (
-    <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-50 shadow-sm">
-      <div className="flex items-center gap-2 md:hidden">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="icon">
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Abrir menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0">
-            <AppSidebar />
-          </SheetContent>
-        </Sheet>
-      </div>
+  const { toggleSidebar, state, isMobile, setOpenMobile } = useSidebar()
 
-      <Link
-        to="/"
-        className="items-center gap-2 font-semibold hidden md:flex text-neutral-800"
-      >
-        <Package2 className="h-6 w-6 text-primary" />
-        <span className="text-lg">Controle de Emendas</span>
-      </Link>
+  return (
+    <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-card px-4 md:px-6 z-30 shadow-sm">
+      {isMobile ? (
+        <Button
+          variant="outline"
+          size="icon"
+          className="shrink-0"
+          onClick={() => setOpenMobile(true)}
+        >
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Abrir menu</span>
+        </Button>
+      ) : (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleSidebar}
+          className="shrink-0"
+        >
+          <ChevronLeft
+            className={cn(
+              'h-5 w-5 transition-transform duration-300',
+              state === 'expanded' ? 'rotate-0' : 'rotate-180',
+            )}
+          />
+        </Button>
+      )}
 
       <div className="flex w-full items-center justify-end gap-4">
         <Link to="/importacao">

@@ -1,8 +1,17 @@
 import { Link, useLocation } from 'react-router-dom'
 import { Home, List, BarChart2, Package2, Upload } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from '@/components/ui/sidebar'
 
 const navLinks = [
   { href: '/', label: 'Dashboard', icon: Home },
@@ -13,42 +22,48 @@ const navLinks = [
 
 export const AppSidebar = () => {
   const { pathname } = useLocation()
+  const { state, isMobile } = useSidebar()
+  const isExpanded = isMobile || state === 'expanded'
 
   return (
-    <div className="hidden border-r bg-muted/40 md:block">
-      <div className="flex h-full max-h-screen flex-col gap-2">
-        <div className="flex h-16 items-center border-b px-6">
-          <Link
-            to="/"
-            className="flex items-center gap-2 font-semibold text-neutral-800"
-          >
-            <Package2 className="h-6 w-6 text-primary" />
-            <span>Controle de Emendas</span>
-          </Link>
-        </div>
-        <div className="flex-1">
-          <nav className="grid items-start px-4 text-sm font-medium">
-            {navLinks.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={label}
-                to={href}
-                className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2 text-neutral-600 transition-all hover:text-primary',
-                  { 'bg-muted text-primary': pathname === href },
-                )}
+    <Sidebar>
+      <SidebarHeader>
+        <Link
+          to="/"
+          className="flex items-center gap-2 font-semibold text-neutral-800"
+        >
+          <Package2 className="h-6 w-6 text-primary" />
+          {isExpanded && <span>Controle de Emendas</span>}
+        </Link>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarMenu>
+          {navLinks.map(({ href, label, icon: Icon }) => (
+            <SidebarMenuItem key={label}>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === href}
+                tooltip={label}
               >
-                <Icon className="h-4 w-4" />
-                {label}
-              </Link>
-            ))}
-          </nav>
+                <Link to={href}>
+                  <Icon className="h-4 w-4" />
+                  {isExpanded && <span>{label}</span>}
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarContent>
+      <SidebarFooter>
+        <div
+          className={cn(
+            'text-center text-xs text-neutral-600',
+            !isExpanded && 'hidden',
+          )}
+        >
+          <Badge variant="outline">Admin</Badge>
         </div>
-        <div className="mt-auto p-4">
-          <div className="text-center text-xs text-neutral-600">
-            <Badge variant="outline">Admin</Badge>
-          </div>
-        </div>
-      </div>
-    </div>
+      </SidebarFooter>
+    </Sidebar>
   )
 }

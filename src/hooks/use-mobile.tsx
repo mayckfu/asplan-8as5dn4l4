@@ -1,20 +1,24 @@
-/* Use Mobile Hook - A hook that checks if the screen is mobile - from shadcn/ui (exposes useIsMobile) */
-import * as React from 'react'
+import { useState, useEffect } from 'react'
 
-const MOBILE_BREAKPOINT = 768
+const MOBILE_BREAKPOINT = 768 // md breakpoint
 
-export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
+/**
+ * Custom hook to check if the user is on a mobile device
+ * @returns {boolean} - True if the user is on a mobile device, false otherwise
+ */
+export function useIsMobile(): boolean {
+  const [isMobile, setIsMobile] = useState(false)
 
-  React.useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
-    const onChange = () => {
+  useEffect(() => {
+    const checkScreenSize = () => {
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
     }
-    mql.addEventListener('change', onChange)
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    return () => mql.removeEventListener('change', onChange)
+
+    checkScreenSize()
+    window.addEventListener('resize', checkScreenSize)
+
+    return () => window.removeEventListener('resize', checkScreenSize)
   }, [])
 
-  return !!isMobile
+  return isMobile
 }
