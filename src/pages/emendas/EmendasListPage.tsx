@@ -8,7 +8,7 @@ import {
   Save,
 } from 'lucide-react'
 import { parse, format } from 'date-fns'
-import { amendments, Amendment } from '@/lib/mock-data'
+import { amendments, Amendment, getAmendmentDetails } from '@/lib/mock-data'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -89,6 +89,14 @@ const EmendasListPage = () => {
       comCIE: searchParams.get('comCIE') === 'true',
       comAnexos: searchParams.get('comAnexos') === 'true',
       apenasPendencias: searchParams.get('apenasPendencias') === 'true',
+      semPortaria: searchParams.get('semPortaria') === 'true',
+      semCIE: searchParams.get('semCIE') === 'true',
+      semAnexos: searchParams.get('semAnexos') === 'true',
+      semRepasses: searchParams.get('semRepasses') === 'true',
+      comDespesasNaoAutorizadas:
+        searchParams.get('comDespesasNaoAutorizadas') === 'true',
+      despesasMaiorRepasses:
+        searchParams.get('despesasMaiorRepasses') === 'true',
     }
   }, [searchParams])
 
@@ -178,6 +186,21 @@ const EmendasListPage = () => {
         if (filters.comAnexos && !amendment.anexos_essenciais) return false
         if (filters.apenasPendencias && amendment.pendencias.length === 0)
           return false
+        if (filters.semPortaria && amendment.portaria) return false
+        if (filters.semCIE && amendment.deliberacao_cie) return false
+        if (filters.semAnexos && amendment.anexos_essenciais) return false
+        if (filters.semRepasses && amendment.total_repassado > 0) return false
+        if (
+          filters.despesasMaiorRepasses &&
+          amendment.total_gasto <= amendment.total_repassado
+        )
+          return false
+        if (filters.comDespesasNaoAutorizadas) {
+          const details = getAmendmentDetails(amendment.id)
+          if (!details || !details.despesas.some((d) => !d.autorizada_por)) {
+            return false
+          }
+        }
         return true
       })
   }, [filters])

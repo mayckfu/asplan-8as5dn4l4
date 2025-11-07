@@ -67,6 +67,7 @@ export type Despesa = {
   unidade_destino: string
   fornecedor_nome: string
   status_execucao: 'PLANEJADA' | 'EMPENHADA' | 'LIQUIDADA' | 'PAGA'
+  demanda?: string
 }
 
 export type Anexo = {
@@ -254,10 +255,12 @@ const detailedAmendmentsData: Record<
         categoria: 'Equipamentos Médicos',
         descricao: 'Compra de 2 monitores cardíacos',
         registrada_por: 'Admin',
+        autorizada_por: 'Carlos Lima',
         responsavel_execucao: 'Ana Costa',
         unidade_destino: 'Hospital Municipal',
         fornecedor_nome: 'MedEquip S.A.',
         status_execucao: 'PAGA',
+        demanda: 'Equipamentos de Emergência',
       },
       {
         id: 'D1-2',
@@ -265,11 +268,13 @@ const detailedAmendmentsData: Record<
         valor: 25000,
         categoria: 'Insumos',
         descricao: 'Compra de materiais de consumo',
-        registrada_por: 'Admin',
+        registrada_por: 'Ana Costa',
+        autorizada_por: 'Carlos Lima',
         responsavel_execucao: 'Ana Costa',
         unidade_destino: 'Hospital Municipal',
         fornecedor_nome: 'Insumos Brasil',
         status_execucao: 'PAGA',
+        demanda: 'Insumos Hospitalares',
       },
     ],
     anexos: [
@@ -336,11 +341,13 @@ const detailedAmendmentsData: Record<
         valor: 100000,
         categoria: 'Obras',
         descricao: 'Serviços de fundação',
-        registrada_por: 'Admin',
+        registrada_por: 'Carlos Lima',
+        autorizada_por: undefined,
         responsavel_execucao: 'Carlos Lima',
         unidade_destino: 'Hospital Regional',
         fornecedor_nome: 'Construtora Principal',
         status_execucao: 'LIQUIDADA',
+        demanda: 'Obras de Expansão',
       },
     ],
     anexos: [

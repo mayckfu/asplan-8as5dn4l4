@@ -26,6 +26,12 @@ export type FiltersState = {
   comCIE: boolean
   comAnexos: boolean
   apenasPendencias: boolean
+  semPortaria?: boolean
+  semCIE?: boolean
+  semAnexos?: boolean
+  semRepasses?: boolean
+  comDespesasNaoAutorizadas?: boolean
+  despesasMaiorRepasses?: boolean
 }
 
 interface EmendasFiltersProps {

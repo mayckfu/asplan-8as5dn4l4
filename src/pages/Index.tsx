@@ -1,13 +1,27 @@
+import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import {
   Bar,
   BarChart,
   CartesianGrid,
   XAxis,
   YAxis,
-  Pie,
-  PieChart,
-  Cell,
+  Line,
+  LineChart,
+  ResponsiveContainer,
 } from 'recharts'
+import { format } from 'date-fns'
+import {
+  AlertTriangle,
+  Archive,
+  Banknote,
+  FileText,
+  Landmark,
+  Package,
+  Percent,
+  ShieldAlert,
+  ShoppingBag,
+} from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   ChartContainer,
@@ -16,114 +30,304 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart'
-import { kpiData } from '@/lib/mock-data'
-import { DollarSign, List, Search, CheckCircle } from 'lucide-react'
+import {
+  amendments,
+  getAmendmentDetails,
+  DetailedAmendment,
+} from '@/lib/mock-data'
 
-const iconMap = {
-  list: List,
-  search: Search,
-  'dollar-sign': DollarSign,
-  'check-circle': CheckCircle,
-}
-
-const chartData = [
-  { status: 'Aprovado', total: 40, fill: 'hsl(var(--success))' },
-  { status: 'Em Análise', total: 25, fill: 'hsl(var(--info))' },
-  { status: 'Pendente', total: 20, fill: 'hsl(var(--warning))' },
-  { status: 'Rejeitado', total: 15, fill: 'hsl(var(--danger))' },
-]
-
-const barChartData = [
-  { month: 'Jan', value: 250000 },
-  { month: 'Fev', value: 450000 },
-  { month: 'Mar', value: 300000 },
-  { month: 'Abr', value: 600000 },
-  { month: 'Mai', value: 350000 },
-]
+const formatCurrency = (value: number) =>
+  value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
 const Index = () => {
+  const dashboardData = useMemo(() => {
+    const allDetailedAmendments = amendments
+      .map((a) => getAmendmentDetails(a.id))
+      .filter((d): d is DetailedAmendment => !!d)
+
+    const allDespesas = allDetailedAmendments.flatMap((a) => a.despesas)
+    const allRepasses = allDetailedAmendments.flatMap((a) => a.repasses)
+
+    const totalPropostas = amendments.length
+    const totalValor = amendments.reduce((sum, a) => sum + a.valor_total, 0)
+    const totalRepassado = amendments.reduce(
+      (sum, a) => sum + a.total_repassado,
+      0,
+    )
+    const totalGasto = amendments.reduce((sum, a) => sum + a.total_gasto, 0)
+    const execucaoMedia =
+      totalRepassado > 0 ? (totalGasto / totalRepassado) * 100 : 0
+    const coberturaMedia = totalValor > 0 ? (totalGasto / totalValor) * 100 : 0
+
+    const kpis = [
+      { title: 'Total Propostas', value: totalPropostas, icon: Package },
+      {
+        title: 'Total Valor',
+        value: formatCurrency(totalValor),
+        icon: Landmark,
+      },
+      {
+        title: 'Total Repassado',
+        value: formatCurrency(totalRepassado),
+        icon: Banknote,
+      },
+      {
+        title: 'Total Gasto',
+        value: formatCurrency(totalGasto),
+        icon: ShoppingBag,
+      },
+      {
+        title: 'Execução Média',
+        value: `${execucaoMedia.toFixed(1)}%`,
+        icon: Percent,
+      },
+      {
+        title: 'Cobertura Média',
+        value: `${coberturaMedia.toFixed(1)}%`,
+        icon: Percent,
+      },
+    ]
+
+    const alerts = [
+      {
+        title: 'Falta Portaria',
+        count: amendments.filter((a) => !a.portaria).length,
+        link: '/emendas?semPortaria=true',
+        icon: FileText,
+      },
+      {
+        title: 'Falta Deliberação CIE',
+        count: amendments.filter((a) => !a.deliberacao_cie).length,
+        link: '/emendas?semCIE=true',
+        icon: FileText,
+      },
+      {
+        title: 'Sem Anexos Essenciais',
+        count: amendments.filter((a) => !a.anexos_essenciais).length,
+        link: '/emendas?semAnexos=true',
+        icon: Archive,
+      },
+      {
+        title: 'Sem Repasses',
+        count: amendments.filter((a) => a.total_repassado <= 0).length,
+        link: '/emendas?semRepasses=true',
+        icon: Banknote,
+      },
+      {
+        title: 'Despesas sem autorização',
+        count: allDespesas.filter((d) => !d.autorizada_por).length,
+        link: '/emendas?comDespesasNaoAutorizadas=true',
+        icon: ShieldAlert,
+      },
+      {
+        title: 'Despesas > Repasses',
+        count: amendments.filter((a) => a.total_gasto > a.total_repassado)
+          .length,
+        link: '/emendas?despesasMaiorRepasses=true',
+        icon: AlertTriangle,
+      },
+    ]
+
+    const gastoPorResponsavel = allDespesas.reduce(
+      (acc, { registrada_por, valor }) => {
+        acc[registrada_por] = (acc[registrada_por] || 0) + valor
+        return acc
+      },
+      {} as Record<string, number>,
+    )
+    const gastoPorResponsavelData = Object.entries(gastoPorResponsavel).map(
+      ([name, value]) => ({ name, value }),
+    )
+
+    const gastoPorUnidade = allDespesas.reduce(
+      (acc, { unidade_destino, valor }) => {
+        acc[unidade_destino] = (acc[unidade_destino] || 0) + valor
+        return acc
+      },
+      {} as Record<string, number>,
+    )
+    const gastoPorUnidadeData = Object.entries(gastoPorUnidade).map(
+      ([name, value]) => ({ name, value }),
+    )
+
+    const gastoPorDemanda = allDespesas.reduce(
+      (acc, { demanda, valor }) => {
+        const key = demanda || 'Sem Demanda'
+        acc[key] = (acc[key] || 0) + valor
+        return acc
+      },
+      {} as Record<string, number>,
+    )
+    const gastoPorDemandaData = Object.entries(gastoPorDemanda).map(
+      ([name, value]) => ({ name, value }),
+    )
+
+    const monthlyData = [...allRepasses, ...allDespesas].reduce(
+      (acc, item) => {
+        const month = format(new Date(item.data), 'yyyy-MM')
+        if (!acc[month]) acc[month] = { month, repasses: 0, despesas: 0 }
+        if ('fonte' in item) acc[month].repasses += item.valor
+        else acc[month].despesas += item.valor
+        return acc
+      },
+      {} as Record<
+        string,
+        { month: string; repasses: number; despesas: number }
+      >,
+    )
+    const lineChartData = Object.values(monthlyData).sort((a, b) =>
+      a.month.localeCompare(b.month),
+    )
+
+    return {
+      kpis,
+      alerts,
+      gastoPorResponsavelData,
+      gastoPorUnidadeData,
+      gastoPorDemandaData,
+      lineChartData,
+    }
+  }, [])
+
   return (
-    <div className="container mx-auto py-2 px-4">
-      <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-        {kpiData.map((kpi) => {
-          const Icon = iconMap[kpi.icon as keyof typeof iconMap]
-          return (
-            <Card
-              key={kpi.title}
-              className="hover:shadow-md transition-shadow duration-200 cursor-pointer"
-            >
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {kpi.title}
-                </CardTitle>
-                <Icon className="h-5 w-5 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{kpi.value}</div>
-              </CardContent>
-            </Card>
-          )
-        })}
+    <div className="container mx-auto py-2 px-4 space-y-6">
+      <h1 className="text-3xl font-bold">Dashboard</h1>
+
+      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+        {dashboardData.kpis.map((kpi) => (
+          <Card key={kpi.title}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {kpi.title}
+              </CardTitle>
+              <kpi.icon className="h-5 w-5 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{kpi.value}</div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
-      <div className="grid gap-8 md:grid-cols-2">
+
+      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+        {dashboardData.alerts
+          .filter((alert) => alert.count > 0)
+          .map((alert) => (
+            <Link to={alert.link} key={alert.title}>
+              <Card className="hover:bg-destructive/10 transition-colors">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-destructive">
+                    {alert.title}
+                  </CardTitle>
+                  <alert.icon className="h-5 w-5 text-destructive" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-destructive">
+                    {alert.count}
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Emendas por Status</CardTitle>
+            <CardTitle>Repasses e Despesas por Mês</CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartContainer
-              config={{}}
-              className="mx-auto aspect-square max-h-[300px]"
-            >
-              <PieChart>
-                <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                <Pie
-                  data={chartData}
-                  dataKey="total"
-                  nameKey="status"
-                  innerRadius={60}
-                >
-                  {chartData.map((entry) => (
-                    <Cell key={`cell-${entry.status}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <ChartLegend
-                  content={<ChartLegendContent nameKey="status" />}
+            <ChartContainer config={{}} className="w-full h-[300px]">
+              <LineChart data={dashboardData.lineChartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis tickFormatter={(val) => formatCurrency(val)} />
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      formatter={(val) => formatCurrency(Number(val))}
+                    />
+                  }
                 />
-              </PieChart>
+                <ChartLegend />
+                <Line
+                  type="monotone"
+                  dataKey="repasses"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="despesas"
+                  stroke="hsl(var(--danger))"
+                  strokeWidth={2}
+                />
+              </LineChart>
             </ChartContainer>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Valores Repassados (Últimos 5 meses)</CardTitle>
+            <CardTitle>Gasto por Responsável</CardTitle>
           </CardHeader>
           <CardContent>
             <ChartContainer config={{}} className="w-full h-[300px]">
-              <BarChart
-                data={barChartData}
-                margin={{ top: 20, right: 20, left: 20, bottom: 5 }}
-              >
+              <BarChart data={dashboardData.gastoPorResponsavelData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis
-                  tickFormatter={(value) => `R$${Number(value) / 1000}k`}
-                />
+                <XAxis dataKey="name" />
+                <YAxis tickFormatter={(val) => formatCurrency(val)} />
                 <ChartTooltip
                   content={
                     <ChartTooltipContent
-                      formatter={(value) =>
-                        `R$ ${Number(value).toLocaleString('pt-BR')}`
-                      }
+                      formatter={(val) => formatCurrency(Number(val))}
                     />
                   }
                 />
-                <Bar
-                  dataKey="value"
-                  fill="hsl(var(--primary))"
-                  radius={[4, 4, 0, 0]}
+                <Bar dataKey="value" fill="hsl(var(--primary))" radius={4} />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Gasto por Unidade</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={{}} className="w-full h-[300px]">
+              <BarChart data={dashboardData.gastoPorUnidadeData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis tickFormatter={(val) => formatCurrency(val)} />
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      formatter={(val) => formatCurrency(Number(val))}
+                    />
+                  }
                 />
+                <Bar dataKey="value" fill="hsl(var(--chart-2))" radius={4} />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Gasto por Demanda</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={{}} className="w-full h-[300px]">
+              <BarChart data={dashboardData.gastoPorDemandaData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis tickFormatter={(val) => formatCurrency(val)} />
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      formatter={(val) => formatCurrency(Number(val))}
+                    />
+                  }
+                />
+                <Bar dataKey="value" fill="hsl(var(--chart-3))" radius={4} />
               </BarChart>
             </ChartContainer>
           </CardContent>
