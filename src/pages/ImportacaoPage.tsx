@@ -38,8 +38,10 @@ const despesasFields = [
 const ImportacaoPage = () => {
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Importação de Dados</h1>
-      <p className="text-muted-foreground">
+      <h1 className="text-3xl font-bold text-neutral-800">
+        Importação de Dados
+      </h1>
+      <p className="text-neutral-600">
         Importe dados de emendas, repasses e despesas a partir de arquivos CSV.
         Siga as etapas para selecionar o arquivo, mapear as colunas e iniciar a
         importação.

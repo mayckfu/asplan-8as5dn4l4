@@ -29,7 +29,10 @@ export const Header = () => {
         </Sheet>
       </div>
 
-      <Link to="/" className="items-center gap-2 font-semibold hidden md:flex">
+      <Link
+        to="/"
+        className="items-center gap-2 font-semibold hidden md:flex text-neutral-800"
+      >
         <Package2 className="h-6 w-6 text-primary" />
         <span className="text-lg">Controle de Emendas</span>
       </Link>

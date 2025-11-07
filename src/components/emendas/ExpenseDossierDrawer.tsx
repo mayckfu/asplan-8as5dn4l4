@@ -23,8 +23,8 @@ const DetailItem = ({
   children: React.ReactNode
 }) => (
   <div>
-    <p className="text-sm font-medium text-muted-foreground">{label}</p>
-    <p className="text-base">{children || '-'}</p>
+    <p className="text-sm font-medium text-neutral-600">{label}</p>
+    <p className="text-base text-neutral-800">{children || '-'}</p>
   </div>
 )
 
@@ -39,18 +39,26 @@ export const ExpenseDossierDrawer = ({
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Dossiê da Despesa: {expense.id}</SheetTitle>
-          <SheetDescription>{expense.descricao}</SheetDescription>
+          <SheetTitle className="text-neutral-800">
+            Dossiê da Despesa: {expense.id}
+          </SheetTitle>
+          <SheetDescription className="text-neutral-600">
+            {expense.descricao}
+          </SheetDescription>
         </SheetHeader>
         <div className="py-6 space-y-6">
           <div className="space-y-4">
-            <h4 className="font-semibold">Detalhes da Despesa</h4>
+            <h4 className="font-semibold text-neutral-800">
+              Detalhes da Despesa
+            </h4>
             <div className="grid grid-cols-2 gap-4">
               <DetailItem label="Valor">
-                {expense.valor.toLocaleString('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL',
-                })}
+                <span className="tabular-nums">
+                  {expense.valor.toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                  })}
+                </span>
               </DetailItem>
               <DetailItem label="Data">
                 {new Date(expense.data).toLocaleDateString('pt-BR')}
@@ -69,7 +77,7 @@ export const ExpenseDossierDrawer = ({
           </div>
           <Separator />
           <div className="space-y-4">
-            <h4 className="font-semibold">Responsáveis</h4>
+            <h4 className="font-semibold text-neutral-800">Responsáveis</h4>
             <div className="grid grid-cols-2 gap-4">
               <DetailItem label="Lançado por">
                 {expense.registrada_por}
@@ -84,8 +92,8 @@ export const ExpenseDossierDrawer = ({
           </div>
           <Separator />
           <div className="space-y-4">
-            <h4 className="font-semibold">Anexos</h4>
-            <p className="text-sm text-muted-foreground">
+            <h4 className="font-semibold text-neutral-800">Anexos</h4>
+            <p className="text-sm text-neutral-600">
               Nota Fiscal:{' '}
               <a
                 href={expense.nota_fiscal_url || '#'}
@@ -97,8 +105,10 @@ export const ExpenseDossierDrawer = ({
           </div>
           <Separator />
           <div className="space-y-4">
-            <h4 className="font-semibold">Histórico de Status</h4>
-            <p className="text-sm text-muted-foreground">
+            <h4 className="font-semibold text-neutral-800">
+              Histórico de Status
+            </h4>
+            <p className="text-sm text-neutral-600">
               Histórico não implementado.
             </p>
           </div>

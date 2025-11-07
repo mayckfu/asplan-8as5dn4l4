@@ -38,26 +38,28 @@ export const EmendaDetailHeader = ({ emenda }: EmendaDetailHeaderProps) => {
   }
 
   return (
-    <Card>
+    <Card className="rounded-2xl shadow-sm border border-neutral-200">
       <CardHeader>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <CardTitle className="text-2xl">{emenda.numero_proposta}</CardTitle>
-            <p className="text-sm text-muted-foreground">{emenda.autor}</p>
+            <CardTitle className="text-2xl text-neutral-800">
+              {emenda.numero_proposta}
+            </CardTitle>
+            <p className="text-sm text-neutral-600">{emenda.autor}</p>
           </div>
           <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+            <div className="flex items-center gap-2 text-xs font-semibold text-neutral-600">
               <Paperclip className="h-4 w-4" />
               {emenda.anexos.length} Anexos
             </div>
             <div>
-              <span className="text-xs font-semibold text-muted-foreground">
+              <span className="text-xs font-semibold text-neutral-600">
                 STATUS OFICIAL
               </span>
               <StatusBadge status={emenda.situacao} />
             </div>
             <div>
-              <span className="text-xs font-semibold text-muted-foreground">
+              <span className="text-xs font-semibold text-neutral-600">
                 STATUS INTERNO
               </span>
               <StatusBadge status={emenda.status_interno} />
@@ -69,10 +71,10 @@ export const EmendaDetailHeader = ({ emenda }: EmendaDetailHeaderProps) => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-center mb-4">
           {kpis.map((kpi) => (
             <div key={kpi.label} className="p-2 rounded-lg bg-muted">
-              <p className="text-sm font-medium text-muted-foreground">
+              <p className="text-sm font-medium text-neutral-600">
                 {kpi.label}
               </p>
-              <p className="text-xl font-bold">
+              <p className="text-xl font-bold text-neutral-800 tabular-nums">
                 {formatValue(kpi.value, kpi.format)}
               </p>
             </div>
@@ -80,7 +82,9 @@ export const EmendaDetailHeader = ({ emenda }: EmendaDetailHeaderProps) => {
         </div>
         {emenda.pendencias.length > 0 && (
           <div>
-            <h4 className="text-sm font-semibold mb-2">Pendências:</h4>
+            <h4 className="text-sm font-semibold mb-2 text-neutral-800">
+              Pendências:
+            </h4>
             <div className="flex flex-wrap gap-2">
               {emenda.pendencias
                 .filter((p) => !p.dispensada)

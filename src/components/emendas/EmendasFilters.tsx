@@ -142,7 +142,9 @@ export const EmendasFilters = ({
             checked={filters.comPortaria}
             onCheckedChange={handleCheckboxChange('comPortaria')}
           />
-          <Label htmlFor="comPortaria">Com Portaria</Label>
+          <Label htmlFor="comPortaria" className="text-neutral-600">
+            Com Portaria
+          </Label>
         </div>
         <div className="flex items-center space-x-2">
           <Checkbox
@@ -150,7 +152,9 @@ export const EmendasFilters = ({
             checked={filters.comCIE}
             onCheckedChange={handleCheckboxChange('comCIE')}
           />
-          <Label htmlFor="comCIE">Com Deliberação CIE</Label>
+          <Label htmlFor="comCIE" className="text-neutral-600">
+            Com Deliberação CIE
+          </Label>
         </div>
         <div className="flex items-center space-x-2">
           <Checkbox
@@ -158,7 +162,9 @@ export const EmendasFilters = ({
             checked={filters.comAnexos}
             onCheckedChange={handleCheckboxChange('comAnexos')}
           />
-          <Label htmlFor="comAnexos">Com Anexos Essenciais</Label>
+          <Label htmlFor="comAnexos" className="text-neutral-600">
+            Com Anexos Essenciais
+          </Label>
         </div>
         <div className="flex items-center space-x-2">
           <Checkbox
@@ -166,7 +172,9 @@ export const EmendasFilters = ({
             checked={filters.apenasPendencias}
             onCheckedChange={handleCheckboxChange('apenasPendencias')}
           />
-          <Label htmlFor="apenasPendencias">Apenas com pendências</Label>
+          <Label htmlFor="apenasPendencias" className="text-neutral-600">
+            Apenas com pendências
+          </Label>
         </div>
       </div>
       <div className="flex justify-end">

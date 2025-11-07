@@ -43,7 +43,6 @@ export const EmendaAnexosTab = ({ anexos }: EmendaAnexosTabProps) => {
   const [isEssential, setIsEssential] = useState(false)
 
   const handleUpload = () => {
-    // Mock upload logic
     console.log('Uploading:', {
       files: filesToUpload,
       type: anexoType,
@@ -53,20 +52,22 @@ export const EmendaAnexosTab = ({ anexos }: EmendaAnexosTabProps) => {
   }
 
   return (
-    <Card>
+    <Card className="rounded-2xl shadow-sm border border-neutral-200">
       <CardHeader>
         <div className="flex justify-between items-center">
-          <CardTitle>Anexos ({anexos.length})</CardTitle>
+          <CardTitle className="font-medium text-neutral-800">
+            Anexos ({anexos.length})
+          </CardTitle>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="p-4 border rounded-lg space-y-4">
-          <h4 className="font-semibold">Novo Anexo</h4>
+          <h4 className="font-semibold text-neutral-800">Novo Anexo</h4>
           <FileUpload onFilesAccepted={setFilesToUpload} />
           {filesToUpload.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
               <div className="space-y-2">
-                <Label>Tipo de Anexo</Label>
+                <Label className="text-neutral-600">Tipo de Anexo</Label>
                 <Select
                   value={anexoType}
                   onValueChange={(v) => setAnexoType(v as AnexoType)}
@@ -93,7 +94,9 @@ export const EmendaAnexosTab = ({ anexos }: EmendaAnexosTabProps) => {
                   checked={isEssential}
                   onCheckedChange={(c) => setIsEssential(Boolean(c))}
                 />
-                <Label htmlFor="essential">Anexo essencial</Label>
+                <Label htmlFor="essential" className="text-neutral-600">
+                  Anexo essencial
+                </Label>
               </div>
               <Button onClick={handleUpload}>
                 <FileUp className="mr-2 h-4 w-4" />
@@ -103,7 +106,9 @@ export const EmendaAnexosTab = ({ anexos }: EmendaAnexosTabProps) => {
           )}
         </div>
         <div>
-          <h4 className="font-semibold mb-4">Anexos Enviados</h4>
+          <h4 className="font-semibold mb-4 text-neutral-800">
+            Anexos Enviados
+          </h4>
           <ul className="space-y-2">
             {anexos.map((anexo) => {
               const Icon = anexoIcons[anexo.tipo] || File
@@ -115,8 +120,10 @@ export const EmendaAnexosTab = ({ anexos }: EmendaAnexosTabProps) => {
                   <div className="flex items-center gap-3">
                     <Icon className="h-6 w-6 text-primary" />
                     <div>
-                      <p className="font-medium">{anexo.titulo}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="font-medium text-neutral-800">
+                        {anexo.titulo}
+                      </p>
+                      <p className="text-xs text-neutral-600">
                         Tipo: {anexo.tipo} | Enviado por {anexo.uploader} em{' '}
                         {new Date(anexo.created_at).toLocaleDateString('pt-BR')}
                       </p>

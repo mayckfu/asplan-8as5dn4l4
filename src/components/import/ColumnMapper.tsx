@@ -37,8 +37,10 @@ export const ColumnMapper = ({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold">Mapeamento de Colunas</h3>
-        <p className="text-sm text-muted-foreground">
+        <h3 className="text-lg font-semibold text-neutral-800">
+          Mapeamento de Colunas
+        </h3>
+        <p className="text-sm text-neutral-600">
           Associe as colunas do seu arquivo CSV aos campos do sistema.
         </p>
       </div>
@@ -46,14 +48,18 @@ export const ColumnMapper = ({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Campo do Sistema</TableHead>
-              <TableHead>Coluna do CSV</TableHead>
+              <TableHead className="font-medium text-neutral-800">
+                Campo do Sistema
+              </TableHead>
+              <TableHead className="font-medium text-neutral-800">
+                Coluna do CSV
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {targetFields.map((field) => (
               <TableRow key={field.key}>
-                <TableCell className="font-medium">
+                <TableCell className="font-medium text-neutral-600">
                   {field.label}
                   {field.required && (
                     <span className="text-destructive ml-1">*</span>

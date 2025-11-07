@@ -24,8 +24,10 @@ const EmendaDetailPage = () => {
   if (!emenda) {
     return (
       <div className="text-center py-10">
-        <h2 className="text-2xl font-bold">Emenda não encontrada</h2>
-        <p className="text-muted-foreground">
+        <h2 className="text-2xl font-bold text-neutral-800">
+          Emenda não encontrada
+        </h2>
+        <p className="text-neutral-600">
           A emenda com o ID "{id}" não foi encontrada.
         </p>
         <Button onClick={() => navigate('/emendas')} className="mt-4">
@@ -47,7 +49,7 @@ const EmendaDetailPage = () => {
           <ArrowLeft className="h-4 w-4" />
           <span className="sr-only">Voltar</span>
         </Button>
-        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
+        <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0 text-neutral-800">
           Detalhes da Emenda
         </h1>
         <div className="hidden items-center gap-2 md:ml-auto md:flex">

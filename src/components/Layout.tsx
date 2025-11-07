@@ -8,8 +8,10 @@ export default function Layout() {
       <AppSidebar />
       <div className="flex flex-col">
         <Header />
-        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8 bg-background-primary animate-fade-in">
-          <Outlet />
+        <main className="flex-1 animate-fade-in">
+          <div className="max-w-screen-2xl mx-auto px-4 py-6">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

@@ -17,7 +17,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
   CardFooter,
 } from '@/components/ui/card'
 import {
@@ -312,7 +311,7 @@ const RelatoriosPage = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Relatórios</h1>
+        <h1 className="text-3xl font-bold text-neutral-800">Relatórios</h1>
         <Button
           size="sm"
           variant="outline"
@@ -322,11 +321,13 @@ const RelatoriosPage = () => {
         </Button>
       </div>
 
-      <Card>
+      <Card className="rounded-2xl shadow-sm border border-neutral-200">
         <CardHeader>
           <Collapsible defaultOpen>
             <div className="flex items-center justify-between">
-              <CardTitle>Filtros</CardTitle>
+              <CardTitle className="font-medium text-neutral-800">
+                Filtros
+              </CardTitle>
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" size="sm" className="w-9 p-0">
                   <ListFilter className="h-4 w-4" />
@@ -346,9 +347,11 @@ const RelatoriosPage = () => {
       </Card>
 
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-        <Card>
+        <Card className="rounded-2xl shadow-sm border border-neutral-200">
           <CardHeader>
-            <CardTitle>Consolidado por Autor</CardTitle>
+            <CardTitle className="font-medium text-neutral-800">
+              Consolidado por Autor
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ChartContainer config={{}} className="w-full h-[300px]">
@@ -357,7 +360,12 @@ const RelatoriosPage = () => {
                 <XAxis type="number" tickFormatter={(v) => formatCurrency(v)} />
                 <YAxis type="category" dataKey="name" width={120} />
                 <Tooltip
-                  content={<ChartTooltipContent formatter={formatCurrency} />}
+                  content={
+                    <ChartTooltipContent
+                      formatter={formatCurrency}
+                      className="tabular-nums"
+                    />
+                  }
                 />
                 <Bar dataKey="value" fill="hsl(var(--primary))" radius={4} />
               </BarChart>
@@ -376,15 +384,22 @@ const RelatoriosPage = () => {
           </CardFooter>
         </Card>
 
-        <Card>
+        <Card className="rounded-2xl shadow-sm border border-neutral-200">
           <CardHeader>
-            <CardTitle>Consolidado por Tipo de Recurso</CardTitle>
+            <CardTitle className="font-medium text-neutral-800">
+              Consolidado por Tipo de Recurso
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ChartContainer config={{}} className="w-full h-[300px]">
               <PieChart>
                 <Tooltip
-                  content={<ChartTooltipContent formatter={formatCurrency} />}
+                  content={
+                    <ChartTooltipContent
+                      formatter={formatCurrency}
+                      className="tabular-nums"
+                    />
+                  }
                 />
                 <Pie
                   data={consolidatedByTipoRecurso}
@@ -422,9 +437,11 @@ const RelatoriosPage = () => {
           </CardFooter>
         </Card>
 
-        <Card>
+        <Card className="rounded-2xl shadow-sm border border-neutral-200">
           <CardHeader>
-            <CardTitle>Consolidado por Situação Oficial</CardTitle>
+            <CardTitle className="font-medium text-neutral-800">
+              Consolidado por Situação Oficial
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ChartContainer config={{}} className="w-full h-[300px]">
@@ -438,7 +455,12 @@ const RelatoriosPage = () => {
                 />
                 <YAxis tickFormatter={(v) => formatCurrency(v)} />
                 <Tooltip
-                  content={<ChartTooltipContent formatter={formatCurrency} />}
+                  content={
+                    <ChartTooltipContent
+                      formatter={formatCurrency}
+                      className="tabular-nums"
+                    />
+                  }
                 />
                 <Bar dataKey="value" fill="hsl(var(--chart-3))" radius={4} />
               </BarChart>
@@ -457,9 +479,11 @@ const RelatoriosPage = () => {
           </CardFooter>
         </Card>
 
-        <Card>
+        <Card className="rounded-2xl shadow-sm border border-neutral-200">
           <CardHeader>
-            <CardTitle>Execução por Responsável (Lançamento)</CardTitle>
+            <CardTitle className="font-medium text-neutral-800">
+              Execução por Responsável (Lançamento)
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ChartContainer config={{}} className="w-full h-[300px]">
@@ -468,7 +492,12 @@ const RelatoriosPage = () => {
                 <XAxis type="number" tickFormatter={(v) => formatCurrency(v)} />
                 <YAxis type="category" dataKey="name" width={100} />
                 <Tooltip
-                  content={<ChartTooltipContent formatter={formatCurrency} />}
+                  content={
+                    <ChartTooltipContent
+                      formatter={formatCurrency}
+                      className="tabular-nums"
+                    />
+                  }
                 />
                 <Bar dataKey="value" fill="hsl(var(--chart-4))" radius={4} />
               </BarChart>
@@ -487,9 +516,11 @@ const RelatoriosPage = () => {
           </CardFooter>
         </Card>
 
-        <Card>
+        <Card className="rounded-2xl shadow-sm border border-neutral-200">
           <CardHeader>
-            <CardTitle>Execução por Unidade</CardTitle>
+            <CardTitle className="font-medium text-neutral-800">
+              Execução por Unidade
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ChartContainer config={{}} className="w-full h-[300px]">
@@ -498,7 +529,12 @@ const RelatoriosPage = () => {
                 <XAxis type="number" tickFormatter={(v) => formatCurrency(v)} />
                 <YAxis type="category" dataKey="name" width={120} />
                 <Tooltip
-                  content={<ChartTooltipContent formatter={formatCurrency} />}
+                  content={
+                    <ChartTooltipContent
+                      formatter={formatCurrency}
+                      className="tabular-nums"
+                    />
+                  }
                 />
                 <Bar dataKey="value" fill="hsl(var(--chart-2))" radius={4} />
               </BarChart>
@@ -517,9 +553,11 @@ const RelatoriosPage = () => {
           </CardFooter>
         </Card>
 
-        <Card>
+        <Card className="rounded-2xl shadow-sm border border-neutral-200">
           <CardHeader>
-            <CardTitle>Execução por Demanda</CardTitle>
+            <CardTitle className="font-medium text-neutral-800">
+              Execução por Demanda
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ChartContainer config={{}} className="w-full h-[300px]">
@@ -528,7 +566,12 @@ const RelatoriosPage = () => {
                 <XAxis type="number" tickFormatter={(v) => formatCurrency(v)} />
                 <YAxis type="category" dataKey="name" width={150} />
                 <Tooltip
-                  content={<ChartTooltipContent formatter={formatCurrency} />}
+                  content={
+                    <ChartTooltipContent
+                      formatter={formatCurrency}
+                      className="tabular-nums"
+                    />
+                  }
                 />
                 <Bar dataKey="value" fill="hsl(var(--chart-5))" radius={4} />
               </BarChart>
@@ -547,15 +590,22 @@ const RelatoriosPage = () => {
           </CardFooter>
         </Card>
 
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 rounded-2xl shadow-sm border border-neutral-200">
           <CardHeader>
-            <CardTitle>Status de Execução das Despesas</CardTitle>
+            <CardTitle className="font-medium text-neutral-800">
+              Status de Execução das Despesas
+            </CardTitle>
           </CardHeader>
           <CardContent className="flex justify-center">
             <ChartContainer config={{}} className="w-full h-[300px]">
               <PieChart>
                 <Tooltip
-                  content={<ChartTooltipContent formatter={formatCurrency} />}
+                  content={
+                    <ChartTooltipContent
+                      formatter={formatCurrency}
+                      className="tabular-nums"
+                    />
+                  }
                 />
                 <Pie
                   data={executionStatus}

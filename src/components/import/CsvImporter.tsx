@@ -69,7 +69,7 @@ const simulateImport = async () => {
   })
 }
 
-export const CsvImporter = ({ dataType, targetFields }: CsvImporterProps) => {
+export const CsvImporter = ({ targetFields }: CsvImporterProps) => {
   const [step, setStep] = useState<ImportStep>('select_file')
   const [csvFile, setCsvFile] = useState<File | null>(null)
   const [csvHeaders, setCsvHeaders] = useState<string[]>([])
@@ -114,10 +114,10 @@ export const CsvImporter = ({ dataType, targetFields }: CsvImporterProps) => {
   }
 
   return (
-    <div className="p-6 border rounded-lg">
+    <div className="p-6 border rounded-2xl shadow-sm border-neutral-200">
       {step === 'select_file' && (
         <div>
-          <h3 className="text-lg font-semibold mb-2">
+          <h3 className="text-lg font-semibold mb-2 text-neutral-800">
             1. Selecione o arquivo CSV
           </h3>
           <FileUpload
@@ -141,7 +141,9 @@ export const CsvImporter = ({ dataType, targetFields }: CsvImporterProps) => {
       {step === 'importing' && (
         <div className="flex flex-col items-center justify-center space-y-4 min-h-[200px]">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <p className="text-lg font-medium">Importando dados...</p>
+          <p className="text-lg font-medium text-neutral-800">
+            Importando dados...
+          </p>
           <Progress value={progress} className="w-full max-w-md" />
         </div>
       )}
@@ -154,16 +156,20 @@ export const CsvImporter = ({ dataType, targetFields }: CsvImporterProps) => {
             <AlertTriangle className="h-16 w-16 text-destructive" />
           )}
           <div className="text-center">
-            <h3 className="text-2xl font-bold">{importResult.message}</h3>
-            <p>
+            <h3 className="text-2xl font-bold text-neutral-800">
+              {importResult.message}
+            </h3>
+            <p className="text-neutral-600">
               {importResult.imported} registros importados com sucesso.
               <br />
               {importResult.failed} registros falharam.
             </p>
           </div>
           <Alert className="w-full max-w-2xl">
-            <AlertTitle>Log de Importação</AlertTitle>
-            <AlertDescription className="max-h-40 overflow-y-auto text-xs font-mono">
+            <AlertTitle className="text-neutral-800">
+              Log de Importação
+            </AlertTitle>
+            <AlertDescription className="max-h-40 overflow-y-auto text-xs font-mono text-neutral-600">
               {importResult.logs.map((log: string, i: number) => (
                 <div key={i}>{log}</div>
               ))}

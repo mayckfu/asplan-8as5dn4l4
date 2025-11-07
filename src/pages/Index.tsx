@@ -8,7 +8,6 @@ import {
   YAxis,
   Line,
   LineChart,
-  ResponsiveContainer,
 } from 'recharts'
 import { format } from 'date-fns'
 import {
@@ -28,7 +27,6 @@ import {
   ChartTooltip,
   ChartTooltipContent,
   ChartLegend,
-  ChartLegendContent,
 } from '@/components/ui/chart'
 import {
   amendments,
@@ -190,20 +188,25 @@ const Index = () => {
   }, [])
 
   return (
-    <div className="container mx-auto py-2 px-4 space-y-6">
-      <h1 className="text-3xl font-bold">Dashboard</h1>
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold text-neutral-800">Dashboard</h1>
 
       <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
         {dashboardData.kpis.map((kpi) => (
-          <Card key={kpi.title}>
+          <Card
+            key={kpi.title}
+            className="rounded-2xl shadow-sm border border-neutral-200"
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardTitle className="text-sm font-medium text-neutral-600">
                 {kpi.title}
               </CardTitle>
-              <kpi.icon className="h-5 w-5 text-muted-foreground" />
+              <kpi.icon className="h-5 w-5 text-neutral-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{kpi.value}</div>
+              <div className="text-2xl font-bold text-neutral-800 tabular-nums">
+                {kpi.value}
+              </div>
             </CardContent>
           </Card>
         ))}
@@ -214,7 +217,7 @@ const Index = () => {
           .filter((alert) => alert.count > 0)
           .map((alert) => (
             <Link to={alert.link} key={alert.title}>
-              <Card className="hover:bg-destructive/10 transition-colors">
+              <Card className="rounded-2xl shadow-sm border border-neutral-200 hover:bg-destructive/10 transition-colors">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-destructive">
                     {alert.title}
@@ -222,7 +225,7 @@ const Index = () => {
                   <alert.icon className="h-5 w-5 text-destructive" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-destructive">
+                  <div className="text-2xl font-bold text-destructive tabular-nums">
                     {alert.count}
                   </div>
                 </CardContent>
@@ -232,9 +235,11 @@ const Index = () => {
       </div>
 
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-        <Card>
+        <Card className="rounded-2xl shadow-sm border border-neutral-200">
           <CardHeader>
-            <CardTitle>Repasses e Despesas por Mês</CardTitle>
+            <CardTitle className="font-medium text-neutral-800">
+              Repasses e Despesas por Mês
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ChartContainer config={{}} className="w-full h-[300px]">
@@ -246,6 +251,7 @@ const Index = () => {
                   content={
                     <ChartTooltipContent
                       formatter={(val) => formatCurrency(Number(val))}
+                      className="tabular-nums"
                     />
                   }
                 />
@@ -266,9 +272,11 @@ const Index = () => {
             </ChartContainer>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="rounded-2xl shadow-sm border border-neutral-200">
           <CardHeader>
-            <CardTitle>Gasto por Responsável</CardTitle>
+            <CardTitle className="font-medium text-neutral-800">
+              Gasto por Responsável
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ChartContainer config={{}} className="w-full h-[300px]">
@@ -280,6 +288,7 @@ const Index = () => {
                   content={
                     <ChartTooltipContent
                       formatter={(val) => formatCurrency(Number(val))}
+                      className="tabular-nums"
                     />
                   }
                 />
@@ -288,9 +297,11 @@ const Index = () => {
             </ChartContainer>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="rounded-2xl shadow-sm border border-neutral-200">
           <CardHeader>
-            <CardTitle>Gasto por Unidade</CardTitle>
+            <CardTitle className="font-medium text-neutral-800">
+              Gasto por Unidade
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ChartContainer config={{}} className="w-full h-[300px]">
@@ -302,6 +313,7 @@ const Index = () => {
                   content={
                     <ChartTooltipContent
                       formatter={(val) => formatCurrency(Number(val))}
+                      className="tabular-nums"
                     />
                   }
                 />
@@ -310,9 +322,11 @@ const Index = () => {
             </ChartContainer>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="rounded-2xl shadow-sm border border-neutral-200">
           <CardHeader>
-            <CardTitle>Gasto por Demanda</CardTitle>
+            <CardTitle className="font-medium text-neutral-800">
+              Gasto por Demanda
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ChartContainer config={{}} className="w-full h-[300px]">
@@ -324,6 +338,7 @@ const Index = () => {
                   content={
                     <ChartTooltipContent
                       formatter={(val) => formatCurrency(Number(val))}
+                      className="tabular-nums"
                     />
                   }
                 />

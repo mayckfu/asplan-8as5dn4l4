@@ -19,23 +19,33 @@ export const EmendaHistoricoTab = ({ historico }: EmendaHistoricoTabProps) => {
   )
 
   return (
-    <Card>
+    <Card className="rounded-2xl shadow-sm border border-neutral-200">
       <CardHeader>
-        <CardTitle>Histórico de Alterações</CardTitle>
+        <CardTitle className="font-medium text-neutral-800">
+          Histórico de Alterações
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Data/Hora</TableHead>
-              <TableHead>Usuário</TableHead>
-              <TableHead>Evento</TableHead>
-              <TableHead>Detalhes</TableHead>
+              <TableHead className="font-medium text-neutral-800">
+                Data/Hora
+              </TableHead>
+              <TableHead className="font-medium text-neutral-800">
+                Usuário
+              </TableHead>
+              <TableHead className="font-medium text-neutral-800">
+                Evento
+              </TableHead>
+              <TableHead className="font-medium text-neutral-800">
+                Detalhes
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {sortedHistory.map((h) => (
-              <TableRow key={h.id}>
+              <TableRow key={h.id} className="text-neutral-600">
                 <TableCell>
                   {new Date(h.criado_em).toLocaleString('pt-BR')}
                 </TableCell>

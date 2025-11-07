@@ -47,10 +47,12 @@ export const EmendaRepassesTab = ({ repasses }: EmendaRepassesTabProps) => {
   }
 
   return (
-    <Card>
+    <Card className="rounded-2xl shadow-sm border border-neutral-200">
       <CardHeader>
         <div className="flex justify-between items-center">
-          <CardTitle>Repasses Financeiros</CardTitle>
+          <CardTitle className="font-medium text-neutral-800">
+            Repasses Financeiros
+          </CardTitle>
           <Button size="sm" onClick={handleAddNew}>
             <PlusCircle className="h-4 w-4 mr-2" />
             Adicionar Repasse
@@ -61,9 +63,15 @@ export const EmendaRepassesTab = ({ repasses }: EmendaRepassesTabProps) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Data</TableHead>
-              <TableHead>Fonte</TableHead>
-              <TableHead className="text-right">Valor</TableHead>
+              <TableHead className="font-medium text-neutral-800">
+                Data
+              </TableHead>
+              <TableHead className="font-medium text-neutral-800">
+                Fonte
+              </TableHead>
+              <TableHead className="text-right font-medium text-neutral-800">
+                Valor
+              </TableHead>
               <TableHead>
                 <span className="sr-only">Ações</span>
               </TableHead>
@@ -71,12 +79,12 @@ export const EmendaRepassesTab = ({ repasses }: EmendaRepassesTabProps) => {
           </TableHeader>
           <TableBody>
             {sortedRepasses.map((repasse) => (
-              <TableRow key={repasse.id}>
+              <TableRow key={repasse.id} className="text-neutral-600">
                 <TableCell>
                   {new Date(repasse.data).toLocaleDateString('pt-BR')}
                 </TableCell>
                 <TableCell>{repasse.fonte}</TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right tabular-nums">
                   {repasse.valor.toLocaleString('pt-BR', {
                     style: 'currency',
                     currency: 'BRL',

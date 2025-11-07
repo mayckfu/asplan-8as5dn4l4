@@ -24,17 +24,21 @@ const DetailItem = ({
   children: React.ReactNode
 }) => (
   <div>
-    <p className="text-sm font-medium text-muted-foreground">{label}</p>
-    <p className="text-base">{children || '-'}</p>
+    <p className="text-sm font-medium text-neutral-600">{label}</p>
+    <p className="text-base text-neutral-800">{children || '-'}</p>
   </div>
 )
 
 export const EmendaResumoTab = ({ emenda }: EmendaResumoTabProps) => {
   return (
-    <Card>
+    <Card className="rounded-2xl shadow-sm border border-neutral-200">
       <CardHeader>
-        <CardTitle>Resumo da Emenda</CardTitle>
-        <CardDescription>Informações gerais sobre a emenda.</CardDescription>
+        <CardTitle className="font-medium text-neutral-800">
+          Resumo da Emenda
+        </CardTitle>
+        <CardDescription className="text-neutral-600">
+          Informações gerais sobre a emenda.
+        </CardDescription>
       </CardHeader>
       <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         <DetailItem label="Número da Proposta">
@@ -53,10 +57,12 @@ export const EmendaResumoTab = ({ emenda }: EmendaResumoTabProps) => {
           {StatusInterno[emenda.status_interno]}
         </DetailItem>
         <DetailItem label="Valor Total">
-          {emenda.valor_total.toLocaleString('pt-BR', {
-            style: 'currency',
-            currency: 'BRL',
-          })}
+          <span className="tabular-nums">
+            {emenda.valor_total.toLocaleString('pt-BR', {
+              style: 'currency',
+              currency: 'BRL',
+            })}
+          </span>
         </DetailItem>
         <DetailItem label="Data de Criação">
           {new Date(emenda.created_at).toLocaleDateString('pt-BR')}

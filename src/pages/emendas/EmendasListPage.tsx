@@ -293,9 +293,11 @@ const EmendasListPage = () => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Lista de Emendas</h1>
+        <h1 className="text-3xl font-bold text-neutral-800">
+          Lista de Emendas
+        </h1>
         <div className="flex items-center gap-2">
           <Button
             size="sm"
@@ -317,12 +319,14 @@ const EmendasListPage = () => {
         </div>
       </div>
 
-      <Card>
+      <Card className="rounded-2xl shadow-sm border border-neutral-200">
         <CardHeader>
           <Collapsible defaultOpen>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <CardTitle>Filtros</CardTitle>
+                <CardTitle className="font-medium text-neutral-800">
+                  Filtros
+                </CardTitle>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm">
@@ -367,14 +371,30 @@ const EmendasListPage = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Autor</TableHead>
-                <TableHead>Nº Emenda</TableHead>
-                <TableHead>Nº Proposta</TableHead>
-                <TableHead className="text-right">Valor Total</TableHead>
-                <TableHead>Situação Oficial</TableHead>
-                <TableHead>Status Interno</TableHead>
-                <TableHead>Pendências</TableHead>
+                <TableHead className="font-medium text-neutral-800">
+                  Tipo
+                </TableHead>
+                <TableHead className="font-medium text-neutral-800">
+                  Autor
+                </TableHead>
+                <TableHead className="font-medium text-neutral-800">
+                  Nº Emenda
+                </TableHead>
+                <TableHead className="font-medium text-neutral-800">
+                  Nº Proposta
+                </TableHead>
+                <TableHead className="text-right font-medium text-neutral-800">
+                  Valor Total
+                </TableHead>
+                <TableHead className="font-medium text-neutral-800">
+                  Situação Oficial
+                </TableHead>
+                <TableHead className="font-medium text-neutral-800">
+                  Status Interno
+                </TableHead>
+                <TableHead className="font-medium text-neutral-800">
+                  Pendências
+                </TableHead>
                 <TableHead>
                   <span className="sr-only">Ações</span>
                 </TableHead>
@@ -384,14 +404,14 @@ const EmendasListPage = () => {
               {paginatedData.map((amendment) => (
                 <TableRow
                   key={amendment.id}
-                  className="cursor-pointer hover:bg-muted/50"
+                  className="cursor-pointer hover:bg-muted/50 text-neutral-600"
                   onClick={() => navigate(`/emenda/${amendment.id}`)}
                 >
                   <TableCell>{amendment.tipo}</TableCell>
                   <TableCell>{amendment.autor}</TableCell>
                   <TableCell>{amendment.numero_emenda}</TableCell>
                   <TableCell>{amendment.numero_proposta}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right tabular-nums">
                     {amendment.valor_total.toLocaleString('pt-BR', {
                       style: 'currency',
                       currency: 'BRL',

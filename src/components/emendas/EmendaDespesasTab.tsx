@@ -46,10 +46,12 @@ export const EmendaDespesasTab = ({ despesas }: EmendaDespesasTabProps) => {
 
   return (
     <>
-      <Card>
+      <Card className="rounded-2xl shadow-sm border border-neutral-200">
         <CardHeader>
           <div className="flex justify-between items-center mb-4">
-            <CardTitle>Despesas</CardTitle>
+            <CardTitle className="font-medium text-neutral-800">
+              Despesas
+            </CardTitle>
             <Button size="sm">
               <PlusCircle className="h-4 w-4 mr-2" />
               Adicionar Despesa
@@ -77,10 +79,18 @@ export const EmendaDespesasTab = ({ despesas }: EmendaDespesasTabProps) => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Data</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
+                <TableHead className="font-medium text-neutral-800">
+                  Data
+                </TableHead>
+                <TableHead className="font-medium text-neutral-800">
+                  Descrição
+                </TableHead>
+                <TableHead className="font-medium text-neutral-800">
+                  Status
+                </TableHead>
+                <TableHead className="text-right font-medium text-neutral-800">
+                  Valor
+                </TableHead>
                 <TableHead>
                   <span className="sr-only">Ações</span>
                 </TableHead>
@@ -88,7 +98,7 @@ export const EmendaDespesasTab = ({ despesas }: EmendaDespesasTabProps) => {
             </TableHeader>
             <TableBody>
               {despesas.map((despesa) => (
-                <TableRow key={despesa.id}>
+                <TableRow key={despesa.id} className="text-neutral-600">
                   <TableCell>
                     {new Date(despesa.data).toLocaleDateString('pt-BR')}
                   </TableCell>
@@ -98,7 +108,7 @@ export const EmendaDespesasTab = ({ despesas }: EmendaDespesasTabProps) => {
                   <TableCell>
                     <StatusBadge status={despesa.status_execucao as any} />
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right tabular-nums">
                     {despesa.valor.toLocaleString('pt-BR', {
                       style: 'currency',
                       currency: 'BRL',
