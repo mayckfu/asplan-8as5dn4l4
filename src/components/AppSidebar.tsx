@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, List, BarChart2, Package2 } from 'lucide-react'
+import { Home, List, BarChart2, Package2, Upload } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -8,6 +8,7 @@ const navLinks = [
   { href: '/', label: 'Dashboard', icon: Home },
   { href: '/emendas', label: 'Emendas', icon: List },
   { href: '/relatorios', label: 'Relatórios', icon: BarChart2 },
+  { href: '/importacao', label: 'Importação', icon: Upload },
 ]
 
 export const AppSidebar = () => {

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Menu, Package2, User } from 'lucide-react'
+import { Menu, Package2, User, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -35,6 +35,12 @@ export const Header = () => {
       </Link>
 
       <div className="flex w-full items-center justify-end gap-4">
+        <Link to="/importacao">
+          <Button variant="outline" size="sm">
+            <Upload className="h-4 w-4 mr-2" />
+            Importar
+          </Button>
+        </Link>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="secondary" size="icon" className="rounded-full">

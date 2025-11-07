@@ -8,6 +8,7 @@ import Layout from './components/Layout'
 import EmendasListPage from './pages/emendas/EmendasListPage'
 import EmendaDetailPage from './pages/emendas/EmendaDetailPage'
 import RelatoriosPage from './pages/RelatoriosPage'
+import ImportacaoPage from './pages/ImportacaoPage'
 
 const App = () => (
   <BrowserRouter
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/emendas" element={<EmendasListPage />} />
           <Route path="/emenda/:id" element={<EmendaDetailPage />} />
           <Route path="/relatorios" element={<RelatoriosPage />} />
+          <Route path="/importacao" element={<ImportacaoPage />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

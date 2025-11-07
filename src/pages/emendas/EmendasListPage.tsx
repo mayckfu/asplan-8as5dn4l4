@@ -240,7 +240,7 @@ const EmendasListPage = () => {
           <Button size="sm" variant="outline" className="h-8 gap-1">
             <FileDown className="h-3.5 w-3.5" />
             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-              Exportar
+              Exportar CSV
             </span>
           </Button>
           <Button size="sm" className="h-8 gap-1">
@@ -375,6 +375,7 @@ const EmendasListPage = () => {
                           Ver Detalhes
                         </DropdownMenuItem>
                         <DropdownMenuItem>Editar</DropdownMenuItem>
+                        <DropdownMenuItem>Gerar Dossiê (PDF)</DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="text-destructive">
                           Excluir
