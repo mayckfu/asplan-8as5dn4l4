@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import {
   Card,
   CardContent,
@@ -24,7 +23,11 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
-import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart'
+import {
+  ChartContainer,
+  ChartTooltipContent,
+  ChartLegend,
+} from '@/components/ui/chart'
 import { FileDown, Users, Stethoscope, Syringe, Home } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 
@@ -136,7 +139,7 @@ const ApsPage = () => {
               <XAxis dataKey="month" />
               <YAxis />
               <Tooltip content={<ChartTooltipContent />} />
-              <Legend />
+              <ChartLegend />
               <Line
                 type="monotone"
                 dataKey="visits"
