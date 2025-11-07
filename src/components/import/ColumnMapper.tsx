@@ -44,10 +44,10 @@ export const ColumnMapper = ({
           Associe as colunas do seu arquivo CSV aos campos do sistema.
         </p>
       </div>
-      <div className="border rounded-md">
+      <div className="border rounded-md relative overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="sticky top-0 bg-background/90 backdrop-blur-sm z-10">
               <TableHead className="font-medium text-neutral-800">
                 Campo do Sistema
               </TableHead>
@@ -58,7 +58,10 @@ export const ColumnMapper = ({
           </TableHeader>
           <TableBody>
             {targetFields.map((field) => (
-              <TableRow key={field.key}>
+              <TableRow
+                key={field.key}
+                className="h-10 py-2 odd:bg-white even:bg-neutral-50 hover:bg-neutral-100 dark:odd:bg-card dark:even:bg-muted/50 dark:hover:bg-muted"
+              >
                 <TableCell className="font-medium text-neutral-600">
                   {field.label}
                   {field.required && (

@@ -22,6 +22,11 @@ import {
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface EmendaAnexosTabProps {
   anexos: Anexo[]
@@ -110,12 +115,16 @@ export const EmendaAnexosTab = ({ anexos }: EmendaAnexosTabProps) => {
             Anexos Enviados
           </h4>
           <ul className="space-y-2">
-            {anexos.map((anexo) => {
+            {anexos.map((anexo, index) => {
               const Icon = anexoIcons[anexo.tipo] || File
               return (
                 <li
                   key={anexo.id}
-                  className="flex items-center justify-between p-2 border rounded-lg"
+                  className={`flex items-center justify-between p-2 border rounded-lg h-10 ${
+                    index % 2 === 0
+                      ? 'bg-white dark:bg-card'
+                      : 'bg-neutral-50 dark:bg-muted/50'
+                  } hover:bg-neutral-100 dark:hover:bg-muted`}
                 >
                   <div className="flex items-center gap-3">
                     <Icon className="h-6 w-6 text-primary" />
@@ -130,16 +139,30 @@ export const EmendaAnexosTab = ({ anexos }: EmendaAnexosTabProps) => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon">
-                      <Download className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Baixar anexo</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Excluir anexo</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                 </li>
               )

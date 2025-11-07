@@ -26,36 +26,41 @@ export const EmendaHistoricoTab = ({ historico }: EmendaHistoricoTabProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="font-medium text-neutral-800">
-                Data/Hora
-              </TableHead>
-              <TableHead className="font-medium text-neutral-800">
-                Usuário
-              </TableHead>
-              <TableHead className="font-medium text-neutral-800">
-                Evento
-              </TableHead>
-              <TableHead className="font-medium text-neutral-800">
-                Detalhes
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sortedHistory.map((h) => (
-              <TableRow key={h.id} className="text-neutral-600">
-                <TableCell>
-                  {new Date(h.criado_em).toLocaleString('pt-BR')}
-                </TableCell>
-                <TableCell>{h.feito_por}</TableCell>
-                <TableCell>{h.evento}</TableCell>
-                <TableCell>{h.detalhe}</TableCell>
+        <div className="relative overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="sticky top-0 bg-card/90 backdrop-blur-sm z-10">
+                <TableHead className="font-medium text-neutral-800">
+                  Data/Hora
+                </TableHead>
+                <TableHead className="font-medium text-neutral-800">
+                  Usuário
+                </TableHead>
+                <TableHead className="font-medium text-neutral-800">
+                  Evento
+                </TableHead>
+                <TableHead className="font-medium text-neutral-800">
+                  Detalhes
+                </TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {sortedHistory.map((h) => (
+                <TableRow
+                  key={h.id}
+                  className="h-10 py-2 text-neutral-600 odd:bg-white even:bg-neutral-50 hover:bg-neutral-100 dark:odd:bg-card dark:even:bg-muted/50 dark:hover:bg-muted"
+                >
+                  <TableCell>
+                    {new Date(h.criado_em).toLocaleString('pt-BR')}
+                  </TableCell>
+                  <TableCell>{h.feito_por}</TableCell>
+                  <TableCell>{h.evento}</TableCell>
+                  <TableCell>{h.detalhe}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
   )

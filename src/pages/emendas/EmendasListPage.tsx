@@ -55,6 +55,11 @@ import {
 } from '@/components/emendas/EmendasFilters'
 import { DateRange } from 'react-day-picker'
 import { formatCurrencyBRL } from '@/lib/utils'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 const ITEMS_PER_PAGE = 10
 
@@ -369,107 +374,120 @@ const EmendasListPage = () => {
         </CardHeader>
         <Separator />
         <CardContent className="pt-6">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="font-medium text-neutral-800">
-                  Tipo
-                </TableHead>
-                <TableHead className="font-medium text-neutral-800">
-                  Autor
-                </TableHead>
-                <TableHead className="font-medium text-neutral-800">
-                  Nº Emenda
-                </TableHead>
-                <TableHead className="font-medium text-neutral-800">
-                  Nº Proposta
-                </TableHead>
-                <TableHead className="text-right font-medium text-neutral-800">
-                  Valor Total
-                </TableHead>
-                <TableHead className="font-medium text-neutral-800">
-                  Situação Oficial
-                </TableHead>
-                <TableHead className="font-medium text-neutral-800">
-                  Status Interno
-                </TableHead>
-                <TableHead className="font-medium text-neutral-800">
-                  Pendências
-                </TableHead>
-                <TableHead>
-                  <span className="sr-only">Ações</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedData.map((amendment) => (
-                <TableRow
-                  key={amendment.id}
-                  className="cursor-pointer hover:bg-muted/50 text-neutral-600"
-                  onClick={() => navigate(`/emenda/${amendment.id}`)}
-                >
-                  <TableCell>{amendment.tipo}</TableCell>
-                  <TableCell>{amendment.autor}</TableCell>
-                  <TableCell>{amendment.numero_emenda}</TableCell>
-                  <TableCell>{amendment.numero_proposta}</TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {formatCurrencyBRL(amendment.valor_total)}
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={amendment.situacao} />
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={amendment.status_interno} />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1 max-w-xs">
-                      {amendment.pendencias.map((p) => (
-                        <Badge
-                          key={p}
-                          variant="destructive"
-                          className="text-xs"
-                        >
-                          {p}
-                        </Badge>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          aria-haspopup="true"
-                          size="icon"
-                          variant="ghost"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Ações</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                        <DropdownMenuItem
-                          onClick={() => navigate(`/emenda/${amendment.id}`)}
-                        >
-                          Ver Detalhes
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>Editar</DropdownMenuItem>
-                        <DropdownMenuItem>Gerar Dossiê (PDF)</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive">
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          <div className="relative overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="sticky top-0 bg-background/90 backdrop-blur-sm z-10">
+                  <TableHead className="font-medium text-neutral-800">
+                    Tipo
+                  </TableHead>
+                  <TableHead className="font-medium text-neutral-800">
+                    Autor
+                  </TableHead>
+                  <TableHead className="font-medium text-neutral-800">
+                    Nº Emenda
+                  </TableHead>
+                  <TableHead className="font-medium text-neutral-800">
+                    Nº Proposta
+                  </TableHead>
+                  <TableHead className="text-right font-medium text-neutral-800">
+                    Valor Total
+                  </TableHead>
+                  <TableHead className="font-medium text-neutral-800">
+                    Situação Oficial
+                  </TableHead>
+                  <TableHead className="font-medium text-neutral-800">
+                    Status Interno
+                  </TableHead>
+                  <TableHead className="font-medium text-neutral-800">
+                    Pendências
+                  </TableHead>
+                  <TableHead>
+                    <span className="sr-only">Ações</span>
+                  </TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {paginatedData.map((amendment) => (
+                  <TableRow
+                    key={amendment.id}
+                    className="h-10 py-2 cursor-pointer odd:bg-white even:bg-neutral-50 hover:bg-neutral-100 dark:odd:bg-card dark:even:bg-muted/50 dark:hover:bg-muted text-neutral-600"
+                    onClick={() => navigate(`/emenda/${amendment.id}`)}
+                  >
+                    <TableCell>{amendment.tipo}</TableCell>
+                    <TableCell>{amendment.autor}</TableCell>
+                    <TableCell>{amendment.numero_emenda}</TableCell>
+                    <TableCell>{amendment.numero_proposta}</TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {formatCurrencyBRL(amendment.valor_total)}
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={amendment.situacao} />
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={amendment.status_interno} />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1 max-w-xs">
+                        {amendment.pendencias.map((p) => (
+                          <Badge
+                            key={p}
+                            variant="destructive"
+                            className="text-xs"
+                          >
+                            {p}
+                          </Badge>
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                aria-haspopup="true"
+                                size="icon"
+                                variant="ghost"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Ações</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align="end"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  navigate(`/emenda/${amendment.id}`)
+                                }
+                              >
+                                Ver Detalhes
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>Editar</DropdownMenuItem>
+                              <DropdownMenuItem>
+                                Gerar Dossiê (PDF)
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem className="text-destructive">
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Mais ações</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
       <Pagination>
