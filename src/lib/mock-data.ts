@@ -33,6 +33,7 @@ export type Amendment = {
   tipo: string
   tipo_recurso: TipoRecursoEnum
   autor: string
+  parlamentar: string
   numero_emenda: string
   numero_proposta: string
   valor_total: number
@@ -127,6 +128,7 @@ export const amendments: Amendment[] = [
     tipo: 'Individual',
     tipo_recurso: 'CUSTEIO_MAC',
     autor: 'Dep. João da Silva',
+    parlamentar: 'Dep. João da Silva',
     numero_emenda: '20231234-1',
     numero_proposta: 'PROPOSTA001',
     valor_total: 150000,
@@ -144,6 +146,7 @@ export const amendments: Amendment[] = [
     tipo: 'Bancada',
     tipo_recurso: 'EQUIPAMENTO',
     autor: 'Dep. Maria Oliveira',
+    parlamentar: 'Dep. Maria Oliveira',
     numero_emenda: '20235678-2',
     numero_proposta: 'PROPOSTA002',
     valor_total: 500000,
@@ -161,6 +164,7 @@ export const amendments: Amendment[] = [
     tipo: 'Comissão',
     tipo_recurso: 'INCREMENTO_PAP',
     autor: 'Sen. Carlos Santos',
+    parlamentar: 'Sen. Carlos Santos',
     numero_emenda: '20241122-3',
     numero_proposta: 'PROPOSTA003',
     valor_total: 300000,
@@ -178,6 +182,7 @@ export const amendments: Amendment[] = [
     tipo: 'Individual',
     tipo_recurso: 'CUSTEIO_PAP',
     autor: 'Dep. Ana Pereira',
+    parlamentar: 'Dep. Ana Pereira',
     numero_emenda: '20243344-4',
     numero_proposta: 'PROPOSTA004',
     valor_total: 200000,
@@ -195,6 +200,7 @@ export const amendments: Amendment[] = [
     tipo: 'Bancada',
     tipo_recurso: 'OUTRO',
     autor: 'Dep. João da Silva',
+    parlamentar: 'Dep. João da Silva',
     numero_emenda: '20245566-5',
     numero_proposta: 'PROPOSTA005',
     valor_total: 750000,
@@ -217,11 +223,15 @@ export const amendments: Amendment[] = [
     const statusKeys = Object.keys(
       StatusInterno,
     ) as (keyof typeof StatusInterno)[]
+    const parlamentar = ['Dep. Fulano de Tal', 'Sen. Ciclano', 'Dep. Beltrano'][
+      i % 3
+    ]
     return {
       id: `${i + 6}`,
       tipo: i % 2 === 0 ? 'Individual' : 'Bancada',
       tipo_recurso: tipoRecursoKeys[i % tipoRecursoKeys.length],
-      autor: ['Dep. Fulano de Tal', 'Sen. Ciclano', 'Dep. Beltrano'][i % 3],
+      autor: parlamentar,
+      parlamentar: parlamentar,
       numero_emenda: `202499${i}${i}`,
       numero_proposta: `PROPOSTA${100 + i}`,
       valor_total: 100000 + i * 15000,
