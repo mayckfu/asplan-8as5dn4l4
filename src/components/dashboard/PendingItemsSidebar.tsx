@@ -6,6 +6,7 @@ import {
   ShieldAlert,
   AlertTriangle,
   Users,
+  Megaphone,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -139,6 +140,14 @@ export const PendingItemsSidebar = ({
         icon: AlertTriangle,
         filter: (a) => a.total_gasto > a.total_repassado,
         color: 'border-l-4 border-destructive',
+      },
+      {
+        title: 'Propostas de Alto Valor',
+        count: amendments.filter((a) => a.valor_total > 500000).length,
+        icon: Megaphone,
+        filter: (a) => a.valor_total > 500000,
+        color:
+          'bg-highlight/10 dark:bg-highlight/20 border-l-4 border-highlight',
       },
     ],
     [amendments, allDespesas],

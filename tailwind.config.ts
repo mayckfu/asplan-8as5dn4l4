@@ -66,6 +66,7 @@ export default {
         warning: 'hsl(var(--warning))',
         danger: 'hsl(var(--danger))',
         info: 'hsl(var(--info))',
+        highlight: 'hsl(var(--highlight))',
         asplan: {
           primary: 'hsl(var(--asplan-primary))',
           action: 'hsl(var(--asplan-action))',

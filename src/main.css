@@ -38,6 +38,7 @@
     --warning: 33 96% 44%; /* #D97706 */
     --danger: 0 84.2% 60.2%; /* #DC2626 */
     --info: 222 83% 58%; /* #2563EB */
+    --highlight: 259 94% 61%;
 
     /* Chart Colors */
     --chart-1: var(--asplan-primary);
@@ -76,6 +77,7 @@
     --warning: 38 92% 50%;
     --danger: 0 62.8% 30.6%;
     --info: 217.2 91.2% 59.8%;
+    --highlight: 259 94% 71%;
 
     /* Chart Colors */
     --chart-1: 217.2 91.2% 59.8%;
