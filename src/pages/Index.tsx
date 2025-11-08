@@ -24,6 +24,7 @@ import {
 } from '@/lib/mock-data'
 import { formatCurrencyBRL, formatPercent } from '@/lib/utils'
 import { PendingItemsSidebar } from '@/components/dashboard/PendingItemsSidebar'
+import { FinancialSummary } from '@/components/dashboard/FinancialSummary'
 
 const Index = () => {
   const dashboardData = useMemo(() => {
@@ -202,6 +203,7 @@ const Index = () => {
             </ChartContainer>
           </Card>
         </div>
+        <FinancialSummary amendments={amendments} />
       </div>
       <div className="sticky top-20">
         <PendingItemsSidebar amendments={dashboardData.allDetailedAmendments} />
