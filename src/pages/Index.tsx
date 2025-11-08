@@ -145,10 +145,10 @@ const Index = () => {
                 <div className="flex-shrink-0">
                   <kpi.icon className="h-6 w-6 text-asplan-blue-neutral" />
                 </div>
-                <div className="text-right min-w-0">
+                <div className="text-right">
                   <p className="text-xs text-neutral-500">{kpi.title}</p>
-                  <div className="flex justify-end items-center h-full max-w-full overflow-hidden">
-                    <p className="text-2xl sm:text-xl font-semibold text-asplan-deep text-right tabular-nums whitespace-nowrap overflow-hidden text-ellipsis">
+                  <div className="flex justify-end items-center h-full max-w-full">
+                    <p className="text-2xl sm:text-xl font-semibold text-asplan-deep text-right tabular-nums whitespace-nowrap">
                       {kpi.value}
                     </p>
                   </div>
@@ -203,7 +203,7 @@ const Index = () => {
                 <ChartTooltip
                   content={
                     <ChartTooltipContent
-                      formatter={(value, name, props) => {
+                      formatter={(value) => {
                         const total =
                           dashboardData.gastoPorResponsavelData.reduce(
                             (acc, entry) => acc + entry.value,
