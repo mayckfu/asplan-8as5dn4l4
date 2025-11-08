@@ -7,6 +7,9 @@ import {
   YAxis,
   Line,
   LineChart,
+  PieChart,
+  Pie,
+  Cell,
 } from 'recharts'
 import { format } from 'date-fns'
 import { Banknote, Landmark, Package, Percent, ShoppingBag } from 'lucide-react'
@@ -25,6 +28,14 @@ import {
 import { formatCurrencyBRL, formatPercent } from '@/lib/utils'
 import { PendingItemsSidebar } from '@/components/dashboard/PendingItemsSidebar'
 import { FinancialSummary } from '@/components/dashboard/FinancialSummary'
+
+const COLORS = [
+  'hsl(var(--chart-1))',
+  'hsl(var(--chart-2))',
+  'hsl(var(--chart-3))',
+  'hsl(var(--chart-4))',
+  'hsl(var(--chart-5))',
+]
 
 const Index = () => {
   const dashboardData = useMemo(() => {
@@ -147,6 +158,8 @@ const Index = () => {
           ))}
         </div>
 
+        <FinancialSummary amendments={amendments} />
+
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
           <Card className="bg-white rounded-2xl shadow-sm p-4 border border-neutral-200">
             <h3 className="text-lg font-semibold text-asplan-deep mb-3">
@@ -186,24 +199,73 @@ const Index = () => {
               Gasto por Responsável
             </h3>
             <ChartContainer config={{}} className="w-full h-[300px]">
-              <BarChart data={dashboardData.gastoPorResponsavelData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis tickFormatter={(val) => formatCurrencyBRL(val)} />
+              <PieChart>
                 <ChartTooltip
                   content={
                     <ChartTooltipContent
-                      formatter={(val) => formatCurrencyBRL(Number(val))}
+                      formatter={(value, name, props) => {
+                        const total =
+                          dashboardData.gastoPorResponsavelData.reduce(
+                            (acc, entry) => acc + entry.value,
+                            0,
+                          )
+                        const percent = (Number(value) / total) * 100
+                        return `${formatCurrencyBRL(
+                          Number(value),
+                        )} (${percent.toFixed(1)}%)`
+                      }}
                       className="tabular-nums"
                     />
                   }
                 />
-                <Bar dataKey="value" fill="hsl(var(--chart-2))" radius={4} />
-              </BarChart>
+                <Pie
+                  data={dashboardData.gastoPorResponsavelData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  labelLine={false}
+                  label={({
+                    cx,
+                    cy,
+                    midAngle,
+                    innerRadius,
+                    outerRadius,
+                    percent,
+                  }) => {
+                    const radius =
+                      innerRadius + (outerRadius - innerRadius) * 0.5
+                    const x =
+                      cx + radius * Math.cos(-midAngle * (Math.PI / 180))
+                    const y =
+                      cy + radius * Math.sin(-midAngle * (Math.PI / 180))
+                    return (
+                      <text
+                        x={x}
+                        y={y}
+                        fill="white"
+                        textAnchor={x > cx ? 'start' : 'end'}
+                        dominantBaseline="central"
+                        className="text-xs font-medium"
+                      >
+                        {`${(percent * 100).toFixed(0)}%`}
+                      </text>
+                    )
+                  }}
+                >
+                  {dashboardData.gastoPorResponsavelData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <ChartLegend />
+              </PieChart>
             </ChartContainer>
           </Card>
         </div>
-        <FinancialSummary amendments={amendments} />
       </div>
       <div className="sticky top-20">
         <PendingItemsSidebar amendments={dashboardData.allDetailedAmendments} />
