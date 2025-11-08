@@ -205,6 +205,7 @@ export const EmendaDadosTecnicos = forwardRef<
                   <PopoverContent className="w-auto p-0">
                     <Calendar
                       mode="single"
+                      locale={ptBR}
                       selected={
                         editableEmenda.data_repasse
                           ? new Date(editableEmenda.data_repasse)
