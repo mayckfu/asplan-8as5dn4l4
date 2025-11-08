@@ -10,6 +10,8 @@ import EmendasListPage from './pages/emendas/EmendasListPage'
 import EmendaDetailPage from './pages/emendas/EmendaDetailPage'
 import RelatoriosPage from './pages/RelatoriosPage'
 import AdminPage from './pages/AdminPage'
+import PropostasMacPage from './pages/propostas/PropostasMacPage'
+import PropostasPapPage from './pages/propostas/PropostasPapPage'
 
 const App = () => (
   <BrowserRouter
@@ -26,6 +28,8 @@ const App = () => (
             <Route path="/emenda/:id" element={<EmendaDetailPage />} />
             <Route path="/relatorios" element={<RelatoriosPage />} />
             <Route path="/admin" element={<AdminPage />} />
+            <Route path="/propostas/mac" element={<PropostasMacPage />} />
+            <Route path="/propostas/pap" element={<PropostasPapPage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
