@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import { cn, formatCurrencyBRL, formatPercent } from '@/lib/utils'
 
 interface FinancialSummaryCardProps {
@@ -22,7 +21,7 @@ const SummaryItem = ({
     <p className="text-sm text-neutral-500">{label}</p>
     <p
       className={cn(
-        'text-2xl font-bold text-neutral-900 tabular-nums',
+        'text-base font-medium text-neutral-800 tabular-nums',
         className,
       )}
     >
@@ -43,34 +42,31 @@ export const FinancialSummaryCard = ({
   }, [totalValue, paidValue])
 
   const percentageColor = useMemo(() => {
-    if (executionPercentage === 100) return 'text-[#16A34A]'
-    if (executionPercentage >= 50) return 'text-[#D97706]'
-    return 'text-[#DC2626]'
+    if (executionPercentage === 100) return 'text-success'
+    if (executionPercentage >= 50) return 'text-warning'
+    return 'text-destructive'
   }, [executionPercentage])
 
   return (
-    <Card className="bg-white border border-neutral-200 rounded-2xl shadow-sm p-4">
-      <CardHeader className="p-2">
+    <Card className="p-4 border border-neutral-200 rounded-xl bg-white shadow-sm">
+      <CardHeader className="p-0 pb-2">
         <CardTitle className="text-base font-semibold text-asplan-deep">
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-2 space-y-3">
+      <CardContent className="p-0 space-y-2">
         <SummaryItem
           label="Valor total previsto"
           value={formatCurrencyBRL(totalValue)}
         />
-        <Separator />
         <SummaryItem
           label="Valor já pago"
           value={formatCurrencyBRL(paidValue)}
         />
-        <Separator />
         <SummaryItem
           label="Valor pendente"
           value={formatCurrencyBRL(pendingValue)}
         />
-        <Separator />
         <SummaryItem
           label="Percentual de execução"
           value={formatPercent(executionPercentage)}

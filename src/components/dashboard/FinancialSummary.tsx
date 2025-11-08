@@ -1,5 +1,4 @@
 import { useMemo } from 'react'
-import { Separator } from '@/components/ui/separator'
 import { Amendment } from '@/lib/mock-data'
 import { FinancialSummaryCard } from './FinancialSummaryCard'
 
@@ -33,11 +32,11 @@ export const FinancialSummary = ({ amendments }: FinancialSummaryProps) => {
   }, [amendments])
 
   return (
-    <div className="mt-6">
-      <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+    <div className="w-full mt-6 mb-4">
+      <h3 className="text-lg font-semibold text-asplan-primary text-center mb-3">
         Resumo Financeiro por Tipo de Recurso
       </h3>
-      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2">
         <FinancialSummaryCard
           title="Incremento MAC"
           totalValue={summaryData.mac.total}
@@ -49,7 +48,10 @@ export const FinancialSummary = ({ amendments }: FinancialSummaryProps) => {
           paidValue={summaryData.pap.paid}
         />
       </div>
-      <Separator className="my-6" />
+      <div className="text-sm text-neutral-600 text-right mt-2 font-medium italic border-t border-neutral-200 pt-2">
+        OBS: Valor Incremento MAC R$ 12.700.000,00 | Incremento PAP R$
+        15.686.960,00
+      </div>
     </div>
   )
 }
