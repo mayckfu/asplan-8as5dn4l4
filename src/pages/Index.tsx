@@ -135,25 +135,16 @@ const Index = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {dashboardData.kpis.map((kpi) => (
             <Card
               key={kpi.title}
-              className="bg-white rounded-2xl border border-neutral-200 shadow-sm p-3 md:p-4"
+              className="bg-white border border-neutral-200 rounded-xl shadow-sm p-4"
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-shrink-0">
-                  <kpi.icon className="h-6 w-6 text-asplan-blue-neutral" />
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-neutral-500">{kpi.title}</p>
-                  <div className="flex justify-end items-center h-full max-w-full">
-                    <p className="text-2xl sm:text-xl font-semibold text-asplan-deep text-right tabular-nums whitespace-nowrap">
-                      {kpi.value}
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <p className="text-sm text-neutral-600">{kpi.title}</p>
+              <p className="text-2xl font-semibold text-asplan-deep tabular-nums">
+                {kpi.value}
+              </p>
             </Card>
           ))}
         </div>
