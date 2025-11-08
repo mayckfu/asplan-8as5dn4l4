@@ -48,10 +48,6 @@ export const FinancialSummary = ({ amendments }: FinancialSummaryProps) => {
           paidValue={summaryData.pap.paid}
         />
       </div>
-      <div className="text-sm text-neutral-600 text-right mt-2 font-medium italic border-t border-neutral-200 pt-2">
-        OBS: Valor Incremento MAC R$ 12.700.000,00 | Incremento PAP R$
-        15.686.960,00
-      </div>
     </div>
   )
 }
