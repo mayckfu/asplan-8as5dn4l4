@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -47,59 +47,156 @@ const EmendaDetailPage = () => {
   const despesasTabRef = useRef<EmendaDespesasTabHandles>(null)
   const anexosTabRef = useRef<HTMLDivElement>(null)
 
+  const calculatePendencies = useCallback(
+    (emenda: DetailedAmendment): Pendencia[] => {
+      const pendencias: Pendencia[] = []
+      const addPendencia = (
+        idSuffix: string,
+        descricao: string,
+        isResolved: boolean,
+        targetType: 'field' | 'tab',
+        targetId: string,
+      ) => {
+        pendencias.push({
+          id: `p-${emenda.id}-${idSuffix}`,
+          descricao,
+          dispensada: false,
+          resolvida: isResolved,
+          targetType,
+          targetId,
+        })
+      }
+
+      // 1. Portaria
+      const hasPortaria =
+        !!emenda.portaria || emenda.anexos.some((a) => a.tipo === 'PORTARIA')
+      addPendencia(
+        'portaria',
+        'Portaria (Campo ou Anexo)',
+        hasPortaria,
+        'field',
+        'portaria',
+      )
+
+      // 2. Proposta
+      const hasProposta = emenda.anexos.some((a) => a.tipo === 'PROPOSTA')
+      addPendencia('proposta', 'Proposta (Anexo)', hasProposta, 'tab', 'anexos')
+
+      // 3. CIE ou Deliberação
+      const hasCie =
+        !!emenda.deliberacao_cie ||
+        emenda.anexos.some((a) => a.tipo === 'DELIBERACAO_CIE')
+      addPendencia(
+        'cie',
+        'CIE ou Deliberação (Campo ou Anexo)',
+        hasCie,
+        'field',
+        'deliberacao_cie',
+      )
+
+      // 4. Ofício de Envio
+      const hasOficio = emenda.anexos.some((a) => a.tipo === 'OFICIO')
+      addPendencia(
+        'oficio',
+        'Ofício de Envio (Anexo)',
+        hasOficio,
+        'tab',
+        'anexos',
+      )
+
+      // 5. Natureza
+      addPendencia(
+        'natureza',
+        'Natureza',
+        !!emenda.natureza,
+        'field',
+        'natureza',
+      )
+
+      // 6. Objeto
+      addPendencia(
+        'objeto',
+        'Objeto',
+        !!emenda.objeto_emenda,
+        'field',
+        'objeto_emenda',
+      )
+
+      // 7. Destino do Recurso
+      addPendencia(
+        'destino',
+        'Destino do Recurso / Responsável',
+        !!emenda.destino_recurso,
+        'field',
+        'destino_recurso',
+      )
+
+      // 8. Valor do Repasse
+      addPendencia(
+        'valor_repasse',
+        'Valor do Repasse',
+        !!emenda.valor_repasse && emenda.valor_repasse > 0,
+        'field',
+        'valor_repasse',
+      )
+
+      // 9. Observações
+      addPendencia(
+        'observacoes',
+        'Observações',
+        !!emenda.observacoes,
+        'field',
+        'observacoes',
+      )
+
+      // 10. Objeto e Finalidade
+      addPendencia(
+        'finalidade',
+        'Objeto e Finalidade (Descrição Completa)',
+        !!emenda.descricao_completa,
+        'field',
+        'descricao_completa', // This is handled by EmendaObjetoFinalidade but we can point to it
+      )
+
+      // 11. Meta Operacional
+      addPendencia(
+        'meta',
+        'Meta Operacional',
+        !!emenda.meta_operacional,
+        'field',
+        'meta_operacional',
+      )
+
+      // Extra: Despesas > Repasses
+      if (emenda.total_gasto > emenda.total_repassado) {
+        pendencias.push({
+          id: `p-${emenda.id}-despesas-overflow`,
+          descricao: 'Despesas excedem o valor repassado',
+          dispensada: false,
+          resolvida: false,
+          targetType: 'tab',
+          targetId: 'despesas',
+        })
+      }
+
+      return pendencias
+    },
+    [],
+  )
+
   useEffect(() => {
     const data = getAmendmentDetails(id || '')
-    setEmendaData(data || null)
-  }, [id])
+    if (data) {
+      const calculatedPendencies = calculatePendencies(data)
+      setEmendaData({ ...data, pendencias: calculatedPendencies })
+    } else {
+      setEmendaData(null)
+    }
+  }, [id, calculatePendencies])
 
   const handleEmendaDataChange = (updatedEmenda: DetailedAmendment) => {
-    const pendencias: Pendencia[] = []
-    if (!updatedEmenda.portaria) {
-      pendencias.push({
-        id: `p-${id}-portaria`,
-        descricao: 'Falta Portaria',
-        dispensada: false,
-        targetType: 'field',
-        targetId: 'portaria',
-      })
-    }
-    if (!updatedEmenda.deliberacao_cie) {
-      pendencias.push({
-        id: `p-${id}-cie`,
-        descricao: 'Falta Deliberação CIE',
-        dispensada: false,
-        targetType: 'field',
-        targetId: 'deliberacao_cie',
-      })
-    }
-    if (!updatedEmenda.objeto_emenda) {
-      pendencias.push({
-        id: `p-${id}-objeto`,
-        descricao: 'Falta Objeto',
-        dispensada: false,
-        targetType: 'field',
-        targetId: 'objeto_emenda',
-      })
-    }
-    if (!updatedEmenda.meta_operacional) {
-      pendencias.push({
-        id: `p-${id}-meta`,
-        descricao: 'Falta Meta Operacional',
-        dispensada: false,
-        targetType: 'field',
-        targetId: 'meta_operacional',
-      })
-    }
-    if (updatedEmenda.total_gasto > updatedEmenda.total_repassado) {
-      pendencias.push({
-        id: `p-${id}-despesas`,
-        descricao: 'Despesas > Repasses',
-        dispensada: false,
-        targetType: 'tab',
-        targetId: 'despesas',
-      })
-    }
-    setEmendaData({ ...updatedEmenda, pendencias })
+    const newPendencies = calculatePendencies(updatedEmenda)
+    setEmendaData({ ...updatedEmenda, pendencias: newPendencies })
   }
 
   const handleFinalidadeChange = (newDescription: string) => {
@@ -114,7 +211,7 @@ const EmendaDetailPage = () => {
   const handleDespesasChange = (newDespesas: Despesa[]) => {
     if (emendaData) {
       const newTotalGasto = newDespesas.reduce((sum, d) => sum + d.valor, 0)
-      setEmendaData({
+      handleEmendaDataChange({
         ...emendaData,
         despesas: newDespesas,
         total_gasto: newTotalGasto,
@@ -128,7 +225,7 @@ const EmendaDetailPage = () => {
         (sum, r) => (r.status === 'REPASSADO' ? sum + r.valor : sum),
         0,
       )
-      setEmendaData({
+      handleEmendaDataChange({
         ...emendaData,
         repasses: newRepasses,
         total_repassado: newTotalRepassado,
@@ -138,7 +235,7 @@ const EmendaDetailPage = () => {
 
   const handleAnexosChange = (newAnexos: Anexo[]) => {
     if (emendaData) {
-      setEmendaData({ ...emendaData, anexos: newAnexos })
+      handleEmendaDataChange({ ...emendaData, anexos: newAnexos })
     }
   }
 
@@ -153,7 +250,7 @@ const EmendaDetailPage = () => {
         criado_em: new Date().toISOString(),
       }
 
-      setEmendaData({
+      handleEmendaDataChange({
         ...emendaData,
         status_interno: newStatus,
         historico: [...emendaData.historico, newHistoryItem],
@@ -177,7 +274,7 @@ const EmendaDetailPage = () => {
         criado_em: new Date().toISOString(),
       }
 
-      setEmendaData({
+      handleEmendaDataChange({
         ...emendaData,
         situacao: newStatus,
         historico: [...emendaData.historico, newHistoryItem],
@@ -192,7 +289,15 @@ const EmendaDetailPage = () => {
 
   const handlePendencyClick = (pendencia: Pendencia) => {
     if (pendencia.targetType === 'field') {
-      dadosTecnicosRef.current?.triggerEditAndFocus(pendencia.targetId)
+      if (pendencia.targetId === 'descricao_completa') {
+        // Scroll to Objeto e Finalidade
+        const element = document.getElementById('objeto-finalidade-section')
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      } else {
+        dadosTecnicosRef.current?.triggerEditAndFocus(pendencia.targetId)
+      }
     } else if (pendencia.targetType === 'tab') {
       setActiveTab(pendencia.targetId)
       setTimeout(() => {
@@ -262,10 +367,12 @@ const EmendaDetailPage = () => {
             emenda={emendaData}
             onEmendaChange={handleEmendaDataChange}
           />
-          <EmendaObjetoFinalidade
-            description={emendaData.descricao_completa}
-            onSave={handleFinalidadeChange}
-          />
+          <div id="objeto-finalidade-section">
+            <EmendaObjetoFinalidade
+              description={emendaData.descricao_completa}
+              onSave={handleFinalidadeChange}
+            />
+          </div>
         </div>
       </div>
 

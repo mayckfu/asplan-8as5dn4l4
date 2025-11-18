@@ -93,6 +93,8 @@ export type Anexo = {
     | 'DELIBERACAO_CIE'
     | 'COMPROVANTE_FNS'
     | 'NOTA_FISCAL'
+    | 'OFICIO'
+    | 'PROPOSTA'
     | 'OUTRO'
   titulo: string
   url: string
@@ -114,6 +116,7 @@ export type Pendencia = {
   id: string
   descricao: string
   dispensada: boolean
+  resolvida?: boolean
   justificativa?: string
   targetType: 'field' | 'tab'
   targetId: string
@@ -488,68 +491,20 @@ export const getAmendmentDetails = (
     ...details,
   }
 
+  // Initial calculation of pendencies (simplified for mock load)
+  // Real calculation happens in the component or here if we want consistency
   const pendencias: Pendencia[] = []
+
+  // This logic will be superseded by the dynamic calculation in the component
+  // but we keep a basic version here for initial state
   if (!fullAmendmentData.portaria) {
     pendencias.push({
       id: `p-${id}-portaria`,
       descricao: 'Falta Portaria',
       dispensada: false,
+      resolvida: false,
       targetType: 'field',
       targetId: 'portaria',
-    })
-  }
-  if (!fullAmendmentData.deliberacao_cie) {
-    pendencias.push({
-      id: `p-${id}-cie`,
-      descricao: 'Falta Deliberação CIE',
-      dispensada: false,
-      targetType: 'field',
-      targetId: 'deliberacao_cie',
-    })
-  }
-  if (!fullAmendmentData.objeto_emenda) {
-    pendencias.push({
-      id: `p-${id}-objeto`,
-      descricao: 'Falta Objeto',
-      dispensada: false,
-      targetType: 'field',
-      targetId: 'objeto_emenda',
-    })
-  }
-  if (!fullAmendmentData.meta_operacional) {
-    pendencias.push({
-      id: `p-${id}-meta`,
-      descricao: 'Falta Meta Operacional',
-      dispensada: false,
-      targetType: 'field',
-      targetId: 'meta_operacional',
-    })
-  }
-  if (fullAmendmentData.total_gasto > fullAmendmentData.total_repassado) {
-    pendencias.push({
-      id: `p-${id}-despesas`,
-      descricao: 'Despesas > Repasses',
-      dispensada: false,
-      targetType: 'tab',
-      targetId: 'despesas',
-    })
-  }
-  if (fullAmendmentData.repasses.length === 0) {
-    pendencias.push({
-      id: `p-${id}-repasses`,
-      descricao: 'Nenhum repasse registrado',
-      dispensada: false,
-      targetType: 'tab',
-      targetId: 'repasses',
-    })
-  }
-  if (fullAmendmentData.anexos.length === 0) {
-    pendencias.push({
-      id: `p-${id}-anexos`,
-      descricao: 'Nenhum anexo adicionado',
-      dispensada: false,
-      targetType: 'tab',
-      targetId: 'anexos',
     })
   }
 

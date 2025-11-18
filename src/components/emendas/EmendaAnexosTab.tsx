@@ -8,6 +8,8 @@ import {
   FileQuestion,
   PlusCircle,
   Edit,
+  Send,
+  FileCode,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -44,6 +46,8 @@ const anexoIcons: Record<AnexoType, React.ElementType> = {
   DELIBERACAO_CIE: ShieldCheck,
   COMPROVANTE_FNS: Paperclip,
   NOTA_FISCAL: FileText,
+  OFICIO: Send,
+  PROPOSTA: FileCode,
   OUTRO: FileQuestion,
 }
 

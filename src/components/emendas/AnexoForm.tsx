@@ -34,7 +34,15 @@ const anexoSchema = z.object({
   titulo: z.string().min(1, 'O título é obrigatório.'),
   url: z.string().url('Insira uma URL válida.'),
   tipo: z.enum(
-    ['PORTARIA', 'DELIBERACAO_CIE', 'COMPROVANTE_FNS', 'NOTA_FISCAL', 'OUTRO'],
+    [
+      'PORTARIA',
+      'DELIBERACAO_CIE',
+      'COMPROVANTE_FNS',
+      'NOTA_FISCAL',
+      'OFICIO',
+      'PROPOSTA',
+      'OUTRO',
+    ],
     {
       required_error: 'O tipo é obrigatório.',
     },
@@ -126,6 +134,8 @@ export const AnexoForm = ({ anexo, onSubmit, onCancel }: AnexoFormProps) => {
                     Comprovante FNS
                   </SelectItem>
                   <SelectItem value="NOTA_FISCAL">Nota Fiscal</SelectItem>
+                  <SelectItem value="OFICIO">Ofício de Envio</SelectItem>
+                  <SelectItem value="PROPOSTA">Proposta</SelectItem>
                   <SelectItem value="OUTRO">Outro</SelectItem>
                 </SelectContent>
               </Select>
