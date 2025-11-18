@@ -102,6 +102,15 @@ const EmendaDetailPage = () => {
     setEmendaData({ ...updatedEmenda, pendencias })
   }
 
+  const handleFinalidadeChange = (newDescription: string) => {
+    if (emendaData) {
+      handleEmendaDataChange({
+        ...emendaData,
+        descricao_completa: newDescription,
+      })
+    }
+  }
+
   const handleDespesasChange = (newDespesas: Despesa[]) => {
     if (emendaData) {
       const newTotalGasto = newDespesas.reduce((sum, d) => sum + d.valor, 0)
@@ -253,7 +262,10 @@ const EmendaDetailPage = () => {
             emenda={emendaData}
             onEmendaChange={handleEmendaDataChange}
           />
-          <EmendaObjetoFinalidade description={emendaData.descricao_completa} />
+          <EmendaObjetoFinalidade
+            description={emendaData.descricao_completa}
+            onSave={handleFinalidadeChange}
+          />
         </div>
       </div>
 

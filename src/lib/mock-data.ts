@@ -22,7 +22,6 @@ export const StatusInterno = {
   PAGA_SEM_DOCUMENTOS: 'Paga (Sem Documentos)',
   PAGA_COM_PENDENCIAS: 'Paga (Com Pendências)',
   CONCLUIDA: 'Concluída',
-  // New statuses from User Story
   PROPOSTA_PAGA: 'Proposta Paga',
   EM_ANALISE_PAGAMENTO: 'Proposta em Análise de Pagamento',
   APROVADA_PAGAMENTO: 'Proposta aprovada para Pagamento',
@@ -99,6 +98,7 @@ export type Anexo = {
   url: string
   created_at: string
   uploader: string
+  data?: string
 }
 
 export type Historico = {
@@ -315,6 +315,7 @@ const detailedAmendmentsData: Record<
         titulo: 'Portaria de Liberação',
         url: '#',
         created_at: '2023-01-15',
+        data: '2023-01-15',
         uploader: 'Admin',
       },
       {
@@ -323,6 +324,7 @@ const detailedAmendmentsData: Record<
         titulo: 'Aprovação CIE',
         url: '#',
         created_at: '2023-01-20',
+        data: '2023-01-20',
         uploader: 'Admin',
       },
       {
@@ -331,6 +333,7 @@ const detailedAmendmentsData: Record<
         titulo: 'NF Monitores',
         url: '#',
         created_at: '2023-02-16',
+        data: '2023-02-16',
         uploader: 'Ana Costa',
       },
     ],
@@ -402,6 +405,7 @@ const detailedAmendmentsData: Record<
         titulo: 'Aprovação CIE',
         url: '#',
         created_at: '2023-03-25',
+        data: '2023-03-25',
         uploader: 'Admin',
       },
     ],
