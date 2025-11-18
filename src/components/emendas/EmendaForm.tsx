@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -77,6 +78,40 @@ export const EmendaForm = ({
       anexos_essenciais: initialData?.anexos_essenciais || false,
     },
   })
+
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        tipo: initialData.tipo,
+        tipo_recurso: initialData.tipo_recurso,
+        autor: initialData.autor,
+        parlamentar: initialData.parlamentar,
+        numero_emenda: initialData.numero_emenda,
+        numero_proposta: initialData.numero_proposta,
+        valor_total: initialData.valor_total,
+        situacao: initialData.situacao,
+        status_interno: initialData.status_interno,
+        portaria: initialData.portaria || '',
+        deliberacao_cie: initialData.deliberacao_cie || '',
+        anexos_essenciais: initialData.anexos_essenciais,
+      })
+    } else {
+      form.reset({
+        tipo: 'Individual',
+        tipo_recurso: 'CUSTEIO_MAC',
+        autor: '',
+        parlamentar: '',
+        numero_emenda: '',
+        numero_proposta: '',
+        valor_total: 0,
+        situacao: 'EM_ANALISE',
+        status_interno: 'RASCUNHO',
+        portaria: '',
+        deliberacao_cie: '',
+        anexos_essenciais: false,
+      })
+    }
+  }, [initialData, form])
 
   const handleSubmit = (values: EmendaFormValues) => {
     onSubmit({
