@@ -39,6 +39,7 @@ import { useToast } from '@/components/ui/use-toast'
 import { RepasseForm } from './RepasseForm'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface EmendaRepassesTabProps {
   repasses: Repasse[]
@@ -60,12 +61,16 @@ export const EmendaRepassesTab = forwardRef<
   EmendaRepassesTabProps
 >(({ repasses, onRepassesChange }, ref) => {
   const { toast } = useToast()
+  const { user } = useAuth()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [selectedRepasse, setSelectedRepasse] = useState<Repasse | null>(null)
 
+  const isReadOnly = user?.role === 'CONSULTA'
+
   useImperativeHandle(ref, () => ({
     triggerAdd: () => {
+      if (isReadOnly) return
       setSelectedRepasse(null)
       setIsFormOpen(true)
     },
@@ -119,10 +124,12 @@ export const EmendaRepassesTab = forwardRef<
             <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
               Repasses Financeiros
             </CardTitle>
-            <Button size="sm" onClick={handleAddNew}>
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Adicionar Repasse
-            </Button>
+            {!isReadOnly && (
+              <Button size="sm" onClick={handleAddNew}>
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Adicionar Repasse
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -133,9 +140,11 @@ export const EmendaRepassesTab = forwardRef<
                 <TableHead>Fonte</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Valor</TableHead>
-                <TableHead>
-                  <span className="sr-only">Ações</span>
-                </TableHead>
+                {!isReadOnly && (
+                  <TableHead>
+                    <span className="sr-only">Ações</span>
+                  </TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -153,26 +162,28 @@ export const EmendaRepassesTab = forwardRef<
                   <TableCell className="text-right tabular-nums">
                     {formatCurrencyBRL(repasse.valor)}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => handleEdit(repasse)}>
-                          <Edit className="mr-2 h-4 w-4" /> Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onClick={() => handleDelete(repasse)}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+                  {!isReadOnly && (
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={() => handleEdit(repasse)}>
+                            <Edit className="mr-2 h-4 w-4" /> Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={() => handleDelete(repasse)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>

@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { useToast } from '@/components/ui/use-toast'
 import { AnexoForm } from './AnexoForm'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface EmendaAnexosTabProps {
   anexos: Anexo[]
@@ -56,9 +57,12 @@ export const EmendaAnexosTab = ({
   onAnexosChange,
 }: EmendaAnexosTabProps) => {
   const { toast } = useToast()
+  const { user } = useAuth()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedAnexo, setSelectedAnexo] = useState<Anexo | null>(null)
+
+  const isReadOnly = user?.role === 'CONSULTA'
 
   const handleAddNew = () => {
     setSelectedAnexo(null)
@@ -104,16 +108,20 @@ export const EmendaAnexosTab = ({
             <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
               Anexos ({anexos.length})
             </CardTitle>
-            <Button size="sm" onClick={handleAddNew}>
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Adicionar Link
-            </Button>
+            {!isReadOnly && (
+              <Button size="sm" onClick={handleAddNew}>
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Adicionar Link
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {anexos.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              Nenhum anexo registrado. Clique em "Adicionar Link" para começar.
+              {isReadOnly
+                ? 'Nenhum anexo registrado.'
+                : 'Nenhum anexo registrado. Clique em "Adicionar Link" para começar.'}
             </div>
           ) : (
             <ul className="space-y-2">
@@ -145,23 +153,25 @@ export const EmendaAnexosTab = ({
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(anexo)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => handleDeleteClick(anexo)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    {!isReadOnly && (
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEdit(anexo)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => handleDeleteClick(anexo)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
                   </li>
                 )
               })}

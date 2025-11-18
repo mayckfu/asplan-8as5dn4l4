@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/components/ui/use-toast'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface EmendaObjetoFinalidadeProps {
   description: string
@@ -20,8 +21,11 @@ export const EmendaObjetoFinalidade = ({
   onSave,
 }: EmendaObjetoFinalidadeProps) => {
   const { toast } = useToast()
+  const { user } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [tempDescription, setTempDescription] = useState(description)
+
+  const isReadOnly = user?.role === 'CONSULTA'
 
   const handleSave = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -47,7 +51,7 @@ export const EmendaObjetoFinalidade = ({
         <AccordionTrigger className="text-lg font-semibold text-asplan-primary hover:no-underline group">
           <div className="flex items-center justify-between w-full pr-4">
             <span>📄 Objeto e Finalidade</span>
-            {!isEditing && (
+            {!isEditing && !isReadOnly && (
               <Button
                 variant="ghost"
                 size="sm"

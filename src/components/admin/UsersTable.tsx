@@ -1,0 +1,237 @@
+import { useState } from 'react'
+import {
+  Edit,
+  Lock,
+  Unlock,
+  MoreHorizontal,
+  RotateCcw,
+  Plus,
+} from 'lucide-react'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Badge } from '@/components/ui/badge'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { User, Cargo } from '@/lib/mock-data'
+import { UserFormDialog } from './UserFormDialog'
+import { useToast } from '@/components/ui/use-toast'
+
+interface UsersTableProps {
+  users: User[]
+  cargos: Cargo[]
+  onUpdateUser: (user: User) => void
+  onCreateUser: (user: Omit<User, 'id' | 'created_at'>) => void
+}
+
+export const UsersTable = ({
+  users,
+  cargos,
+  onUpdateUser,
+  onCreateUser,
+}: UsersTableProps) => {
+  const { toast } = useToast()
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [blockConfirmOpen, setBlockConfirmOpen] = useState(false)
+  const [userToBlock, setUserToBlock] = useState<User | null>(null)
+
+  const getCargoName = (id?: string) => {
+    return cargos.find((c) => c.id === id)?.nome || '-'
+  }
+
+  const handleEdit = (user: User) => {
+    setEditingUser(user)
+    setIsFormOpen(true)
+  }
+
+  const handleCreate = () => {
+    setEditingUser(null)
+    setIsFormOpen(true)
+  }
+
+  const handleToggleBlock = (user: User) => {
+    if (user.status === 'BLOQUEADO') {
+      // Unblock immediately
+      onUpdateUser({ ...user, status: 'ATIVO' })
+      toast({ title: 'Usuário desbloqueado com sucesso.' })
+    } else {
+      // Confirm block
+      setUserToBlock(user)
+      setBlockConfirmOpen(true)
+    }
+  }
+
+  const confirmBlock = () => {
+    if (userToBlock) {
+      onUpdateUser({ ...userToBlock, status: 'BLOQUEADO' })
+      toast({ title: 'Usuário bloqueado com sucesso.' })
+    }
+    setBlockConfirmOpen(false)
+    setUserToBlock(null)
+  }
+
+  const handleResetPassword = (user: User) => {
+    toast({
+      title: 'Email enviado',
+      description: `Instruções de reset de senha enviadas para ${user.email}`,
+    })
+  }
+
+  const handleFormSubmit = (data: any) => {
+    // Check for email uniqueness
+    const emailExists = users.some(
+      (u) =>
+        u.email.toLowerCase() === data.email.toLowerCase() &&
+        u.id !== editingUser?.id,
+    )
+
+    if (emailExists) {
+      toast({
+        title: 'Erro ao salvar',
+        description: 'Este e-mail já está em uso por outro usuário.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    if (editingUser) {
+      onUpdateUser({ ...editingUser, ...data })
+      toast({ title: 'Usuário atualizado com sucesso.' })
+    } else {
+      onCreateUser(data)
+      toast({ title: 'Usuário criado com sucesso.' })
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button onClick={handleCreate}>
+          <Plus className="mr-2 h-4 w-4" /> Novo Usuário
+        </Button>
+      </div>
+
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>E-mail</TableHead>
+              <TableHead>Cargo</TableHead>
+              <TableHead>Perfil</TableHead>
+              <TableHead>Unidade</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {users.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell className="font-medium">{user.name}</TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>{getCargoName(user.cargo_id)}</TableCell>
+                <TableCell>
+                  <Badge variant="outline">{user.role}</Badge>
+                </TableCell>
+                <TableCell>{user.unidade || '-'}</TableCell>
+                <TableCell>
+                  <Badge
+                    className={
+                      user.status === 'ATIVO'
+                        ? 'bg-success hover:bg-success/80'
+                        : user.status === 'BLOQUEADO'
+                          ? 'bg-destructive hover:bg-destructive/80'
+                          : 'bg-warning hover:bg-warning/80'
+                    }
+                  >
+                    {user.status}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleEdit(user)}>
+                        <Edit className="mr-2 h-4 w-4" /> Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleToggleBlock(user)}>
+                        {user.status === 'BLOQUEADO' ? (
+                          <>
+                            <Unlock className="mr-2 h-4 w-4" /> Desbloquear
+                          </>
+                        ) : (
+                          <>
+                            <Lock className="mr-2 h-4 w-4" /> Bloquear
+                          </>
+                        )}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleResetPassword(user)}
+                      >
+                        <RotateCcw className="mr-2 h-4 w-4" /> Resetar Senha
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <UserFormDialog
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        user={editingUser}
+        cargos={cargos}
+        onSubmit={handleFormSubmit}
+      />
+
+      <AlertDialog open={blockConfirmOpen} onOpenChange={setBlockConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Isso impedirá que o usuário <b>{userToBlock?.name}</b> acesse o
+              sistema.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmBlock}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Bloquear Usuário
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  )
+}

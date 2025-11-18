@@ -34,11 +34,13 @@ import { EmendaAnexosTab } from '@/components/emendas/EmendaAnexosTab'
 import { EmendaChecklistTab } from '@/components/emendas/EmendaChecklistTab'
 import { EmendaHistoricoTab } from '@/components/emendas/EmendaHistoricoTab'
 import { useToast } from '@/components/ui/use-toast'
+import { useAuth } from '@/contexts/AuthContext'
 
 const EmendaDetailPage = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const { toast } = useToast()
+  const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('repasses')
   const [emendaData, setEmendaData] = useState<DetailedAmendment | null>(null)
 
@@ -46,6 +48,8 @@ const EmendaDetailPage = () => {
   const repassesTabRef = useRef<EmendaRepassesTabHandles>(null)
   const despesasTabRef = useRef<EmendaDespesasTabHandles>(null)
   const anexosTabRef = useRef<HTMLDivElement>(null)
+
+  const isReadOnly = user?.role === 'CONSULTA'
 
   const calculatePendencies = useCallback(
     (emenda: DetailedAmendment): Pendencia[] => {
@@ -195,11 +199,13 @@ const EmendaDetailPage = () => {
   }, [id, calculatePendencies])
 
   const handleEmendaDataChange = (updatedEmenda: DetailedAmendment) => {
+    if (isReadOnly) return
     const newPendencies = calculatePendencies(updatedEmenda)
     setEmendaData({ ...updatedEmenda, pendencias: newPendencies })
   }
 
   const handleFinalidadeChange = (newDescription: string) => {
+    if (isReadOnly) return
     if (emendaData) {
       handleEmendaDataChange({
         ...emendaData,
@@ -209,6 +215,7 @@ const EmendaDetailPage = () => {
   }
 
   const handleDespesasChange = (newDespesas: Despesa[]) => {
+    if (isReadOnly) return
     if (emendaData) {
       const newTotalGasto = newDespesas.reduce((sum, d) => sum + d.valor, 0)
       handleEmendaDataChange({
@@ -220,6 +227,7 @@ const EmendaDetailPage = () => {
   }
 
   const handleRepassesChange = (newRepasses: Repasse[]) => {
+    if (isReadOnly) return
     if (emendaData) {
       const newTotalRepassado = newRepasses.reduce(
         (sum, r) => (r.status === 'REPASSADO' ? sum + r.valor : sum),
@@ -234,19 +242,21 @@ const EmendaDetailPage = () => {
   }
 
   const handleAnexosChange = (newAnexos: Anexo[]) => {
+    if (isReadOnly) return
     if (emendaData) {
       handleEmendaDataChange({ ...emendaData, anexos: newAnexos })
     }
   }
 
   const handleStatusInternoChange = (newStatus: StatusInternoEnum) => {
+    if (isReadOnly) return
     if (emendaData) {
       const newHistoryItem: Historico = {
         id: `h-${Date.now()}`,
         emenda_id: emendaData.id,
         evento: 'INTERNAL_STATUS_CHANGE',
         detalhe: StatusInterno[newStatus],
-        feito_por: 'Usuário Atual', // Mocked user
+        feito_por: user?.name || 'Usuário Atual',
         criado_em: new Date().toISOString(),
       }
 
@@ -264,13 +274,14 @@ const EmendaDetailPage = () => {
   }
 
   const handleStatusOficialChange = (newStatus: SituacaoOficialEnum) => {
+    if (isReadOnly) return
     if (emendaData) {
       const newHistoryItem: Historico = {
         id: `h-${Date.now()}`,
         emenda_id: emendaData.id,
         evento: 'OFFICIAL_STATUS_CHANGE',
         detalhe: SituacaoOficial[newStatus],
-        feito_por: 'Usuário Atual', // Mocked user
+        feito_por: user?.name || 'Usuário Atual',
         criado_em: new Date().toISOString(),
       }
 

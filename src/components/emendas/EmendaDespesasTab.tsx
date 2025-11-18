@@ -54,6 +54,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface EmendaDespesasTabProps {
   despesas: Despesa[]
@@ -69,13 +70,17 @@ export const EmendaDespesasTab = forwardRef<
   EmendaDespesasTabProps
 >(({ despesas, onDespesasChange }, ref) => {
   const { toast } = useToast()
+  const { user } = useAuth()
   const [dossierExpense, setDossierExpense] = useState<Despesa | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [selectedExpense, setSelectedExpense] = useState<Despesa | null>(null)
 
+  const isReadOnly = user?.role === 'CONSULTA'
+
   useImperativeHandle(ref, () => ({
     triggerAdd: () => {
+      if (isReadOnly) return
       setSelectedExpense(null)
       setIsFormOpen(true)
     },
@@ -113,10 +118,12 @@ export const EmendaDespesasTab = forwardRef<
             <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
               Despesas
             </CardTitle>
-            <Button size="sm" onClick={handleAddNew}>
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Adicionar Despesa
-            </Button>
+            {!isReadOnly && (
+              <Button size="sm" onClick={handleAddNew}>
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Adicionar Despesa
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -160,15 +167,21 @@ export const EmendaDespesasTab = forwardRef<
                         >
                           <FileText className="mr-2 h-4 w-4" /> Dossiê
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEdit(despesa)}>
-                          <Edit className="mr-2 h-4 w-4" /> Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onClick={() => handleDelete(despesa)}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                        </DropdownMenuItem>
+                        {!isReadOnly && (
+                          <>
+                            <DropdownMenuItem
+                              onClick={() => handleEdit(despesa)}
+                            >
+                              <Edit className="mr-2 h-4 w-4" /> Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => handleDelete(despesa)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                            </DropdownMenuItem>
+                          </>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

@@ -81,6 +81,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { useToast } from '@/components/ui/use-toast'
+import { useAuth } from '@/contexts/AuthContext'
 
 const ITEMS_PER_PAGE = 10
 
@@ -138,6 +139,7 @@ const exportToCsv = (filename: string, rows: object[]) => {
 const EmendasListPage = () => {
   const navigate = useNavigate()
   const { toast } = useToast()
+  const { user } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
   const [presets, setPresets] = useState<Record<string, string>>(() =>
     JSON.parse(localStorage.getItem('emendas_presets') || '{}'),
@@ -148,6 +150,8 @@ const EmendasListPage = () => {
   const [editingEmenda, setEditingEmenda] = useState<Amendment | null>(null)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [deletingEmenda, setDeletingEmenda] = useState<Amendment | null>(null)
+
+  const isReadOnly = user?.role === 'CONSULTA'
 
   const filters = useMemo<FiltersState>(() => {
     const fromStr = searchParams.get('from')
@@ -393,12 +397,14 @@ const EmendasListPage = () => {
               Exportar CSV
             </span>
           </Button>
-          <Button size="sm" className="h-8 gap-1" onClick={handleAddNew}>
-            <PlusCircle className="h-3.5 w-3.5" />
-            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-              Nova Emenda
-            </span>
-          </Button>
+          {!isReadOnly && (
+            <Button size="sm" className="h-8 gap-1" onClick={handleAddNew}>
+              <PlusCircle className="h-3.5 w-3.5" />
+              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                Nova Emenda
+              </span>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -560,41 +566,45 @@ const EmendasListPage = () => {
                           <TooltipContent>Ver Detalhes</TooltipContent>
                         </Tooltip>
 
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleEdit(amendment)
-                              }}
-                            >
-                              <Edit className="h-4 w-4" />
-                              <span className="sr-only">Editar</span>
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Editar</TooltipContent>
-                        </Tooltip>
+                        {!isReadOnly && (
+                          <>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleEdit(amendment)
+                                  }}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                  <span className="sr-only">Editar</span>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Editar</TooltipContent>
+                            </Tooltip>
 
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleDelete(amendment)
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              <span className="sr-only">Excluir</span>
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Excluir</TooltipContent>
-                        </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleDelete(amendment)
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                  <span className="sr-only">Excluir</span>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Excluir</TooltipContent>
+                            </Tooltip>
+                          </>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

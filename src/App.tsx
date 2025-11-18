@@ -3,6 +3,7 @@ import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { ThemeProvider } from '@/components/ThemeProvider'
+import { AuthProvider } from '@/contexts/AuthContext'
 import Index from './pages/Index'
 import NotFound from './pages/NotFound'
 import Layout from './components/Layout'
@@ -19,20 +20,22 @@ const App = () => (
   >
     <ThemeProvider defaultTheme="system" storageKey="theme">
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<Index />} />
-            <Route path="/emendas" element={<EmendasListPage />} />
-            <Route path="/emenda/:id" element={<EmendaDetailPage />} />
-            <Route path="/relatorios" element={<RelatoriosPage />} />
-            <Route path="/admin" element={<AdminPage />} />
-            <Route path="/propostas/mac" element={<PropostasMacPage />} />
-            <Route path="/propostas/pap" element={<PropostasPapPage />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Toaster />
+          <Sonner />
+          <Routes>
+            <Route element={<Layout />}>
+              <Route path="/" element={<Index />} />
+              <Route path="/emendas" element={<EmendasListPage />} />
+              <Route path="/emenda/:id" element={<EmendaDetailPage />} />
+              <Route path="/relatorios" element={<RelatoriosPage />} />
+              <Route path="/admin" element={<AdminPage />} />
+              <Route path="/propostas/mac" element={<PropostasMacPage />} />
+              <Route path="/propostas/pap" element={<PropostasPapPage />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </TooltipProvider>
     </ThemeProvider>
   </BrowserRouter>

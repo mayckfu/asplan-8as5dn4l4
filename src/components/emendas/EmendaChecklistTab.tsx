@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Pendencia } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface EmendaChecklistTabProps {
   pendencias: Pendencia[]
@@ -13,6 +14,9 @@ export const EmendaChecklistTab = ({
   pendencias,
   onPendencyClick,
 }: EmendaChecklistTabProps) => {
+  const { user } = useAuth()
+  const isReadOnly = user?.role === 'CONSULTA'
+
   const pendingItems = pendencias.filter((p) => !p.resolvida && !p.dispensada)
   const resolvedItems = pendencias.filter((p) => p.resolvida || p.dispensada)
 
@@ -61,9 +65,11 @@ export const EmendaChecklistTab = ({
                         )}
                       </div>
                     </div>
-                    <Button variant="outline" size="sm" className="ml-4">
-                      Dispensar
-                    </Button>
+                    {!isReadOnly && (
+                      <Button variant="outline" size="sm" className="ml-4">
+                        Dispensar
+                      </Button>
+                    )}
                   </li>
                 ))}
               </ul>

@@ -29,6 +29,7 @@ import {
 import { DetailedAmendment } from '@/lib/mock-data'
 import { cn, formatCurrencyBRL } from '@/lib/utils'
 import { useToast } from '@/components/ui/use-toast'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface EmendaDadosTecnicosProps {
   emenda: DetailedAmendment
@@ -51,12 +52,16 @@ export const EmendaDadosTecnicos = forwardRef<
   EmendaDadosTecnicosProps
 >(({ emenda, onEmendaChange }, ref) => {
   const { toast } = useToast()
+  const { user } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [editableEmenda, setEditableEmenda] = useState(emenda)
   const fieldRefs = useRef<Record<string, HTMLElement | null>>({})
 
+  const isReadOnly = user?.role === 'CONSULTA'
+
   useImperativeHandle(ref, () => ({
     triggerEditAndFocus: (fieldId: string) => {
+      if (isReadOnly) return
       setIsEditing(true)
       setTimeout(() => {
         const field = fieldRefs.current[fieldId]
@@ -122,7 +127,7 @@ export const EmendaDadosTecnicos = forwardRef<
         <CardTitle className="text-lg font-semibold text-asplan-deep">
           📘 Dados Técnicos da Emenda
         </CardTitle>
-        {!isEditing && (
+        {!isEditing && !isReadOnly && (
           <Button
             variant="outline"
             size="sm"

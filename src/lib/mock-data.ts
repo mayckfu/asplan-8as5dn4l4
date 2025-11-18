@@ -139,6 +139,108 @@ export type DetailedAmendment = Amendment & {
   observacoes?: string
 }
 
+// --- Auth & Admin Types ---
+
+export type UserRole = 'ADMIN' | 'GESTOR' | 'ANALISTA' | 'CONSULTA'
+export type UserStatus = 'ATIVO' | 'BLOQUEADO' | 'PENDENTE'
+
+export type User = {
+  id: string
+  name: string
+  email: string
+  role: UserRole
+  cargo_id?: string
+  unidade?: string
+  status: UserStatus
+  created_at: string
+}
+
+export type Cargo = {
+  id: string
+  nome: string
+  descricao?: string
+  default_role?: UserRole
+  active: boolean
+}
+
+// --- Mock Data for Auth & Admin ---
+
+export const mockCargos: Cargo[] = [
+  {
+    id: '1',
+    nome: 'Diretor Geral',
+    descricao: 'Direção geral da secretaria',
+    default_role: 'ADMIN',
+    active: true,
+  },
+  {
+    id: '2',
+    nome: 'Coordenador Financeiro',
+    descricao: 'Responsável pelo financeiro',
+    default_role: 'GESTOR',
+    active: true,
+  },
+  {
+    id: '3',
+    nome: 'Técnico Administrativo',
+    descricao: 'Apoio operacional',
+    default_role: 'ANALISTA',
+    active: true,
+  },
+  {
+    id: '4',
+    nome: 'Auditor',
+    descricao: 'Auditoria interna',
+    default_role: 'CONSULTA',
+    active: true,
+  },
+]
+
+export const mockUsers: User[] = [
+  {
+    id: '1',
+    name: 'Admin Master',
+    email: 'admin@asplan.gov',
+    role: 'ADMIN',
+    cargo_id: '1',
+    unidade: 'Gabinete',
+    status: 'ATIVO',
+    created_at: '2023-01-01T00:00:00Z',
+  },
+  {
+    id: '2',
+    name: 'Gestor Financeiro',
+    email: 'gestor@asplan.gov',
+    role: 'GESTOR',
+    cargo_id: '2',
+    unidade: 'Financeiro',
+    status: 'ATIVO',
+    created_at: '2023-02-15T10:00:00Z',
+  },
+  {
+    id: '3',
+    name: 'Analista Operacional',
+    email: 'analista@asplan.gov',
+    role: 'ANALISTA',
+    cargo_id: '3',
+    unidade: 'Operações',
+    status: 'ATIVO',
+    created_at: '2023-03-20T14:30:00Z',
+  },
+  {
+    id: '4',
+    name: 'Usuário Bloqueado',
+    email: 'bloqueado@asplan.gov',
+    role: 'CONSULTA',
+    cargo_id: '4',
+    unidade: 'Auditoria',
+    status: 'BLOQUEADO',
+    created_at: '2023-04-05T09:15:00Z',
+  },
+]
+
+// --- Existing Mock Data ---
+
 export const amendments: Amendment[] = [
   {
     id: '1',
@@ -491,12 +593,8 @@ export const getAmendmentDetails = (
     ...details,
   }
 
-  // Initial calculation of pendencies (simplified for mock load)
-  // Real calculation happens in the component or here if we want consistency
   const pendencias: Pendencia[] = []
 
-  // This logic will be superseded by the dynamic calculation in the component
-  // but we keep a basic version here for initial state
   if (!fullAmendmentData.portaria) {
     pendencias.push({
       id: `p-${id}-portaria`,
