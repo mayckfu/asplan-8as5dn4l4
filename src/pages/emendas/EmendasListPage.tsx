@@ -6,6 +6,8 @@ import {
   FileDown,
   ListFilter,
   Save,
+  Edit,
+  Trash2,
 } from 'lucide-react'
 import { parse, format } from 'date-fns'
 import {
@@ -60,6 +62,25 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { EmendaForm } from '@/components/emendas/EmendaForm'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { useToast } from '@/components/ui/use-toast'
 
 const ITEMS_PER_PAGE = 10
 
@@ -116,10 +137,17 @@ const exportToCsv = (filename: string, rows: object[]) => {
 
 const EmendasListPage = () => {
   const navigate = useNavigate()
+  const { toast } = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
   const [presets, setPresets] = useState<Record<string, string>>(() =>
     JSON.parse(localStorage.getItem('emendas_presets') || '{}'),
   )
+  const [localAmendments, setLocalAmendments] =
+    useState<Amendment[]>(amendments)
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [editingEmenda, setEditingEmenda] = useState<Amendment | null>(null)
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+  const [deletingEmenda, setDeletingEmenda] = useState<Amendment | null>(null)
 
   const filters = useMemo<FiltersState>(() => {
     const fromStr = searchParams.get('from')
@@ -190,8 +218,57 @@ const EmendasListPage = () => {
     setSearchParams({ page: '1' }, { replace: true })
   }, [setSearchParams])
 
+  const handleAddNew = () => {
+    setEditingEmenda(null)
+    setIsFormOpen(true)
+  }
+
+  const handleEdit = (emenda: Amendment) => {
+    setEditingEmenda(emenda)
+    setIsFormOpen(true)
+  }
+
+  const handleDelete = (emenda: Amendment) => {
+    setDeletingEmenda(emenda)
+    setIsDeleteOpen(true)
+  }
+
+  const handleFormSubmit = (data: Partial<Amendment>) => {
+    if (editingEmenda) {
+      setLocalAmendments((prev) =>
+        prev.map((item) =>
+          item.id === editingEmenda.id ? { ...item, ...data } : item,
+        ),
+      )
+      toast({ title: 'Emenda atualizada com sucesso!' })
+    } else {
+      const newEmenda: Amendment = {
+        id: String(Date.now()),
+        created_at: new Date().toISOString(),
+        total_repassado: 0,
+        total_gasto: 0,
+        ...data,
+      } as Amendment
+      setLocalAmendments((prev) => [newEmenda, ...prev])
+      toast({ title: 'Emenda criada com sucesso!' })
+    }
+    setIsFormOpen(false)
+    setEditingEmenda(null)
+  }
+
+  const handleConfirmDelete = () => {
+    if (deletingEmenda) {
+      setLocalAmendments((prev) =>
+        prev.filter((item) => item.id !== deletingEmenda.id),
+      )
+      toast({ title: 'Emenda excluída com sucesso!' })
+    }
+    setIsDeleteOpen(false)
+    setDeletingEmenda(null)
+  }
+
   const filteredAmendments = useMemo(() => {
-    return amendments
+    return localAmendments
       .map((amendment) => ({
         ...amendment,
         pendencias: getPendencias(amendment),
@@ -255,7 +332,7 @@ const EmendasListPage = () => {
         }
         return true
       })
-  }, [filters])
+  }, [filters, localAmendments])
 
   const totalPages = Math.ceil(filteredAmendments.length / ITEMS_PER_PAGE)
   const paginatedData = filteredAmendments.slice(
@@ -316,7 +393,7 @@ const EmendasListPage = () => {
               Exportar CSV
             </span>
           </Button>
-          <Button size="sm" className="h-8 gap-1">
+          <Button size="sm" className="h-8 gap-1" onClick={handleAddNew}>
             <PlusCircle className="h-3.5 w-3.5" />
             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
               Nova Emenda
@@ -467,13 +544,20 @@ const EmendasListPage = () => {
                               >
                                 Ver Detalhes
                               </DropdownMenuItem>
-                              <DropdownMenuItem>Editar</DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleEdit(amendment)}
+                              >
+                                <Edit className="mr-2 h-4 w-4" /> Editar
+                              </DropdownMenuItem>
                               <DropdownMenuItem>
                                 Gerar Dossiê (PDF)
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-destructive">
-                                Excluir
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={() => handleDelete(amendment)}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" /> Excluir
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -534,6 +618,42 @@ const EmendasListPage = () => {
           </PaginationItem>
         </PaginationContent>
       </Pagination>
+
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingEmenda ? 'Editar Emenda' : 'Nova Emenda'}
+            </DialogTitle>
+            <DialogDescription>
+              Preencha os dados da emenda abaixo.
+            </DialogDescription>
+          </DialogHeader>
+          <EmendaForm
+            initialData={editingEmenda}
+            onSubmit={handleFormSubmit}
+            onCancel={() => setIsFormOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir a emenda "
+              {deletingEmenda?.numero_emenda}"? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete}>
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
