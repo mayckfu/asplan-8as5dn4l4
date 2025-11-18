@@ -2,12 +2,12 @@ import { useState, useMemo, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   PlusCircle,
-  MoreHorizontal,
   FileDown,
   ListFilter,
   Save,
   Edit,
   Trash2,
+  Eye,
 } from 'lucide-react'
 import { parse, format } from 'date-fns'
 import {
@@ -450,37 +450,37 @@ const EmendasListPage = () => {
           </Collapsible>
         </CardHeader>
         <Separator />
-        <CardContent className="pt-6">
+        <CardContent className="pt-6 p-0">
           <div className="relative overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="sticky top-0 bg-background/90 backdrop-blur-sm z-10">
-                  <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
+                  <TableHead className="w-[100px] font-medium text-neutral-900 dark:text-neutral-200">
                     Tipo
                   </TableHead>
-                  <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
+                  <TableHead className="min-w-[150px] font-medium text-neutral-900 dark:text-neutral-200">
                     Autor
                   </TableHead>
-                  <TableHead className="font-medium text-neutral-900 dark:text-neutral-200 min-w-[150px]">
+                  <TableHead className="min-w-[120px] font-medium text-neutral-900 dark:text-neutral-200">
                     Nº Emenda
                   </TableHead>
-                  <TableHead className="font-medium text-neutral-900 dark:text-neutral-200 min-w-[150px]">
+                  <TableHead className="min-w-[120px] font-medium text-neutral-900 dark:text-neutral-200">
                     Nº Proposta
                   </TableHead>
-                  <TableHead className="text-right font-medium text-neutral-900 dark:text-neutral-200">
+                  <TableHead className="text-right min-w-[120px] font-medium text-neutral-900 dark:text-neutral-200">
                     Valor Total
                   </TableHead>
-                  <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
+                  <TableHead className="min-w-[140px] font-medium text-neutral-900 dark:text-neutral-200">
                     Situação Oficial
                   </TableHead>
-                  <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
+                  <TableHead className="min-w-[140px] font-medium text-neutral-900 dark:text-neutral-200">
                     Status Interno
                   </TableHead>
-                  <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
+                  <TableHead className="min-w-[200px] font-medium text-neutral-900 dark:text-neutral-200">
                     Pendências
                   </TableHead>
-                  <TableHead>
-                    <span className="sr-only">Ações</span>
+                  <TableHead className="w-[120px] text-center font-medium text-neutral-900 dark:text-neutral-200">
+                    Ações
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -488,84 +488,114 @@ const EmendasListPage = () => {
                 {paginatedData.map((amendment) => (
                   <TableRow
                     key={amendment.id}
-                    className="h-10 py-2 cursor-pointer odd:bg-white even:bg-neutral-50 hover:bg-neutral-100 dark:odd:bg-card dark:even:bg-muted/50 dark:hover:bg-muted text-neutral-600 dark:text-neutral-400"
+                    className="h-auto py-2 cursor-pointer odd:bg-white even:bg-neutral-50 hover:bg-neutral-100 dark:odd:bg-card dark:even:bg-muted/50 dark:hover:bg-muted text-neutral-600 dark:text-neutral-400"
                     onClick={() => navigate(`/emenda/${amendment.id}`)}
                   >
-                    <TableCell>{amendment.tipo}</TableCell>
-                    <TableCell>{amendment.autor}</TableCell>
-                    <TableCell>{amendment.numero_emenda}</TableCell>
-                    <TableCell>{amendment.numero_proposta}</TableCell>
-                    <TableCell className="text-right tabular-nums">
+                    <TableCell className="align-top">
+                      {amendment.tipo}
+                    </TableCell>
+                    <TableCell className="align-top font-medium text-neutral-900 dark:text-neutral-200">
+                      {amendment.autor}
+                    </TableCell>
+                    <TableCell className="align-top">
+                      {amendment.numero_emenda}
+                    </TableCell>
+                    <TableCell className="align-top">
+                      {amendment.numero_proposta}
+                    </TableCell>
+                    <TableCell className="align-top text-right tabular-nums font-medium text-neutral-900 dark:text-neutral-200">
                       {formatCurrencyBRL(amendment.valor_total)}
                     </TableCell>
-                    <TableCell>
-                      <StatusBadge status={amendment.situacao} />
+                    <TableCell className="align-top">
+                      <StatusBadge
+                        status={amendment.situacao}
+                        className="whitespace-normal text-center w-full h-auto py-1"
+                      />
                     </TableCell>
-                    <TableCell>
-                      <StatusBadge status={amendment.status_interno} />
+                    <TableCell className="align-top">
+                      <StatusBadge
+                        status={amendment.status_interno}
+                        className="whitespace-normal text-center w-full h-auto py-1"
+                      />
                     </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1 max-w-xs">
-                        {amendment.pendencias.map((p) => (
-                          <Badge
-                            key={p}
-                            variant="destructive"
-                            className="text-xs"
-                          >
-                            {p}
-                          </Badge>
-                        ))}
+                    <TableCell className="align-top">
+                      <div className="flex flex-wrap gap-1">
+                        {amendment.pendencias.length > 0 ? (
+                          amendment.pendencias.map((p) => (
+                            <Badge
+                              key={p}
+                              variant="destructive"
+                              className="text-[10px] px-1 py-0.5 h-auto whitespace-normal text-center"
+                            >
+                              {p}
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className="text-xs text-muted-foreground">
+                            -
+                          </span>
+                        )}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                aria-haspopup="true"
-                                size="icon"
-                                variant="ghost"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Ações</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                              align="end"
-                              onClick={(e) => e.stopPropagation()}
+                    <TableCell className="align-top">
+                      <div
+                        className="flex items-center justify-center gap-1"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                navigate(`/emenda/${amendment.id}`)
+                              }}
                             >
-                              <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  navigate(`/emenda/${amendment.id}`)
-                                }
-                              >
-                                Ver Detalhes
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleEdit(amendment)}
-                              >
-                                <Edit className="mr-2 h-4 w-4" /> Editar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                Gerar Dossiê (PDF)
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                className="text-destructive"
-                                onClick={() => handleDelete(amendment)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Mais ações</p>
-                        </TooltipContent>
-                      </Tooltip>
+                              <Eye className="h-4 w-4" />
+                              <span className="sr-only">Ver Detalhes</span>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Ver Detalhes</TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleEdit(amendment)
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                              <span className="sr-only">Editar</span>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Editar</TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDelete(amendment)
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              <span className="sr-only">Excluir</span>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Excluir</TooltipContent>
+                        </Tooltip>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
