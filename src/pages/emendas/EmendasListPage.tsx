@@ -461,10 +461,10 @@ const EmendasListPage = () => {
                   <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
                     Autor
                   </TableHead>
-                  <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
+                  <TableHead className="font-medium text-neutral-900 dark:text-neutral-200 min-w-[150px]">
                     Nº Emenda
                   </TableHead>
-                  <TableHead className="font-medium text-neutral-900 dark:text-neutral-200">
+                  <TableHead className="font-medium text-neutral-900 dark:text-neutral-200 min-w-[150px]">
                     Nº Proposta
                   </TableHead>
                   <TableHead className="text-right font-medium text-neutral-900 dark:text-neutral-200">
