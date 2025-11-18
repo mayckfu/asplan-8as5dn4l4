@@ -61,6 +61,17 @@ const statusColors: Record<string, string> = {
   Concluído: 'bg-success text-primary-foreground',
   Realizado: 'bg-success text-primary-foreground',
   Aprovada: 'bg-success text-primary-foreground',
+
+  // New Statuses Colors
+  PROPOSTA_PAGA: 'bg-success text-primary-foreground',
+  EM_ANALISE_PAGAMENTO: 'bg-info text-primary-foreground',
+  APROVADA_PAGAMENTO: 'bg-teal-500 text-white',
+  AUTORIZADA_AGUARDANDO_EMPENHO: 'bg-blue-500 text-white',
+  AGUARDANDO_AUTORIZACAO_FNS: 'bg-orange-500 text-white',
+  PORTARIA_PUBLICADA_AGUARDANDO_FNS: 'bg-purple-500 text-white',
+  ENVIADA_PUBLICACAO_PORTARIA: 'bg-indigo-500 text-white',
+  PROPOSTA_APROVADA: 'bg-green-600 text-white',
+  CLASSIFICADA_AGUARDANDO_SECRETARIA: 'bg-yellow-500 text-white',
 }
 
 export const StatusBadge = ({ status }: StatusBadgeProps) => {

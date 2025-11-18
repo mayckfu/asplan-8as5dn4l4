@@ -22,6 +22,20 @@ export const StatusInterno = {
   PAGA_SEM_DOCUMENTOS: 'Paga (Sem Documentos)',
   PAGA_COM_PENDENCIAS: 'Paga (Com Pendências)',
   CONCLUIDA: 'Concluída',
+  // New statuses from User Story
+  PROPOSTA_PAGA: 'Proposta Paga',
+  EM_ANALISE_PAGAMENTO: 'Proposta em Análise de Pagamento',
+  APROVADA_PAGAMENTO: 'Proposta aprovada para Pagamento',
+  EMPENHADA_AGUARDANDO_FORMALIZACAO:
+    'Proposta Empenhada aguardando Formalização',
+  AUTORIZADA_AGUARDANDO_EMPENHO: 'Proposta Autorizada aguardando Empenho',
+  AGUARDANDO_AUTORIZACAO_FNS: 'Proposta aguardando autorização do FNS',
+  PORTARIA_PUBLICADA_AGUARDANDO_FNS:
+    'Proposta com Portaria publicada aguardando autorização do FNS',
+  ENVIADA_PUBLICACAO_PORTARIA: 'Proposta enviada para publicação de Portaria',
+  PROPOSTA_APROVADA: 'Proposta Aprovada',
+  CLASSIFICADA_AGUARDANDO_SECRETARIA:
+    'Proposta Classificada aguardando autorização Secretaria',
 } as const
 
 export type TipoRecursoEnum = keyof typeof TipoRecurso
@@ -133,7 +147,7 @@ export const amendments: Amendment[] = [
     numero_proposta: 'PROPOSTA001',
     valor_total: 150000,
     situacao: 'PAGA',
-    status_interno: 'CONCLUIDA',
+    status_interno: 'PROPOSTA_PAGA',
     portaria: 'PORTARIA-123',
     deliberacao_cie: 'CIE-456',
     created_at: '2023-01-15',
@@ -151,7 +165,7 @@ export const amendments: Amendment[] = [
     numero_proposta: 'PROPOSTA002',
     valor_total: 500000,
     situacao: 'EM_ANALISE',
-    status_interno: 'EM_EXECUCAO',
+    status_interno: 'EM_ANALISE_PAGAMENTO',
     portaria: null,
     deliberacao_cie: 'CIE-789',
     created_at: '2023-03-20',
@@ -169,7 +183,7 @@ export const amendments: Amendment[] = [
     numero_proposta: 'PROPOSTA003',
     valor_total: 300000,
     situacao: 'FAVORAVEL',
-    status_interno: 'RASCUNHO',
+    status_interno: 'PROPOSTA_APROVADA',
     portaria: 'PORTARIA-321',
     deliberacao_cie: null,
     created_at: '2024-02-10',
@@ -187,7 +201,7 @@ export const amendments: Amendment[] = [
     numero_proposta: 'PROPOSTA004',
     valor_total: 200000,
     situacao: 'EMPENHADA_AGUARDANDO_FORMALIZACAO',
-    status_interno: 'PAGA_COM_PENDENCIAS',
+    status_interno: 'EMPENHADA_AGUARDANDO_FORMALIZACAO',
     portaria: 'PORTARIA-444',
     deliberacao_cie: 'CIE-555',
     created_at: '2024-04-01',
@@ -205,7 +219,7 @@ export const amendments: Amendment[] = [
     numero_proposta: 'PROPOSTA005',
     valor_total: 750000,
     situacao: 'LIBERADO_PAGAMENTO_FNS',
-    status_interno: 'PAGA_SEM_DOCUMENTOS',
+    status_interno: 'AGUARDANDO_AUTORIZACAO_FNS',
     portaria: null,
     deliberacao_cie: null,
     created_at: '2024-05-05',
@@ -332,8 +346,8 @@ const detailedAmendmentsData: Record<
       {
         id: 'H1-2',
         emenda_id: '1',
-        evento: 'STATUS_CHANGE',
-        detalhe: 'Status alterado para PAGA',
+        evento: 'INTERNAL_STATUS_CHANGE',
+        detalhe: 'Proposta Paga',
         feito_por: 'Sistema',
         criado_em: '2023-02-01 12:00',
       },

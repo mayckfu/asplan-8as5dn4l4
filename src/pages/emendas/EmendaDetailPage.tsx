@@ -10,6 +10,9 @@ import {
   Anexo,
   Pendencia,
   Repasse,
+  StatusInternoEnum,
+  StatusInterno,
+  Historico,
 } from '@/lib/mock-data'
 import { EmendaDetailHeader } from '@/components/emendas/EmendaDetailHeader'
 import {
@@ -28,10 +31,13 @@ import {
 import { EmendaAnexosTab } from '@/components/emendas/EmendaAnexosTab'
 import { EmendaChecklistTab } from '@/components/emendas/EmendaChecklistTab'
 import { EmendaHistoricoTab } from '@/components/emendas/EmendaHistoricoTab'
+import { EmendaStatusInterno } from '@/components/emendas/EmendaStatusInterno'
+import { useToast } from '@/components/ui/use-toast'
 
 const EmendaDetailPage = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { toast } = useToast()
   const [activeTab, setActiveTab] = useState('repasses')
   const [emendaData, setEmendaData] = useState<DetailedAmendment | null>(null)
 
@@ -126,6 +132,30 @@ const EmendaDetailPage = () => {
     }
   }
 
+  const handleStatusChange = (newStatus: StatusInternoEnum) => {
+    if (emendaData) {
+      const newHistoryItem: Historico = {
+        id: `h-${Date.now()}`,
+        emenda_id: emendaData.id,
+        evento: 'INTERNAL_STATUS_CHANGE',
+        detalhe: StatusInterno[newStatus],
+        feito_por: 'Usuário Atual', // Mocked user
+        criado_em: new Date().toISOString(),
+      }
+
+      setEmendaData({
+        ...emendaData,
+        status_interno: newStatus,
+        historico: [...emendaData.historico, newHistoryItem],
+      })
+
+      toast({
+        title: 'Status atualizado',
+        description: `O status interno foi alterado para "${StatusInterno[newStatus]}".`,
+      })
+    }
+  }
+
   const handlePendencyClick = (pendencia: Pendencia) => {
     if (pendencia.targetType === 'field') {
       dadosTecnicosRef.current?.triggerEditAndFocus(pendencia.targetId)
@@ -189,13 +219,23 @@ const EmendaDetailPage = () => {
         onPendencyClick={() => setActiveTab('checklist')}
       />
 
-      <EmendaDadosTecnicos
-        ref={dadosTecnicosRef}
-        emenda={emendaData}
-        onEmendaChange={handleEmendaDataChange}
-      />
-
-      <EmendaObjetoFinalidade description={emendaData.descricao_completa} />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <EmendaDadosTecnicos
+            ref={dadosTecnicosRef}
+            emenda={emendaData}
+            onEmendaChange={handleEmendaDataChange}
+          />
+          <EmendaObjetoFinalidade description={emendaData.descricao_completa} />
+        </div>
+        <div className="lg:col-span-1">
+          <EmendaStatusInterno
+            currentStatus={emendaData.status_interno}
+            history={emendaData.historico}
+            onUpdateStatus={handleStatusChange}
+          />
+        </div>
+      </div>
 
       <Tabs
         value={activeTab}
