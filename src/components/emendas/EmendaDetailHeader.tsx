@@ -1,18 +1,34 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { StatusBadge } from '@/components/StatusBadge'
-import { DetailedAmendment } from '@/lib/mock-data'
+import {
+  DetailedAmendment,
+  SituacaoOficial,
+  StatusInterno,
+  SituacaoOficialEnum,
+  StatusInternoEnum,
+} from '@/lib/mock-data'
 import { Paperclip } from 'lucide-react'
 import { formatCurrencyBRL, formatPercent } from '@/lib/utils'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 interface EmendaDetailHeaderProps {
   emenda: DetailedAmendment
   onPendencyClick: () => void
+  onStatusOficialChange: (status: SituacaoOficialEnum) => void
+  onStatusInternoChange: (status: StatusInternoEnum) => void
 }
 
 export const EmendaDetailHeader = ({
   emenda,
   onPendencyClick,
+  onStatusOficialChange,
+  onStatusInternoChange,
 }: EmendaDetailHeaderProps) => {
   const totalRepassado = emenda.repasses.reduce((acc, r) => acc + r.valor, 0)
   const totalGasto = emenda.despesas.reduce((acc, d) => acc + d.valor, 0)
@@ -48,21 +64,53 @@ export const EmendaDetailHeader = ({
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2 text-xs font-semibold text-neutral-600 dark:text-neutral-400">
+            <div className="flex items-center gap-2 text-xs font-semibold text-neutral-600 dark:text-neutral-400 mr-2">
               <Paperclip className="h-4 w-4" />
               {emenda.anexos.length} Anexos
             </div>
-            <div>
+            <div className="flex flex-col gap-1">
               <span className="text-xs font-semibold text-neutral-600 dark:text-neutral-400">
                 STATUS OFICIAL
               </span>
-              <StatusBadge status={emenda.situacao} />
+              <Select
+                value={emenda.situacao}
+                onValueChange={(value) =>
+                  onStatusOficialChange(value as SituacaoOficialEnum)
+                }
+              >
+                <SelectTrigger className="h-9 w-[240px] bg-white dark:bg-background">
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(SituacaoOficial).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div>
+            <div className="flex flex-col gap-1">
               <span className="text-xs font-semibold text-neutral-600 dark:text-neutral-400">
                 STATUS INTERNO
               </span>
-              <StatusBadge status={emenda.status_interno} />
+              <Select
+                value={emenda.status_interno}
+                onValueChange={(value) =>
+                  onStatusInternoChange(value as StatusInternoEnum)
+                }
+              >
+                <SelectTrigger className="h-9 w-[320px] bg-white dark:bg-background">
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(StatusInterno).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>

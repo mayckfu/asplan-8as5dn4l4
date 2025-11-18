@@ -12,6 +12,8 @@ import {
   Repasse,
   StatusInternoEnum,
   StatusInterno,
+  SituacaoOficialEnum,
+  SituacaoOficial,
   Historico,
 } from '@/lib/mock-data'
 import { EmendaDetailHeader } from '@/components/emendas/EmendaDetailHeader'
@@ -31,7 +33,6 @@ import {
 import { EmendaAnexosTab } from '@/components/emendas/EmendaAnexosTab'
 import { EmendaChecklistTab } from '@/components/emendas/EmendaChecklistTab'
 import { EmendaHistoricoTab } from '@/components/emendas/EmendaHistoricoTab'
-import { EmendaStatusInterno } from '@/components/emendas/EmendaStatusInterno'
 import { useToast } from '@/components/ui/use-toast'
 
 const EmendaDetailPage = () => {
@@ -132,7 +133,7 @@ const EmendaDetailPage = () => {
     }
   }
 
-  const handleStatusChange = (newStatus: StatusInternoEnum) => {
+  const handleStatusInternoChange = (newStatus: StatusInternoEnum) => {
     if (emendaData) {
       const newHistoryItem: Historico = {
         id: `h-${Date.now()}`,
@@ -150,8 +151,32 @@ const EmendaDetailPage = () => {
       })
 
       toast({
-        title: 'Status atualizado',
+        title: 'Status interno atualizado',
         description: `O status interno foi alterado para "${StatusInterno[newStatus]}".`,
+      })
+    }
+  }
+
+  const handleStatusOficialChange = (newStatus: SituacaoOficialEnum) => {
+    if (emendaData) {
+      const newHistoryItem: Historico = {
+        id: `h-${Date.now()}`,
+        emenda_id: emendaData.id,
+        evento: 'OFFICIAL_STATUS_CHANGE',
+        detalhe: SituacaoOficial[newStatus],
+        feito_por: 'Usuário Atual', // Mocked user
+        criado_em: new Date().toISOString(),
+      }
+
+      setEmendaData({
+        ...emendaData,
+        situacao: newStatus,
+        historico: [...emendaData.historico, newHistoryItem],
+      })
+
+      toast({
+        title: 'Status oficial atualizado',
+        description: `O status oficial foi alterado para "${SituacaoOficial[newStatus]}".`,
       })
     }
   }
@@ -217,23 +242,18 @@ const EmendaDetailPage = () => {
       <EmendaDetailHeader
         emenda={emendaData}
         onPendencyClick={() => setActiveTab('checklist')}
+        onStatusOficialChange={handleStatusOficialChange}
+        onStatusInternoChange={handleStatusInternoChange}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 gap-6">
+        <div className="space-y-6">
           <EmendaDadosTecnicos
             ref={dadosTecnicosRef}
             emenda={emendaData}
             onEmendaChange={handleEmendaDataChange}
           />
           <EmendaObjetoFinalidade description={emendaData.descricao_completa} />
-        </div>
-        <div className="lg:col-span-1">
-          <EmendaStatusInterno
-            currentStatus={emendaData.status_interno}
-            history={emendaData.historico}
-            onUpdateStatus={handleStatusChange}
-          />
         </div>
       </div>
 
