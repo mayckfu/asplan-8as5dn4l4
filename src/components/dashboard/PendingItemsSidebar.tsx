@@ -6,6 +6,7 @@ import {
   ShieldAlert,
   AlertTriangle,
   Megaphone,
+  Users,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DetailedAmendment } from '@/lib/mock-data'
@@ -86,6 +87,13 @@ export const PendingItemsSidebar = ({
         filter: (a) => a.valor_total > 500000,
         color:
           'bg-highlight/10 dark:bg-highlight/20 border-l-4 border-highlight',
+      },
+      {
+        title: 'Por Parlamentar',
+        count: new Set(amendments.map((a) => a.parlamentar)).size,
+        icon: Users,
+        filter: () => true,
+        color: 'border-l-4 border-indigo-500',
       },
     ],
     [amendments, allDespesas],
