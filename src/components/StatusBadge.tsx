@@ -23,6 +23,7 @@ type Status =
 
 interface StatusBadgeProps {
   status: Status
+  className?: string
 }
 
 const statusDisplayMap: Record<string, string> = {
@@ -74,13 +75,14 @@ const statusColors: Record<string, string> = {
   CLASSIFICADA_AGUARDANDO_SECRETARIA: 'bg-yellow-500 text-white',
 }
 
-export const StatusBadge = ({ status }: StatusBadgeProps) => {
+export const StatusBadge = ({ status, className }: StatusBadgeProps) => {
   const displayText = statusDisplayMap[status] || status
   return (
     <Badge
       className={cn(
         'border-transparent whitespace-nowrap',
         statusColors[status] || 'bg-secondary text-secondary-foreground',
+        className,
       )}
     >
       {displayText}

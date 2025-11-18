@@ -116,11 +116,14 @@ export const PendingProposalsSheet = ({
                   >
                     <Card className="hover:shadow-md transition-shadow">
                       <CardHeader>
-                        <div className="flex justify-between items-start">
+                        <div className="flex justify-between items-start gap-2">
                           <CardTitle className="text-base font-semibold">
                             {proposal.numero_proposta}
                           </CardTitle>
-                          <StatusBadge status={proposal.status_interno} />
+                          <StatusBadge
+                            status={proposal.status_interno}
+                            className="whitespace-normal text-right h-auto py-1 max-w-[60%]"
+                          />
                         </div>
                         <p className="text-sm text-muted-foreground">
                           {proposal.autor}
