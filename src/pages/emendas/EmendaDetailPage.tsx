@@ -355,7 +355,6 @@ const EmendaDetailPage = () => {
 
       <EmendaDetailHeader
         emenda={emendaData}
-        onPendencyClick={() => setActiveTab('checklist')}
         onStatusOficialChange={handleStatusOficialChange}
         onStatusInternoChange={handleStatusInternoChange}
       />

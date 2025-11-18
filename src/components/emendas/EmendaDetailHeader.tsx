@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import {
   DetailedAmendment,
   SituacaoOficial,
@@ -19,14 +18,12 @@ import {
 
 interface EmendaDetailHeaderProps {
   emenda: DetailedAmendment
-  onPendencyClick: () => void
   onStatusOficialChange: (status: SituacaoOficialEnum) => void
   onStatusInternoChange: (status: StatusInternoEnum) => void
 }
 
 export const EmendaDetailHeader = ({
   emenda,
-  onPendencyClick,
   onStatusOficialChange,
   onStatusInternoChange,
 }: EmendaDetailHeaderProps) => {
@@ -116,7 +113,7 @@ export const EmendaDetailHeader = ({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-center mb-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-center">
           {kpis.map((kpi) => (
             <div
               key={kpi.label}
@@ -131,27 +128,6 @@ export const EmendaDetailHeader = ({
             </div>
           ))}
         </div>
-        {emenda.pendencias.length > 0 && (
-          <div>
-            <h4 className="text-sm font-semibold mb-2 text-neutral-900 dark:text-neutral-200">
-              Pendências:
-            </h4>
-            <div className="flex flex-wrap gap-2">
-              {emenda.pendencias
-                .filter((p) => !p.dispensada)
-                .map((p) => (
-                  <Badge
-                    key={p.id}
-                    variant="destructive"
-                    className="cursor-pointer"
-                    onClick={onPendencyClick}
-                  >
-                    {p.descricao}
-                  </Badge>
-                ))}
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   )
