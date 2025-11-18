@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react'
-import { Link } from 'react-router-dom'
 import {
   FileText,
   Archive,
@@ -7,16 +6,8 @@ import {
   ShieldAlert,
   AlertTriangle,
   Megaphone,
-  User,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion'
 import { DetailedAmendment } from '@/lib/mock-data'
 import { PendingProposalsSheet } from './PendingProposalsSheet'
 import { cn } from '@/lib/utils'
@@ -43,13 +34,15 @@ export const PendingItemsSidebar = ({
     [amendments],
   )
 
-  const missingPortariaAmendments = useMemo(
-    () => amendments.filter((a) => !a.portaria),
-    [amendments],
-  )
-
   const pendingItems: AlertItem[] = useMemo(
     () => [
+      {
+        title: 'Falta Portaria',
+        count: amendments.filter((a) => !a.portaria).length,
+        icon: FileText,
+        filter: (a) => !a.portaria,
+        color: 'border-l-4 border-amber-500',
+      },
       {
         title: 'Falta Deliberação CIE',
         count: amendments.filter((a) => !a.deliberacao_cie).length,
@@ -114,52 +107,7 @@ export const PendingItemsSidebar = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Accordion
-            type="single"
-            collapsible
-            className="w-full"
-            defaultValue="falta-portaria"
-          >
-            <AccordionItem value="falta-portaria" className="border-b-0">
-              <AccordionTrigger className="p-3 rounded-lg hover:bg-neutral-100 dark:hover:bg-muted -mx-3">
-                <div className="flex items-center gap-3">
-                  <FileText className="h-5 w-5 text-amber-500" />
-                  <span className="font-medium text-sm text-neutral-700 dark:text-neutral-300">
-                    Falta Portaria
-                  </span>
-                </div>
-                <Badge variant="secondary" className="ml-auto">
-                  {missingPortariaAmendments.length}
-                </Badge>
-              </AccordionTrigger>
-              <AccordionContent className="pt-2 pl-2 space-y-2">
-                {missingPortariaAmendments.length === 0 ? (
-                  <p className="text-xs text-muted-foreground p-2">
-                    Nenhuma emenda com falta de portaria.
-                  </p>
-                ) : (
-                  missingPortariaAmendments.map((a) => (
-                    <Link
-                      to={`/emenda/${a.id}`}
-                      key={a.id}
-                      className="block p-2 rounded-md cursor-pointer hover:bg-neutral-100 dark:hover:bg-muted transition-colors"
-                    >
-                      <div className="flex justify-between items-start">
-                        <p className="font-semibold text-sm text-neutral-800 dark:text-neutral-200">
-                          {a.numero_proposta || a.numero_emenda}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
-                        <User className="h-3 w-3" />
-                        <span className="truncate">{a.parlamentar}</span>
-                      </div>
-                    </Link>
-                  ))
-                )}
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-          <ul className="space-y-3 mt-2">
+          <ul className="space-y-3">
             {pendingItems
               .filter((item) => item.count > 0)
               .map((item) => (
