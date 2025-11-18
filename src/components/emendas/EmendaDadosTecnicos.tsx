@@ -80,7 +80,6 @@ export const EmendaDadosTecnicos = forwardRef<
     const { name, value } = e.target
     const updatedEmenda = { ...editableEmenda, [name]: value }
     setEditableEmenda(updatedEmenda)
-    onEmendaChange(updatedEmenda)
   }
 
   const handleValueChange = (
@@ -89,7 +88,6 @@ export const EmendaDadosTecnicos = forwardRef<
   ) => {
     const updatedEmenda = { ...editableEmenda, [name]: value }
     setEditableEmenda(updatedEmenda)
-    onEmendaChange(updatedEmenda)
   }
 
   const handleSave = () => {
@@ -100,7 +98,6 @@ export const EmendaDadosTecnicos = forwardRef<
 
   const handleCancel = () => {
     setEditableEmenda(emenda)
-    onEmendaChange(emenda)
     setIsEditing(false)
   }
 
@@ -139,6 +136,26 @@ export const EmendaDadosTecnicos = forwardRef<
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {isEditing ? (
             <>
+              <div>
+                <Label htmlFor="numero_proposta">Número da Proposta</Label>
+                <Input
+                  id="numero_proposta"
+                  name="numero_proposta"
+                  ref={(el) => (fieldRefs.current['numero_proposta'] = el)}
+                  value={editableEmenda.numero_proposta || ''}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div>
+                <Label htmlFor="numero_emenda">Número da Emenda</Label>
+                <Input
+                  id="numero_emenda"
+                  name="numero_emenda"
+                  ref={(el) => (fieldRefs.current['numero_emenda'] = el)}
+                  value={editableEmenda.numero_emenda || ''}
+                  onChange={handleInputChange}
+                />
+              </div>
               <div>
                 <Label htmlFor="natureza">Natureza</Label>
                 <Input
@@ -290,6 +307,14 @@ export const EmendaDadosTecnicos = forwardRef<
             </>
           ) : (
             <>
+              <DetailItem
+                label="Número da Proposta"
+                value={emenda.numero_proposta}
+              />
+              <DetailItem
+                label="Número da Emenda"
+                value={emenda.numero_emenda}
+              />
               <DetailItem label="Natureza" value={emenda.natureza} />
               <DetailItem label="Objeto" value={emenda.objeto_emenda} />
               <DetailItem
