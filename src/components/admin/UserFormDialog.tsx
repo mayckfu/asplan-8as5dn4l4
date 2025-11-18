@@ -27,16 +27,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { User, Cargo, UserRole, UserStatus } from '@/lib/mock-data'
+import { User, Cargo } from '@/lib/mock-data'
 
-const userSchema = z.object({
-  name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
-  email: z.string().email('Email inválido'),
-  role: z.enum(['ADMIN', 'GESTOR', 'ANALISTA', 'CONSULTA'] as const),
-  cargo_id: z.string().optional(),
-  unidade: z.string().optional(),
-  status: z.enum(['ATIVO', 'BLOQUEADO', 'PENDENTE'] as const),
-})
+const userSchema = z
+  .object({
+    name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
+    email: z.string().email('Email inválido'),
+    role: z.enum(['ADMIN', 'GESTOR', 'ANALISTA', 'CONSULTA'] as const),
+    cargo_id: z.string().optional(),
+    unidade: z.string().optional(),
+    status: z.enum(['ATIVO', 'BLOQUEADO', 'PENDENTE'] as const),
+    password: z.string().optional(),
+    confirmPassword: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.password && data.password !== data.confirmPassword) {
+        return false
+      }
+      return true
+    },
+    {
+      message: 'As senhas não coincidem',
+      path: ['confirmPassword'],
+    },
+  )
 
 type UserFormValues = z.infer<typeof userSchema>
 
@@ -64,6 +79,8 @@ export const UserFormDialog = ({
       cargo_id: '',
       unidade: '',
       status: 'ATIVO',
+      password: '',
+      confirmPassword: '',
     },
   })
 
@@ -76,6 +93,8 @@ export const UserFormDialog = ({
         cargo_id: user.cargo_id || '',
         unidade: user.unidade || '',
         status: user.status,
+        password: '',
+        confirmPassword: '',
       })
     } else {
       form.reset({
@@ -85,6 +104,8 @@ export const UserFormDialog = ({
         cargo_id: '',
         unidade: '',
         status: 'ATIVO',
+        password: '',
+        confirmPassword: '',
       })
     }
   }, [user, form, open])
@@ -134,6 +155,36 @@ export const UserFormDialog = ({
                 </FormItem>
               )}
             />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nova Senha</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="******" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirmar Senha</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="******" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}

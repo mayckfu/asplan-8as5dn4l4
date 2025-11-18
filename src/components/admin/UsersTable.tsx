@@ -115,12 +115,22 @@ export const UsersTable = ({
       return
     }
 
+    const { password, confirmPassword, ...userData } = data
+
     if (editingUser) {
-      onUpdateUser({ ...editingUser, ...data })
-      toast({ title: 'Usuário atualizado com sucesso.' })
+      onUpdateUser({ ...editingUser, ...userData })
+      if (password) {
+        toast({ title: 'Usuário e senha atualizados com sucesso.' })
+      } else {
+        toast({ title: 'Usuário atualizado com sucesso.' })
+      }
     } else {
-      onCreateUser(data)
-      toast({ title: 'Usuário criado com sucesso.' })
+      onCreateUser(userData)
+      if (password) {
+        toast({ title: 'Usuário criado com senha definida.' })
+      } else {
+        toast({ title: 'Usuário criado com sucesso.' })
+      }
     }
   }
 
