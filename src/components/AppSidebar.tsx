@@ -1,5 +1,12 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, FileText, BarChart2, Settings, ChevronRight } from 'lucide-react'
+import {
+  Home,
+  FileText,
+  BarChart2,
+  Settings,
+  ChevronRight,
+  Building2,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -29,14 +36,12 @@ export const AppSidebar = () => {
     <Sidebar className="border-r border-border/50 bg-card shadow-sm z-40">
       <SidebarHeader className="h-16 flex items-center justify-center border-b border-border/50 px-4">
         <div className="flex items-center gap-2 overflow-hidden w-full">
-          <img
-            src="/asplan-logo.png"
-            alt="ASPLAN Logo"
-            className="h-8 w-auto object-contain"
-          />
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-asplan-primary text-primary-foreground">
+            <Building2 className="h-5 w-5" />
+          </div>
           {isExpanded && (
             <span className="font-bold text-lg text-asplan-deep truncate">
-              ASPLAN
+              Gestão Emendas
             </span>
           )}
         </div>

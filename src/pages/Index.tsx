@@ -158,7 +158,6 @@ const Index = () => {
           </h1>
           <p className="text-muted-foreground text-lg">
             Planejamento e acompanhamento financeiro da Secretaria de Saúde
-            (ASPLAN)
           </p>
         </div>
 
