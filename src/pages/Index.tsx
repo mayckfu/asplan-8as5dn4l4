@@ -10,22 +10,33 @@ import {
   PieChart,
   Pie,
   Cell,
+  ResponsiveContainer,
 } from 'recharts'
 import { format } from 'date-fns'
-import { Banknote, Landmark, Package, Percent, ShoppingBag } from 'lucide-react'
-import { Card } from '@/components/ui/card'
+import {
+  Banknote,
+  Landmark,
+  Package,
+  Percent,
+  ShoppingBag,
+  TrendingUp,
+  TrendingDown,
+  Activity,
+} from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   ChartLegend,
+  ChartLegendContent,
 } from '@/components/ui/chart'
 import {
   amendments,
   getAmendmentDetails,
   DetailedAmendment,
 } from '@/lib/mock-data'
-import { formatCurrencyBRL, formatPercent } from '@/lib/utils'
+import { formatCurrencyBRL, formatPercent, cn } from '@/lib/utils'
 import { PendingItemsSidebar } from '@/components/dashboard/PendingItemsSidebar'
 import { FinancialSummary } from '@/components/dashboard/FinancialSummary'
 
@@ -58,31 +69,47 @@ const Index = () => {
     const coberturaMedia = totalValor > 0 ? (totalGasto / totalValor) * 100 : 0
 
     const kpis = [
-      { title: 'Total de Propostas', value: totalPropostas, icon: Package },
+      {
+        title: 'Total de Propostas',
+        value: totalPropostas,
+        icon: Package,
+        description: 'Propostas cadastradas',
+        trend: 'neutral',
+      },
       {
         title: 'Valor Total',
         value: formatCurrencyBRL(totalValor),
         icon: Landmark,
+        description: 'Montante global previsto',
+        trend: 'up',
       },
       {
         title: 'Valor Repassado',
         value: formatCurrencyBRL(totalRepassado),
         icon: Banknote,
+        description: 'Recursos recebidos',
+        trend: 'up',
       },
       {
         title: 'Valor Gasto',
         value: formatCurrencyBRL(totalGasto),
         icon: ShoppingBag,
+        description: 'Despesas executadas',
+        trend: 'down',
       },
       {
         title: 'Execução Média',
         value: formatPercent(execucaoMedia),
-        icon: Percent,
+        icon: Activity,
+        description: '% do valor repassado',
+        trend: execucaoMedia > 70 ? 'up' : 'neutral',
       },
       {
         title: 'Cobertura Média',
         value: formatPercent(coberturaMedia),
         icon: Percent,
+        description: '% do valor total',
+        trend: coberturaMedia > 50 ? 'up' : 'neutral',
       },
     ]
 
@@ -123,142 +150,176 @@ const Index = () => {
   }, [])
 
   return (
-    <div className="grid lg:grid-cols-[1fr_320px] gap-6 items-start">
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-asplan-deep">
+    <div className="grid lg:grid-cols-[1fr_340px] gap-8 items-start pb-8">
+      <div className="space-y-8">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight text-asplan-deep">
             Quadro Geral das Emendas — 2025
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-lg">
             Planejamento e acompanhamento financeiro da Secretaria de Saúde
             (ASPLAN)
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
           {dashboardData.kpis.map((kpi) => (
             <Card
               key={kpi.title}
-              className="bg-white border border-neutral-200 rounded-xl shadow-sm p-4"
+              className="bg-card border-border/50 shadow-sm hover:shadow-md transition-all duration-200 group"
             >
-              <p className="text-sm text-neutral-600">{kpi.title}</p>
-              <p className="text-2xl font-semibold text-asplan-deep tabular-nums">
-                {kpi.value}
-              </p>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">
+                  {kpi.title}
+                </CardTitle>
+                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                  <kpi.icon className="h-4 w-4" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-asplan-deep tabular-nums">
+                  {kpi.value}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {kpi.description}
+                </p>
+              </CardContent>
             </Card>
           ))}
         </div>
 
-        <FinancialSummary amendments={amendments} />
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold text-asplan-deep flex items-center gap-2">
+            <Banknote className="h-5 w-5" />
+            Resumo Financeiro
+          </h2>
+          <FinancialSummary amendments={amendments} />
+        </div>
 
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-          <Card className="bg-white rounded-2xl shadow-sm p-4 border border-neutral-200">
-            <h3 className="text-lg font-semibold text-asplan-deep mb-3">
-              Repasses x Despesas por Mês
-            </h3>
-            <ChartContainer config={{}} className="w-full h-[300px]">
-              <LineChart data={dashboardData.lineChartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis tickFormatter={(val) => formatCurrencyBRL(val)} />
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      formatter={(val) => formatCurrencyBRL(Number(val))}
-                      className="tabular-nums"
-                    />
-                  }
-                />
-                <ChartLegend />
-                <Line
-                  type="monotone"
-                  dataKey="repasses"
-                  stroke="hsl(var(--chart-2))"
-                  strokeWidth={2}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="despesas"
-                  stroke="hsl(var(--chart-1))"
-                  strokeWidth={2}
-                />
-              </LineChart>
-            </ChartContainer>
-          </Card>
-          <Card className="bg-white rounded-2xl shadow-sm p-4 border border-neutral-200">
-            <h3 className="text-lg font-semibold text-asplan-deep mb-3">
-              Gasto por Responsável
-            </h3>
-            <ChartContainer config={{}} className="w-full h-[300px]">
-              <PieChart>
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      formatter={(value) => {
-                        const total =
-                          dashboardData.gastoPorResponsavelData.reduce(
-                            (acc, entry) => acc + entry.value,
-                            0,
-                          )
-                        const percent = (Number(value) / total) * 100
-                        return `${formatCurrencyBRL(
-                          Number(value),
-                        )} (${percent.toFixed(1)}%)`
-                      }}
-                      className="tabular-nums"
-                    />
-                  }
-                />
-                <Pie
-                  data={dashboardData.gastoPorResponsavelData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  labelLine={false}
-                  label={({
-                    cx,
-                    cy,
-                    midAngle,
-                    innerRadius,
-                    outerRadius,
-                    percent,
-                  }) => {
-                    const radius =
-                      innerRadius + (outerRadius - innerRadius) * 0.5
-                    const x =
-                      cx + radius * Math.cos(-midAngle * (Math.PI / 180))
-                    const y =
-                      cy + radius * Math.sin(-midAngle * (Math.PI / 180))
-                    return (
-                      <text
-                        x={x}
-                        y={y}
-                        fill="white"
-                        textAnchor={x > cx ? 'start' : 'end'}
-                        dominantBaseline="central"
-                        className="text-xs font-medium"
-                      >
-                        {`${(percent * 100).toFixed(0)}%`}
-                      </text>
-                    )
-                  }}
+          <Card className="bg-card border-border/50 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-asplan-deep">
+                Repasses x Despesas por Mês
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pl-0">
+              <ChartContainer config={{}} className="w-full h-[300px]">
+                <LineChart
+                  data={dashboardData.lineChartData}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
-                  {dashboardData.gastoPorResponsavelData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <ChartLegend />
-              </PieChart>
-            </ChartContainer>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis
+                    dataKey="month"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={10}
+                    tickFormatter={(value) => value.slice(5)}
+                  />
+                  <YAxis
+                    tickFormatter={(val) =>
+                      new Intl.NumberFormat('pt-BR', {
+                        notation: 'compact',
+                        compactDisplay: 'short',
+                        style: 'currency',
+                        currency: 'BRL',
+                      }).format(val)
+                    }
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={10}
+                  />
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        formatter={(val) => formatCurrencyBRL(Number(val))}
+                        className="tabular-nums"
+                      />
+                    }
+                  />
+                  <ChartLegend content={<ChartLegendContent />} />
+                  <Line
+                    type="monotone"
+                    dataKey="repasses"
+                    name="Repasses"
+                    stroke="hsl(var(--chart-2))"
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 6 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="despesas"
+                    name="Despesas"
+                    stroke="hsl(var(--chart-1))"
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-border/50 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-asplan-deep">
+                Gasto por Responsável
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer config={{}} className="w-full h-[300px]">
+                <PieChart>
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        formatter={(value) => {
+                          const total =
+                            dashboardData.gastoPorResponsavelData.reduce(
+                              (acc, entry) => acc + entry.value,
+                              0,
+                            )
+                          const percent = (Number(value) / total) * 100
+                          return `${formatCurrencyBRL(
+                            Number(value),
+                          )} (${percent.toFixed(1)}%)`
+                        }}
+                        className="tabular-nums"
+                      />
+                    }
+                  />
+                  <Pie
+                    data={dashboardData.gastoPorResponsavelData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={2}
+                  >
+                    {dashboardData.gastoPorResponsavelData.map(
+                      (entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                          strokeWidth={0}
+                        />
+                      ),
+                    )}
+                  </Pie>
+                  <ChartLegend
+                    content={<ChartLegendContent />}
+                    className="-translate-y-2 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
+                  />
+                </PieChart>
+              </ChartContainer>
+            </CardContent>
           </Card>
         </div>
       </div>
-      <div className="sticky top-20">
+      <div className="sticky top-24">
         <PendingItemsSidebar amendments={dashboardData.allDetailedAmendments} />
       </div>
     </div>

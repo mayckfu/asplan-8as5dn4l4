@@ -10,17 +10,17 @@ const AppLayout = () => {
   return (
     <div
       className={cn(
-        'grid min-h-screen w-full',
-        !isMobile && state === 'expanded' && 'md:grid-cols-[240px_1fr]',
+        'grid min-h-screen w-full bg-background',
+        !isMobile && state === 'expanded' && 'md:grid-cols-[260px_1fr]',
         !isMobile && state === 'collapsed' && 'md:grid-cols-[72px_1fr]',
         'transition-all duration-300 ease-in-out',
       )}
     >
       <AppSidebar />
-      <div className="flex flex-col overflow-hidden">
+      <div className="flex flex-col overflow-hidden h-screen">
         <Header />
-        <main className="flex-1 animate-fade-in overflow-y-auto bg-background">
-          <div className="max-w-screen-2xl mx-auto px-4 py-6 w-full">
+        <main className="flex-1 overflow-y-auto bg-neutral-50/50 dark:bg-background scroll-smooth">
+          <div className="max-w-[1600px] mx-auto px-6 py-8 w-full">
             <Outlet />
           </div>
         </main>

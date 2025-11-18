@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Menu, User, ChevronLeft } from 'lucide-react'
+import { Menu, User, ChevronLeft, Bell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -12,18 +12,19 @@ import {
 import { useSidebar } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from './ThemeToggle'
+import { Badge } from '@/components/ui/badge'
 
 export const Header = () => {
   const { toggleSidebar, state, isMobile, setOpenMobile } = useSidebar()
 
   return (
-    <header className="sticky top-0 flex h-16 items-center justify-between gap-4 border-b bg-card/90 px-4 md:px-6 z-30 shadow-sm backdrop-blur-md">
+    <header className="sticky top-0 flex h-16 items-center justify-between gap-4 border-b border-border/50 bg-background/80 px-6 z-30 shadow-sm backdrop-blur-md transition-all">
       <div className="flex items-center gap-4">
         {isMobile ? (
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
-            className="shrink-0"
+            className="shrink-0 hover:bg-muted"
             onClick={() => setOpenMobile(true)}
           >
             <Menu className="h-5 w-5" />
@@ -34,7 +35,7 @@ export const Header = () => {
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="shrink-0"
+            className="shrink-0 hover:bg-muted text-muted-foreground hover:text-foreground"
           >
             <ChevronLeft
               className={cn(
@@ -44,34 +45,57 @@ export const Header = () => {
             />
           </Button>
         )}
-        <Link to="/" className="flex items-center">
-          <img
-            src="/asplan-logo.png"
-            alt=""
-            aria-hidden="true"
-            className="h-7 w-auto mr-2"
-          />
-          <span className="font-semibold text-lg text-asplan-deep dark:text-neutral-200 hidden md:block">
-            ASPLAN — Controle de Emendas Parlamentares
+        <div className="flex flex-col">
+          <span className="font-semibold text-lg text-foreground hidden md:block leading-tight">
+            Controle de Emendas
           </span>
-        </Link>
+          <span className="text-xs text-muted-foreground hidden md:block">
+            Secretaria de Saúde
+          </span>
+        </div>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative text-muted-foreground hover:text-foreground"
+        >
+          <Bell className="h-5 w-5" />
+          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-destructive ring-2 ring-background" />
+          <span className="sr-only">Notificações</span>
+        </Button>
+
+        <div className="h-6 w-px bg-border/50 mx-1" />
+
         <ThemeToggle />
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="secondary" size="icon" className="rounded-full">
-              <User className="h-5 w-5" />
-              <span className="sr-only">Toggle user menu</span>
+            <Button
+              variant="ghost"
+              className="relative h-9 w-9 rounded-full border border-border/50 bg-muted/50 hover:bg-muted"
+            >
+              <User className="h-5 w-5 text-muted-foreground" />
+              <span className="sr-only">Menu do usuário</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Admin</DropdownMenuLabel>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">Admin User</p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  admin@asplan.gov
+                </p>
+              </div>
+            </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>Meu Perfil</DropdownMenuItem>
+            <DropdownMenuItem>Configurações</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Sair</DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive focus:text-destructive">
+              Sair
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

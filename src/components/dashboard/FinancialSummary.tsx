@@ -32,22 +32,19 @@ export const FinancialSummary = ({ amendments }: FinancialSummaryProps) => {
   }, [amendments])
 
   return (
-    <div className="w-full mt-6 mb-4">
-      <h3 className="text-lg font-semibold text-asplan-primary text-center mb-3">
-        Resumo Financeiro por Tipo de Recurso
-      </h3>
-      <div className="grid gap-6 md:grid-cols-2">
-        <FinancialSummaryCard
-          title="Incremento MAC"
-          totalValue={summaryData.mac.total}
-          paidValue={summaryData.mac.paid}
-        />
-        <FinancialSummaryCard
-          title="Incremento PAP"
-          totalValue={summaryData.pap.total}
-          paidValue={summaryData.pap.paid}
-        />
-      </div>
+    <div className="grid gap-6 md:grid-cols-2">
+      <FinancialSummaryCard
+        title="Incremento MAC"
+        totalValue={summaryData.mac.total}
+        paidValue={summaryData.mac.paid}
+        type="MAC"
+      />
+      <FinancialSummaryCard
+        title="Incremento PAP"
+        totalValue={summaryData.pap.total}
+        paidValue={summaryData.pap.paid}
+        type="PAP"
+      />
     </div>
   )
 }
