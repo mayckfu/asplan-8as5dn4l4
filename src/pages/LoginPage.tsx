@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/form'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/lib/supabase/client'
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -59,6 +60,21 @@ const LoginPage = () => {
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true)
     const success = await login(data.email, data.password, data.rememberMe)
+
+    if (!success) {
+      // Log failed attempt
+      try {
+        await supabase.rpc('log_security_notification', {
+          p_type: 'LOGIN_FAILED',
+          p_message: `Tentativa de login falha para o email: ${data.email}`,
+          p_severity: 'WARNING',
+          p_user_id: null,
+        })
+      } catch (err) {
+        console.error('Failed to log security notification', err)
+      }
+    }
+
     setIsLoading(false)
     if (success) {
       navigate(from, { replace: true })

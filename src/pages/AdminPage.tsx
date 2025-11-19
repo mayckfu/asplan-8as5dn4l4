@@ -5,14 +5,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { UsersTable } from '@/components/admin/UsersTable'
 import { RolesTable } from '@/components/admin/RolesTable'
 import { AuditLogsTable } from '@/components/admin/AuditLogsTable'
+import { SecurityNotifications } from '@/components/admin/SecurityNotifications'
+import { BackupManager } from '@/components/admin/BackupManager'
 import { useAuth } from '@/contexts/AuthContext'
 import { User, Cargo, AuditLog } from '@/lib/mock-data'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/use-toast'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Shield, Database } from 'lucide-react'
 
 const AdminPage = () => {
-  const { isAdmin, user: currentUser } = useAuth()
+  const { isAdmin } = useAuth()
   const { toast } = useToast()
   const [users, setUsers] = useState<User[]>([])
   const [cargos, setCargos] = useState<Cargo[]>([])
@@ -106,10 +108,9 @@ const AdminPage = () => {
 
   const handleCreateUser = async (newUser: Omit<User, 'id' | 'created_at'>) => {
     try {
-      // Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newUser.email,
-        password: newUser.password || '12345678', // Default password if not provided
+        password: newUser.password || '12345678',
         options: {
           data: {
             name: newUser.name,
@@ -120,14 +121,6 @@ const AdminPage = () => {
       if (authError) throw authError
 
       if (authData.user) {
-        // Profile is created by trigger usually, but we can update it or insert if trigger not set
-        // Assuming trigger exists or we manually insert profile
-        // For this implementation, let's assume we need to update the profile created by trigger or insert it.
-        // Let's try to update the profile that should have been created by a trigger on auth.users
-        // Or insert if we don't have a trigger.
-        // The schema provided has a profiles table but no trigger on auth.users mentioned in the migration file provided in context.
-        // So we must insert into profiles manually.
-
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .insert([
@@ -161,23 +154,6 @@ const AdminPage = () => {
 
   const handleDeleteUser = async (userId: string) => {
     try {
-      // Delete from auth (which cascades to profile)
-      // Note: Supabase client SDK cannot delete users from auth.users directly without service role key.
-      // We can only delete from 'profiles' if we are admin, but that won't delete from auth.users.
-      // For this frontend-only implementation (without edge functions), we might be limited.
-      // However, we can simulate "soft delete" or "block" via status.
-      // If we really want to delete, we'd need a backend function.
-      // For now, let's just delete the profile and assume a trigger cleans up or we just accept profile deletion.
-      // Actually, the schema says profiles references auth.users on delete cascade.
-      // So deleting auth user deletes profile.
-      // We can't delete auth user from client.
-      // So we will just update status to BLOQUEADO if we can't delete.
-      // OR we assume we have an RPC function `delete_user`.
-      // Let's try to delete from profiles and see if it works (it won't if FK constraint exists).
-      // Best approach for client-side admin: Soft delete or Block.
-      // I will implement Block instead of Delete for safety, or just delete from profiles if allowed.
-
-      // Let's try to delete from profiles.
       const { error } = await supabase
         .from('profiles')
         .delete()
@@ -266,10 +242,16 @@ const AdminPage = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="users" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 max-w-[600px]">
+            <TabsList className="grid w-full grid-cols-5 max-w-[800px]">
               <TabsTrigger value="users">Usuários</TabsTrigger>
-              <TabsTrigger value="roles">Cargos / Perfis</TabsTrigger>
+              <TabsTrigger value="roles">Cargos</TabsTrigger>
               <TabsTrigger value="audit">Auditoria</TabsTrigger>
+              <TabsTrigger value="security" className="flex items-center gap-2">
+                <Shield className="h-4 w-4" /> Segurança
+              </TabsTrigger>
+              <TabsTrigger value="backups" className="flex items-center gap-2">
+                <Database className="h-4 w-4" /> Backups
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="users" className="mt-6">
               <UsersTable
@@ -289,6 +271,12 @@ const AdminPage = () => {
             </TabsContent>
             <TabsContent value="audit" className="mt-6">
               <AuditLogsTable logs={auditLogs} />
+            </TabsContent>
+            <TabsContent value="security" className="mt-6">
+              <SecurityNotifications />
+            </TabsContent>
+            <TabsContent value="backups" className="mt-6">
+              <BackupManager />
             </TabsContent>
           </Tabs>
         </CardContent>
