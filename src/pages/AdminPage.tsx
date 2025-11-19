@@ -56,7 +56,7 @@ const AdminPage = () => {
           })) as AuditLog[],
         )
       } catch (error: any) {
-        console.error('Error fetching admin data:', error)
+        console.error('Error fetching admin data:', error.message)
         toast({
           title: 'Erro ao carregar dados',
           description: error.message,
@@ -157,7 +157,7 @@ const AdminPage = () => {
       setUsers((prev) => [profileData as User, ...prev])
       toast({ title: 'Usuário criado com sucesso.' })
     } catch (error: any) {
-      console.error('Error creating user:', error)
+      console.error('Error creating user:', error.message)
       toast({
         title: 'Erro ao criar usuário',
         description: error.message,

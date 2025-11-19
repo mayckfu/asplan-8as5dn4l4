@@ -67,7 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .single()
 
       if (error) {
-        console.error('Error fetching profile:', error)
+        console.error('Error fetching profile:', error.message)
         // If profile doesn't exist but auth does, we might want to handle it.
         // For now, we'll just log it.
       }
@@ -75,8 +75,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (data) {
         setUser(data as User)
       }
-    } catch (error) {
-      console.error('Unexpected error fetching profile:', error)
+    } catch (error: any) {
+      console.error('Unexpected error fetching profile:', error.message)
     } finally {
       setIsLoading(false)
     }
@@ -113,7 +113,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       })
       return true
     } catch (error: any) {
-      console.error('Login error:', error)
+      console.error('Login error:', error.message)
       toast({
         title: 'Erro de login',
         description: error.message || 'Credenciais inválidas.',
@@ -135,8 +135,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         title: 'Logout',
         description: 'Você saiu do sistema.',
       })
-    } catch (error) {
-      console.error('Logout error:', error)
+    } catch (error: any) {
+      console.error('Logout error:', error.message)
     } finally {
       setIsLoading(false)
     }
