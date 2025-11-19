@@ -211,8 +211,8 @@ export const mockCargos: Cargo[] = [
 export const mockUsers: User[] = [
   {
     id: '1',
-    name: 'Admin Master',
-    email: 'admin@asplan.gov',
+    name: 'Rick Mayck',
+    email: 'rickmayck89@gmail.com',
     cpf: '123.456.789-00',
     role: 'ADMIN',
     cargo_id: '1',
@@ -265,7 +265,7 @@ export const mockAuditLogs: AuditLog[] = [
     table_name: 'users',
     record_id: '2',
     action: 'UPDATE',
-    changed_by: 'Admin Master',
+    changed_by: 'Rick Mayck',
     changed_at: '2023-10-01T10:00:00Z',
     details: 'Alterou status de PENDENTE para ATIVO',
   },
@@ -292,7 +292,7 @@ export const mockAuditLogs: AuditLog[] = [
     table_name: 'users',
     record_id: '4',
     action: 'UPDATE',
-    changed_by: 'Admin Master',
+    changed_by: 'Rick Mayck',
     changed_at: '2023-10-05T16:45:00Z',
     details: 'Bloqueou usuário por inatividade',
   },
