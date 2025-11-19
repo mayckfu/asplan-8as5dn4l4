@@ -20,24 +20,25 @@ interface SecurityNotification {
 export const SecurityNotifications = () => {
   const { toast } = useToast()
   const [notifications, setNotifications] = useState<SecurityNotification[]>([])
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loading, setLoading] = useState(true)
 
-  const fetchNotifications = async () => {
-    setLoading(true)
-    const { data, error } = await supabase
-      .from('security_notifications')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('Error fetching notifications:', error)
-    } else {
-      setNotifications(data as SecurityNotification[])
-    }
-    setLoading(false)
-  }
-
   useEffect(() => {
+    const fetchNotifications = async () => {
+      setLoading(true)
+      const { data, error } = await supabase
+        .from('security_notifications')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('Error fetching notifications:', error)
+      } else {
+        setNotifications(data as SecurityNotification[])
+      }
+      setLoading(false)
+    }
+
     fetchNotifications()
 
     // Subscribe to new notifications
@@ -64,7 +65,7 @@ export const SecurityNotifications = () => {
     return () => {
       subscription.unsubscribe()
     }
-  }, [])
+  }, [toast])
 
   const markAsRead = async (id: string) => {
     const { error } = await supabase
