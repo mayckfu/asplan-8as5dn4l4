@@ -35,6 +35,7 @@ import {
   Repasse,
   Despesa,
   getAmendmentDetails,
+  amendments as mockAmendments,
 } from '@/lib/mock-data'
 import { formatCurrencyBRL, formatPercent } from '@/lib/utils'
 import { PendingItemsSidebar } from '@/components/dashboard/PendingItemsSidebar'
@@ -125,7 +126,13 @@ const Index = () => {
         setAmendments(emendasData as Amendment[])
         setDetailedAmendments(detailed)
       } catch (error) {
-        console.error('Error fetching dashboard data:', error)
+        console.error('Error fetching dashboard data, using mock data:', error)
+        // Fallback to mock data
+        setAmendments(mockAmendments)
+        const detailedMock = mockAmendments
+          .map((a) => getAmendmentDetails(a.id))
+          .filter((a): a is DetailedAmendment => !!a)
+        setDetailedAmendments(detailedMock)
       } finally {
         setIsLoading(false)
       }
@@ -140,10 +147,6 @@ const Index = () => {
 
     const totalPropostas = amendments.length
     const totalValor = amendments.reduce((sum, a) => sum + a.valor_total, 0)
-    const totalRepassado = amendments.reduce(
-      (sum, a) => sum + (a.total_repassado || 0), // Use calculated or stored
-      0,
-    )
     // Recalculate total repassado from repasses table for accuracy
     const realTotalRepassado = allRepasses.reduce(
       (sum, r) => (r.status === 'REPASSADO' ? sum + r.valor : sum),
