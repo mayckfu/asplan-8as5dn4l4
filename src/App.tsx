@@ -13,6 +13,8 @@ import RelatoriosPage from './pages/RelatoriosPage'
 import AdminPage from './pages/AdminPage'
 import PropostasMacPage from './pages/propostas/PropostasMacPage'
 import PropostasPapPage from './pages/propostas/PropostasPapPage'
+import LoginPage from './pages/LoginPage'
+import { ProtectedRoute } from './components/ProtectedRoute'
 
 const App = () => (
   <BrowserRouter
@@ -24,7 +26,14 @@ const App = () => (
           <Toaster />
           <Sonner />
           <Routes>
-            <Route element={<Layout />}>
+            <Route path="/login" element={<LoginPage />} />
+            <Route
+              element={
+                <ProtectedRoute>
+                  <Layout />
+                </ProtectedRoute>
+              }
+            >
               <Route path="/" element={<Index />} />
               <Route path="/emendas" element={<EmendasListPage />} />
               <Route path="/emenda/:id" element={<EmendaDetailPage />} />
