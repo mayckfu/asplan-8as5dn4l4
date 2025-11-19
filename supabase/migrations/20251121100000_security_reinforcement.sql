@@ -20,7 +20,10 @@ VALUES ('documents', 'documents', false)
 ON CONFLICT (id) DO UPDATE SET public = false;
 
 -- Enable RLS on storage objects
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+-- NOTE: storage.objects usually has RLS enabled by default. 
+-- Attempting to enable it again might cause ownership errors if the migration user is not the owner.
+-- We skip the ALTER TABLE command to avoid "must be owner of table objects" error.
+-- ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
 
 -- Drop existing policies to avoid conflicts and ensure strictness
 DROP POLICY IF EXISTS "Authenticated users can upload documents" ON storage.objects;
@@ -91,5 +94,3 @@ CREATE POLICY "Admins can insert audit logs"
 ON public.audit_logs FOR INSERT
 TO authenticated
 WITH CHECK (public.get_user_role() = 'ADMIN');
-
-
