@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -22,11 +22,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { Checkbox } from '@/components/ui/checkbox'
 import { useAuth } from '@/contexts/AuthContext'
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(1, 'Senha é obrigatória'),
+  rememberMe: z.boolean().default(false),
 })
 
 type LoginFormValues = z.infer<typeof loginSchema>
@@ -50,12 +52,13 @@ const LoginPage = () => {
     defaultValues: {
       email: '',
       password: '',
+      rememberMe: false,
     },
   })
 
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true)
-    const success = await login(data.email, data.password)
+    const success = await login(data.email, data.password, data.rememberMe)
     setIsLoading(false)
     if (success) {
       navigate(from, { replace: true })
@@ -98,7 +101,15 @@ const LoginPage = () => {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Senha</FormLabel>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Senha</FormLabel>
+                      <Link
+                        to="/forgot-password"
+                        className="text-sm font-medium text-asplan-primary hover:underline"
+                      >
+                        Esqueceu sua senha?
+                      </Link>
+                    </div>
                     <FormControl>
                       <Input
                         type="password"
@@ -108,6 +119,23 @@ const LoginPage = () => {
                       />
                     </FormControl>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="rememberMe"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Lembrar-me</FormLabel>
+                    </div>
                   </FormItem>
                 )}
               />

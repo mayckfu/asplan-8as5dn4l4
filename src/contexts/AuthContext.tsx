@@ -10,7 +10,11 @@ import { useToast } from '@/components/ui/use-toast'
 
 interface AuthContextType {
   user: User | null
-  login: (email: string, password?: string) => Promise<boolean>
+  login: (
+    email: string,
+    password?: string,
+    rememberMe?: boolean,
+  ) => Promise<boolean>
   logout: () => void
   isAuthenticated: boolean
   isAdmin: boolean
@@ -37,8 +41,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           localStorage.setItem('asplan_cargos_db', JSON.stringify(mockCargos))
         }
 
-        // Check for active session
-        const storedUser = localStorage.getItem('asplan_user')
+        // Check for active session in both storages
+        const storedUser =
+          localStorage.getItem('asplan_user') ||
+          sessionStorage.getItem('asplan_user')
+
         if (storedUser) {
           const parsedUser = JSON.parse(storedUser)
           // Verify if user still exists and is active in the "DB"
@@ -52,6 +59,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           } else {
             // If user was deleted or blocked, logout
             localStorage.removeItem('asplan_user')
+            sessionStorage.removeItem('asplan_user')
             setUser(null)
           }
         }
@@ -65,7 +73,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     initializeAuth()
   }, [])
 
-  const login = async (email: string, password?: string): Promise<boolean> => {
+  const login = async (
+    email: string,
+    password?: string,
+    rememberMe: boolean = false,
+  ): Promise<boolean> => {
     setIsLoading(true)
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 500))
@@ -107,7 +119,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       setUser(foundUser)
-      localStorage.setItem('asplan_user', JSON.stringify(foundUser))
+
+      if (rememberMe) {
+        localStorage.setItem('asplan_user', JSON.stringify(foundUser))
+      } else {
+        sessionStorage.setItem('asplan_user', JSON.stringify(foundUser))
+      }
+
       toast({
         title: 'Login realizado',
         description: `Bem-vindo, ${foundUser.name}!`,
@@ -129,6 +147,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     setUser(null)
     localStorage.removeItem('asplan_user')
+    sessionStorage.removeItem('asplan_user')
     toast({
       title: 'Logout',
       description: 'Você saiu do sistema.',

@@ -14,6 +14,8 @@ import AdminPage from './pages/AdminPage'
 import PropostasMacPage from './pages/propostas/PropostasMacPage'
 import PropostasPapPage from './pages/propostas/PropostasPapPage'
 import LoginPage from './pages/LoginPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 import { ProtectedRoute } from './components/ProtectedRoute'
 
 const App = () => (
@@ -27,6 +29,8 @@ const App = () => (
           <Sonner />
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route
               element={
                 <ProtectedRoute>
