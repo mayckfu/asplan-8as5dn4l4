@@ -153,6 +153,7 @@ export type User = {
   unidade?: string
   status: UserStatus
   created_at: string
+  password?: string // Optional for mock purposes
 }
 
 export type Cargo = {
@@ -206,6 +207,7 @@ export const mockUsers: User[] = [
     unidade: 'Gabinete',
     status: 'ATIVO',
     created_at: '2023-01-01T00:00:00Z',
+    password: '123',
   },
   {
     id: '2',
@@ -216,6 +218,7 @@ export const mockUsers: User[] = [
     unidade: 'Financeiro',
     status: 'ATIVO',
     created_at: '2023-02-15T10:00:00Z',
+    password: '123',
   },
   {
     id: '3',
@@ -226,6 +229,7 @@ export const mockUsers: User[] = [
     unidade: 'Operações',
     status: 'ATIVO',
     created_at: '2023-03-20T14:30:00Z',
+    password: '123',
   },
   {
     id: '4',
@@ -236,6 +240,7 @@ export const mockUsers: User[] = [
     unidade: 'Auditoria',
     status: 'BLOQUEADO',
     created_at: '2023-04-05T09:15:00Z',
+    password: '123',
   },
 ]
 

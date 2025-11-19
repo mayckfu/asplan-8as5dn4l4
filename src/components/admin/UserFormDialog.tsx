@@ -111,6 +111,14 @@ export const UserFormDialog = ({
   }, [user, form, open])
 
   const handleSubmit = (values: UserFormValues) => {
+    // Enforce password for new users if not provided (mock logic)
+    if (!user && !values.password) {
+      form.setError('password', {
+        type: 'manual',
+        message: 'Senha é obrigatória para novos usuários.',
+      })
+      return
+    }
     onSubmit(values)
     onOpenChange(false)
   }
@@ -162,7 +170,9 @@ export const UserFormDialog = ({
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nova Senha</FormLabel>
+                    <FormLabel>
+                      {user ? 'Nova Senha (Opcional)' : 'Senha'}
+                    </FormLabel>
                     <FormControl>
                       <Input type="password" placeholder="******" {...field} />
                     </FormControl>

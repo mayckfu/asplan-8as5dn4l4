@@ -5,12 +5,12 @@ import {
   useEffect,
   ReactNode,
 } from 'react'
-import { User, mockUsers } from '@/lib/mock-data'
+import { User, mockUsers, mockCargos } from '@/lib/mock-data'
 import { useToast } from '@/components/ui/use-toast'
 
 interface AuthContextType {
   user: User | null
-  login: (email: string) => Promise<void>
+  login: (email: string, password?: string) => Promise<void>
   logout: () => void
   isAuthenticated: boolean
   isAdmin: boolean
@@ -22,15 +22,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const { toast } = useToast()
 
-  // Simulate session persistence
+  // Initialize "Database" in localStorage if not present
   useEffect(() => {
+    const storedUsers = localStorage.getItem('asplan_users_db')
+    if (!storedUsers) {
+      localStorage.setItem('asplan_users_db', JSON.stringify(mockUsers))
+    }
+    const storedCargos = localStorage.getItem('asplan_cargos_db')
+    if (!storedCargos) {
+      localStorage.setItem('asplan_cargos_db', JSON.stringify(mockCargos))
+    }
+
+    // Check for active session
     const storedUser = localStorage.getItem('asplan_user')
     if (storedUser) {
-      setUser(JSON.parse(storedUser))
+      const parsedUser = JSON.parse(storedUser)
+      // Verify if user still exists and is active in the "DB"
+      const currentUsers = JSON.parse(
+        localStorage.getItem('asplan_users_db') || '[]',
+      ) as User[]
+      const dbUser = currentUsers.find((u) => u.id === parsedUser.id)
+
+      if (dbUser && dbUser.status === 'ATIVO') {
+        setUser(dbUser)
+      } else {
+        // If user was deleted or blocked, logout
+        localStorage.removeItem('asplan_user')
+        setUser(null)
+      }
     } else {
       // Default login as Admin for demo purposes if no session
       // In a real app, this would be null
-      const defaultAdmin = mockUsers.find((u) => u.role === 'ADMIN')
+      const currentUsers = JSON.parse(
+        localStorage.getItem('asplan_users_db') || '[]',
+      ) as User[]
+      const defaultAdmin = currentUsers.find((u) => u.role === 'ADMIN')
       if (defaultAdmin) {
         setUser(defaultAdmin)
         localStorage.setItem('asplan_user', JSON.stringify(defaultAdmin))
@@ -38,8 +64,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [])
 
-  const login = async (email: string) => {
-    const foundUser = mockUsers.find(
+  const login = async (email: string, password?: string) => {
+    const currentUsers = JSON.parse(
+      localStorage.getItem('asplan_users_db') || '[]',
+    ) as User[]
+    const foundUser = currentUsers.find(
       (u) => u.email.toLowerCase() === email.toLowerCase(),
     )
 
@@ -56,6 +85,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       toast({
         title: 'Acesso negado',
         description: 'Sua conta está bloqueada. Contate o administrador.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    // Simple password check for mock purposes
+    if (password && foundUser.password && password !== foundUser.password) {
+      toast({
+        title: 'Erro de login',
+        description: 'Senha incorreta.',
         variant: 'destructive',
       })
       return
