@@ -1,8 +1,27 @@
 -- ASPLAN Database Schema
 -- Based on User Story for Parliamentary Amendment Control
 
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Enable UUID extension (pgcrypto is preferred for gen_random_uuid in older PG, but native in 13+)
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- =============================================
+-- CLEANUP (For re-run safety)
+-- =============================================
+DROP TABLE IF EXISTS public.audit_logs CASCADE;
+DROP TABLE IF EXISTS public.pendencias CASCADE;
+DROP TABLE IF EXISTS public.historico CASCADE;
+DROP TABLE IF EXISTS public.anexos CASCADE;
+DROP TABLE IF EXISTS public.despesas CASCADE;
+DROP TABLE IF EXISTS public.repasses CASCADE;
+DROP TABLE IF EXISTS public.emendas CASCADE;
+DROP TABLE IF EXISTS public.profiles CASCADE;
+DROP TABLE IF EXISTS public.cargos CASCADE;
+
+DROP TYPE IF EXISTS public.status_interno CASCADE;
+DROP TYPE IF EXISTS public.situacao_oficial CASCADE;
+DROP TYPE IF EXISTS public.tipo_recurso CASCADE;
+DROP TYPE IF EXISTS public.user_status CASCADE;
+DROP TYPE IF EXISTS public.user_role CASCADE;
 
 -- =============================================
 -- ENUMS
@@ -20,7 +39,7 @@ CREATE TYPE public.status_interno AS ENUM ('RASCUNHO', 'EM_EXECUCAO', 'PAGA_SEM_
 
 -- CARGOS TABLE
 CREATE TABLE public.cargos (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     nome text NOT NULL,
     descricao text,
     default_role public.user_role,
@@ -46,7 +65,7 @@ COMMENT ON TABLE public.profiles IS 'Extended user profile information.';
 
 -- EMENDAS TABLE
 CREATE TABLE public.emendas (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     numero_emenda text NOT NULL,
     numero_proposta text,
     autor text NOT NULL,
@@ -75,7 +94,7 @@ COMMENT ON TABLE public.emendas IS 'Main table for parliamentary amendments.';
 
 -- REPASSES TABLE
 CREATE TABLE public.repasses (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     emenda_id uuid REFERENCES public.emendas(id) ON DELETE CASCADE,
     data date NOT NULL,
     valor numeric(15, 2) NOT NULL,
@@ -88,7 +107,7 @@ COMMENT ON TABLE public.repasses IS 'Financial transfers related to amendments.'
 
 -- DESPESAS TABLE
 CREATE TABLE public.despesas (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     emenda_id uuid REFERENCES public.emendas(id) ON DELETE CASCADE,
     data date NOT NULL,
     valor numeric(15, 2) NOT NULL,
@@ -108,7 +127,7 @@ COMMENT ON TABLE public.despesas IS 'Expenses incurred against amendments.';
 
 -- ANEXOS TABLE
 CREATE TABLE public.anexos (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     emenda_id uuid REFERENCES public.emendas(id) ON DELETE CASCADE,
     titulo text NOT NULL,
     url text NOT NULL,
@@ -121,18 +140,18 @@ COMMENT ON TABLE public.anexos IS 'Documents and attachments.';
 
 -- HISTORICO TABLE
 CREATE TABLE public.historico (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     emenda_id uuid REFERENCES public.emendas(id) ON DELETE CASCADE,
     evento text NOT NULL,
     detalhe text,
-    feito_por uuid REFERENCES public.profiles(id) ON DELETE CASCADE, -- Cascade delete as per user story
+    feito_por uuid REFERENCES public.profiles(id) ON DELETE CASCADE,
     criado_em timestamptz DEFAULT now()
 );
 COMMENT ON TABLE public.historico IS 'History log for amendments.';
 
 -- PENDENCIAS TABLE
 CREATE TABLE public.pendencias (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     emenda_id uuid REFERENCES public.emendas(id) ON DELETE CASCADE,
     descricao text NOT NULL,
     dispensada boolean DEFAULT false,
@@ -146,13 +165,13 @@ COMMENT ON TABLE public.pendencias IS 'Tracked issues or requirements for amendm
 
 -- AUDIT LOGS TABLE (System-wide)
 CREATE TABLE public.audit_logs (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     table_name text NOT NULL,
     record_id uuid,
     action text NOT NULL, -- INSERT, UPDATE, DELETE
     old_data jsonb,
     new_data jsonb,
-    changed_by uuid REFERENCES public.profiles(id) ON DELETE CASCADE, -- Cascade delete as per user story
+    changed_by uuid REFERENCES public.profiles(id) ON DELETE CASCADE,
     changed_at timestamptz DEFAULT now()
 );
 COMMENT ON TABLE public.audit_logs IS 'System-wide audit trail for all critical actions.';
@@ -234,4 +253,3 @@ CREATE TRIGGER audit_repasses AFTER INSERT OR UPDATE OR DELETE ON public.repasse
 CREATE TRIGGER audit_despesas AFTER INSERT OR UPDATE OR DELETE ON public.despesas FOR EACH ROW EXECUTE FUNCTION public.audit_trigger_func();
 CREATE TRIGGER audit_anexos AFTER INSERT OR UPDATE OR DELETE ON public.anexos FOR EACH ROW EXECUTE FUNCTION public.audit_trigger_func();
 CREATE TRIGGER audit_profiles AFTER INSERT OR UPDATE OR DELETE ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.audit_trigger_func();
-
