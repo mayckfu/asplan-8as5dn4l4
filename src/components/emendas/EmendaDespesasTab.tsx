@@ -27,8 +27,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
   DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog'
 import {
   AlertDialog,
@@ -76,23 +76,38 @@ export const EmendaDespesasTab = forwardRef<
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [selectedExpense, setSelectedExpense] = useState<Despesa | null>(null)
 
+  // Form state
+  const [formData, setFormData] = useState<Partial<Despesa>>({})
+
   const isReadOnly = user?.role === 'CONSULTA'
 
   useImperativeHandle(ref, () => ({
     triggerAdd: () => {
       if (isReadOnly) return
       setSelectedExpense(null)
+      setFormData({
+        data: new Date().toISOString().split('T')[0],
+        status_execucao: 'PLANEJADA',
+      })
       setIsFormOpen(true)
     },
   }))
 
   const handleAddNew = () => {
     setSelectedExpense(null)
+    setFormData({
+      data: new Date().toISOString().split('T')[0],
+      status_execucao: 'PLANEJADA',
+    })
     setIsFormOpen(true)
   }
 
   const handleEdit = (despesa: Despesa) => {
     setSelectedExpense(despesa)
+    setFormData({
+      ...despesa,
+      data: new Date(despesa.data).toISOString().split('T')[0],
+    })
     setIsFormOpen(true)
   }
 
@@ -108,6 +123,42 @@ export const EmendaDespesasTab = forwardRef<
     }
     setIsDeleteOpen(false)
     setSelectedExpense(null)
+  }
+
+  const handleSave = () => {
+    if (!formData.descricao || !formData.valor || !formData.data) {
+      toast({
+        title: 'Erro',
+        description: 'Preencha os campos obrigatórios.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    const newDespesa: Despesa = {
+      id: selectedExpense?.id || `D-${Date.now()}`,
+      data: formData.data!,
+      valor: Number(formData.valor),
+      descricao: formData.descricao!,
+      status_execucao: formData.status_execucao || 'PLANEJADA',
+      categoria: formData.categoria || 'Outros',
+      fornecedor_nome: formData.fornecedor_nome || '',
+      unidade_destino: formData.unidade_destino || '',
+      registrada_por:
+        selectedExpense?.registrada_por || user?.name || 'Usuário',
+      demanda: formData.demanda,
+    }
+
+    if (selectedExpense) {
+      onDespesasChange(
+        despesas.map((d) => (d.id === selectedExpense.id ? newDespesa : d)),
+      )
+      toast({ title: 'Despesa atualizada com sucesso!' })
+    } else {
+      onDespesasChange([...despesas, newDespesa])
+      toast({ title: 'Despesa adicionada com sucesso!' })
+    }
+    setIsFormOpen(false)
   }
 
   return (
@@ -127,68 +178,74 @@ export const EmendaDespesasTab = forwardRef<
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Data</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
-                <TableHead>
-                  <span className="sr-only">Ações</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {despesas.map((despesa) => (
-                <TableRow key={despesa.id}>
-                  <TableCell>
-                    {new Date(despesa.data).toLocaleDateString('pt-BR')}
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {despesa.descricao}
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={despesa.status_execucao as any} />
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {formatCurrencyBRL(despesa.valor)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem
-                          onClick={() => setDossierExpense(despesa)}
-                        >
-                          <FileText className="mr-2 h-4 w-4" /> Dossiê
-                        </DropdownMenuItem>
-                        {!isReadOnly && (
-                          <>
-                            <DropdownMenuItem
-                              onClick={() => handleEdit(despesa)}
-                            >
-                              <Edit className="mr-2 h-4 w-4" /> Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-destructive"
-                              onClick={() => handleDelete(despesa)}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          {despesas.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Nenhuma despesa registrada.
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Descrição</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Valor</TableHead>
+                  <TableHead>
+                    <span className="sr-only">Ações</span>
+                  </TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {despesas.map((despesa) => (
+                  <TableRow key={despesa.id}>
+                    <TableCell>
+                      {new Date(despesa.data).toLocaleDateString('pt-BR')}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {despesa.descricao}
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={despesa.status_execucao as any} />
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {formatCurrencyBRL(despesa.valor)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem
+                            onClick={() => setDossierExpense(despesa)}
+                          >
+                            <FileText className="mr-2 h-4 w-4" /> Dossiê
+                          </DropdownMenuItem>
+                          {!isReadOnly && (
+                            <>
+                              <DropdownMenuItem
+                                onClick={() => handleEdit(despesa)}
+                              >
+                                <Edit className="mr-2 h-4 w-4" /> Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={() => handleDelete(despesa)}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
       <ExpenseDossierDrawer
@@ -211,25 +268,53 @@ export const EmendaDespesasTab = forwardRef<
               <Label htmlFor="data" className="text-right">
                 Data
               </Label>
-              <Input id="data" type="date" className="col-span-3" />
+              <Input
+                id="data"
+                type="date"
+                className="col-span-3"
+                value={formData.data || ''}
+                onChange={(e) =>
+                  setFormData({ ...formData, data: e.target.value })
+                }
+              />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="descricao" className="text-right">
                 Descrição
               </Label>
-              <Input id="descricao" className="col-span-3" />
+              <Input
+                id="descricao"
+                className="col-span-3"
+                value={formData.descricao || ''}
+                onChange={(e) =>
+                  setFormData({ ...formData, descricao: e.target.value })
+                }
+              />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="valor" className="text-right">
                 Valor
               </Label>
-              <Input id="valor" type="number" className="col-span-3" />
+              <Input
+                id="valor"
+                type="number"
+                className="col-span-3"
+                value={formData.valor || ''}
+                onChange={(e) =>
+                  setFormData({ ...formData, valor: Number(e.target.value) })
+                }
+              />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="status" className="text-right">
                 Status
               </Label>
-              <Select>
+              <Select
+                value={formData.status_execucao}
+                onValueChange={(value: any) =>
+                  setFormData({ ...formData, status_execucao: value })
+                }
+              >
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Selecione o status" />
                 </SelectTrigger>
@@ -241,12 +326,25 @@ export const EmendaDespesasTab = forwardRef<
                 </SelectContent>
               </Select>
             </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="fornecedor" className="text-right">
+                Fornecedor
+              </Label>
+              <Input
+                id="fornecedor"
+                className="col-span-3"
+                value={formData.fornecedor_nome || ''}
+                onChange={(e) =>
+                  setFormData({ ...formData, fornecedor_nome: e.target.value })
+                }
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsFormOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={() => setIsFormOpen(false)}>Salvar</Button>
+            <Button onClick={handleSave}>Salvar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

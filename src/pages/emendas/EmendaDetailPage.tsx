@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, FileText, Loader2 } from 'lucide-react'
+import { ArrowLeft, FileText, Loader2, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -10,9 +10,7 @@ import {
   Pendencia,
   Repasse,
   StatusInternoEnum,
-  StatusInterno,
   SituacaoOficialEnum,
-  SituacaoOficial,
   Historico,
 } from '@/lib/mock-data'
 import { EmendaDetailHeader } from '@/components/emendas/EmendaDetailHeader'
@@ -35,6 +33,7 @@ import { EmendaHistoricoTab } from '@/components/emendas/EmendaHistoricoTab'
 import { useToast } from '@/components/ui/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase/client'
+import { getSignedUrl } from '@/lib/supabase/storage'
 
 const EmendaDetailPage = () => {
   const { id } = useParams()
@@ -44,6 +43,7 @@ const EmendaDetailPage = () => {
   const [activeTab, setActiveTab] = useState('repasses')
   const [emendaData, setEmendaData] = useState<DetailedAmendment | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const dadosTecnicosRef = useRef<EmendaDadosTecnicosHandles>(null)
   const repassesTabRef = useRef<EmendaRepassesTabHandles>(null)
@@ -192,6 +192,7 @@ const EmendaDetailPage = () => {
   const fetchEmendaDetails = useCallback(async () => {
     if (!id) return
     setIsLoading(true)
+    setError(null)
     try {
       const { data: emenda, error: emendaError } = await supabase
         .from('emendas')
@@ -236,11 +237,22 @@ const EmendaDetailPage = () => {
         registrada_por: d.profiles?.name || 'Desconhecido',
       }))
 
-      // Map anexos to include uploader name
-      const mappedAnexos = anexos.map((a: any) => ({
-        ...a,
-        uploader: a.profiles?.name || 'Desconhecido',
-      }))
+      // Map anexos to include uploader name and sign URLs
+      const mappedAnexos = await Promise.all(
+        anexos.map(async (a: any) => {
+          let signedUrl = a.url
+          // Check if it's a storage path (not http)
+          if (!a.url.startsWith('http')) {
+            const signed = await getSignedUrl(a.url)
+            if (signed) signedUrl = signed
+          }
+          return {
+            ...a,
+            url: signedUrl,
+            uploader: a.profiles?.name || 'Desconhecido',
+          }
+        }),
+      )
 
       // Map historico
       const mappedHistorico = historico.map((h: any) => ({
@@ -272,8 +284,9 @@ const EmendaDetailPage = () => {
 
       const calculatedPendencies = calculatePendencies(detailedEmenda)
       setEmendaData({ ...detailedEmenda, pendencias: calculatedPendencies })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching emenda details:', error)
+      setError(error.message || 'Erro ao carregar detalhes.')
       toast({
         title: 'Erro ao carregar detalhes',
         description: 'Não foi possível carregar os dados da emenda.',
@@ -337,53 +350,11 @@ const EmendaDetailPage = () => {
     })
   }
 
-  const handleDespesasChange = async (newDespesas: Despesa[]) => {
-    if (isReadOnly || !emendaData) return
-
-    // Determine added, updated, or deleted despesas
-    // For simplicity in this mock-to-real transition, we can just reload or handle specific actions if passed.
-    // However, the component passes the *entire* new list.
-    // A better approach for the real backend is to handle individual CRUD in the child component or diff here.
-    // Given the child component structure (EmendaDespesasTab), it calls onDespesasChange after local modification.
-    // We need to sync this with Supabase.
-    // Strategy: The child component should probably handle the DB call and just refresh the list here,
-    // OR we diff here.
-    // Let's look at EmendaDespesasTab again. It calls onDespesasChange with the new array.
-    // This is tricky for backend sync without diffing.
-    // To fix this properly, we should refactor EmendaDespesasTab to handle DB calls directly or pass specific actions.
-    // BUT, I cannot change EmendaDespesasTab significantly without breaking the pattern.
-    // Actually, I CAN update EmendaDespesasTab to call DB.
-    // Let's update EmendaDespesasTab in the previous turn? No, I can update it now if I want, but I already wrote it.
-    // Wait, I wrote EmendaDespesasTab in the previous turn. I can't change it now.
-    // I must handle the sync here or assume the child component was written to just pass data back.
-    // Actually, I can re-write EmendaDespesasTab in this turn if I want to improve it, but the instructions say "Only update it if needed to make it consistent".
-    // The best way is to handle the diff here or just re-fetch.
-    // Actually, the child component `EmendaDespesasTab` I wrote in the previous turn *does not* have DB logic. It just calls `onDespesasChange`.
-    // So I must implement the logic here.
-    // But `newDespesas` is the *result* state.
-    // It's hard to know what changed.
-    // Alternative: I will modify `EmendaDespesasTab` (and others) to accept async callbacks for add/update/delete instead of a single `onChange`.
-    // This is a valid "update to make it consistent".
-
-    // Let's re-read the plan. I said "Ensure it handles add/edit/delete via props which will call Supabase in parent."
-    // So I should update the child components to expose specific events.
-  }
-
-  // Actually, to avoid rewriting all components, I will implement a smarter sync or just reload.
-  // But reloading is bad UX.
-  // Let's update the child components to handle the DB operations internally or via specific props.
-  // I will update `EmendaDespesasTab`, `EmendaRepassesTab`, `EmendaAnexosTab` to take `onAdd`, `onUpdate`, `onDelete` props.
-
-  // Wait, I can't easily change the props interface without changing the component file.
-  // I will rewrite `EmendaDespesasTab.tsx`, `EmendaRepassesTab.tsx`, `EmendaAnexosTab.tsx` in this turn to support direct DB operations or granular callbacks.
-
-  // Let's implement granular callbacks in the parent and pass them down.
-
   const handleAddRepasse = async (repasse: Repasse) => {
     try {
       const { data, error } = await supabase
         .from('repasses')
-        .insert([{ ...repasse, emenda_id: id, id: undefined }]) // Let DB generate ID
+        .insert([{ ...repasse, emenda_id: id, id: undefined }])
         .select()
         .single()
 
@@ -483,7 +454,6 @@ const EmendaDetailPage = () => {
     }
   }
 
-  // Similar handlers for Despesas and Anexos
   const handleAddDespesa = async (despesa: Despesa) => {
     try {
       const { data, error } = await supabase
@@ -493,7 +463,7 @@ const EmendaDetailPage = () => {
             ...despesa,
             emenda_id: id,
             id: undefined,
-            registrada_por: user?.id, // Use current user ID
+            registrada_por: user?.id,
           },
         ])
         .select('*, profiles:registrada_por(name)')
@@ -680,8 +650,6 @@ const EmendaDetailPage = () => {
       ...emendaData,
       status_interno: newStatus,
     })
-    // History is handled by DB trigger, but we might want to refresh history
-    // For now, we just update the status in UI
   }
 
   const handleStatusOficialChange = (newStatus: SituacaoOficialEnum) => {
@@ -728,14 +696,17 @@ const EmendaDetailPage = () => {
     )
   }
 
-  if (!emendaData) {
+  if (error || !emendaData) {
     return (
-      <div className="text-center py-10">
-        <h2 className="text-2xl font-bold">Emenda não encontrada</h2>
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-100px)] gap-4">
+        <AlertTriangle className="h-12 w-12 text-destructive" />
+        <h2 className="text-xl font-semibold">
+          {error || 'Emenda não encontrada'}
+        </h2>
         <p className="text-muted-foreground">
-          A emenda com o ID "{id}" não foi encontrada.
+          {error || `A emenda com o ID "${id}" não foi encontrada.`}
         </p>
-        <Button onClick={() => navigate('/emendas')} className="mt-4">
+        <Button onClick={() => navigate('/emendas')}>
           Voltar para a lista
         </Button>
       </div>
@@ -805,13 +776,6 @@ const EmendaDetailPage = () => {
             ref={repassesTabRef}
             repasses={emendaData.repasses}
             onRepassesChange={(repasses) => {
-              // This is a fallback if we don't update the component to use granular props
-              // But since I am updating the component below, I will use granular props if I can.
-              // Wait, I cannot update the component file in this turn if I didn't list it.
-              // I listed EmendaDetailPage.tsx.
-              // I will use a trick: I will check if the new list is longer (add), shorter (delete) or same (update)
-              // and call the appropriate handler.
-              // This is a bit hacky but works without changing child component interface.
               const oldRepasses = emendaData.repasses
               if (repasses.length > oldRepasses.length) {
                 const newRepasse = repasses.find(
@@ -824,7 +788,6 @@ const EmendaDetailPage = () => {
                 )
                 if (deletedRepasse) handleDeleteRepasse(deletedRepasse.id)
               } else {
-                // Update - find the changed one
                 const changedRepasse = repasses.find((r) => {
                   const old = oldRepasses.find((or) => or.id === r.id)
                   return JSON.stringify(old) !== JSON.stringify(r)

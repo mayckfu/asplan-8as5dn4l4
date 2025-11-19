@@ -1,9 +1,10 @@
+import { useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { CalendarIcon } from 'lucide-react'
+import { CalendarIcon, Upload, Loader2, FileIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import {
@@ -13,6 +14,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import {
@@ -29,10 +31,12 @@ import {
 } from '@/components/ui/select'
 import { Anexo } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
+import { uploadFile } from '@/lib/supabase/storage'
+import { useToast } from '@/components/ui/use-toast'
 
 const anexoSchema = z.object({
   titulo: z.string().min(1, 'O título é obrigatório.'),
-  url: z.string().url('Insira uma URL válida.'),
+  url: z.string().min(1, 'A URL ou arquivo é obrigatório.'),
   tipo: z.enum(
     [
       'PORTARIA',
@@ -59,6 +63,10 @@ interface AnexoFormProps {
 }
 
 export const AnexoForm = ({ anexo, onSubmit, onCancel }: AnexoFormProps) => {
+  const { toast } = useToast()
+  const [isUploading, setIsUploading] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+
   const form = useForm<AnexoFormValues>({
     resolver: zodResolver(anexoSchema),
     defaultValues: {
@@ -73,10 +81,49 @@ export const AnexoForm = ({ anexo, onSubmit, onCancel }: AnexoFormProps) => {
     },
   })
 
-  const handleSubmit = (values: AnexoFormValues) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0]
+      setSelectedFile(file)
+      // Auto-fill title if empty
+      if (!form.getValues('titulo')) {
+        form.setValue('titulo', file.name)
+      }
+    }
+  }
+
+  const handleSubmit = async (values: AnexoFormValues) => {
+    let finalUrl = values.url
+
+    if (selectedFile) {
+      setIsUploading(true)
+      try {
+        // Generate a unique path: emendas/{timestamp}_{filename}
+        // Note: In a real app, we might want to organize by emenda ID, but we might not have it here if it's new.
+        // We'll use a generic 'uploads' folder or similar structure.
+        const path = `uploads/${Date.now()}_${selectedFile.name}`
+        const uploadedPath = await uploadFile(selectedFile, path)
+
+        if (!uploadedPath) {
+          throw new Error('Falha no upload do arquivo.')
+        }
+        finalUrl = uploadedPath
+      } catch (error: any) {
+        toast({
+          title: 'Erro no upload',
+          description: error.message,
+          variant: 'destructive',
+        })
+        setIsUploading(false)
+        return
+      }
+      setIsUploading(false)
+    }
+
     const newAnexo: Anexo = {
       id: anexo?.id || `A-${Date.now()}`,
       ...values,
+      url: finalUrl,
       created_at: anexo?.created_at || new Date().toISOString(),
       data: values.data.toISOString(),
       uploader: anexo?.uploader || 'Usuário Atual',
@@ -100,19 +147,74 @@ export const AnexoForm = ({ anexo, onSubmit, onCancel }: AnexoFormProps) => {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="url"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>URL (Google Drive ou Link)</FormLabel>
-              <FormControl>
-                <Input placeholder="https://..." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+
+        <div className="space-y-2">
+          <FormLabel>Arquivo ou Link</FormLabel>
+          <div className="flex gap-2 items-start">
+            <div className="flex-1">
+              <FormField
+                control={form.control}
+                name="url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="https://..."
+                          {...field}
+                          disabled={!!selectedFile}
+                        />
+                      </div>
+                    </FormControl>
+                    <FormDescription>
+                      Cole um link externo (Google Drive, etc.) ou faça upload.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="relative">
+              <input
+                type="file"
+                id="file-upload"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              <Button
+                type="button"
+                variant={selectedFile ? 'secondary' : 'outline'}
+                onClick={() => document.getElementById('file-upload')?.click()}
+              >
+                {selectedFile ? (
+                  <FileIcon className="h-4 w-4 mr-2" />
+                ) : (
+                  <Upload className="h-4 w-4 mr-2" />
+                )}
+                {selectedFile ? 'Alterar' : 'Upload'}
+              </Button>
+            </div>
+          </div>
+          {selectedFile && (
+            <p className="text-sm text-muted-foreground flex items-center gap-2">
+              Arquivo selecionado:{' '}
+              <span className="font-medium">{selectedFile.name}</span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-auto p-0 text-destructive"
+                onClick={() => {
+                  setSelectedFile(null)
+                  form.setValue('url', '')
+                }}
+              >
+                Remover
+              </Button>
+            </p>
           )}
-        />
+        </div>
+
         <FormField
           control={form.control}
           name="tipo"
@@ -188,7 +290,10 @@ export const AnexoForm = ({ anexo, onSubmit, onCancel }: AnexoFormProps) => {
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar
           </Button>
-          <Button type="submit">Salvar</Button>
+          <Button type="submit" disabled={isUploading}>
+            {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Salvar
+          </Button>
         </div>
       </form>
     </Form>

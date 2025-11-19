@@ -34,8 +34,7 @@ export const AuditLogsTable = ({ logs }: AuditLogsTableProps) => {
     if (filterAction !== 'all' && log.action !== filterAction) return false
     if (
       searchTerm &&
-      !log.details.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      !log.changed_by.toLowerCase().includes(searchTerm.toLowerCase())
+      !JSON.stringify(log).toLowerCase().includes(searchTerm.toLowerCase())
     )
       return false
     return true
@@ -74,7 +73,7 @@ export const AuditLogsTable = ({ logs }: AuditLogsTableProps) => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as Tabelas</SelectItem>
-            <SelectItem value="users">Usuários</SelectItem>
+            <SelectItem value="profiles">Usuários</SelectItem>
             <SelectItem value="emendas">Emendas</SelectItem>
             <SelectItem value="repasses">Repasses</SelectItem>
             <SelectItem value="despesas">Despesas</SelectItem>
@@ -132,7 +131,12 @@ export const AuditLogsTable = ({ logs }: AuditLogsTableProps) => {
                   <TableCell className="font-mono text-xs">
                     {log.record_id}
                   </TableCell>
-                  <TableCell>{log.details}</TableCell>
+                  <TableCell
+                    className="max-w-[300px] truncate"
+                    title={log.details || JSON.stringify(log)}
+                  >
+                    {log.details || '-'}
+                  </TableCell>
                 </TableRow>
               ))
             )}

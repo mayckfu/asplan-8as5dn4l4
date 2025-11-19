@@ -64,8 +64,8 @@ export const EmendaForm = ({
   const form = useForm<EmendaFormValues>({
     resolver: zodResolver(emendaSchema),
     defaultValues: {
-      tipo: initialData?.tipo || 'Individual',
-      tipo_recurso: initialData?.tipo_recurso || 'CUSTEIO_MAC',
+      tipo: initialData?.tipo || '',
+      tipo_recurso: initialData?.tipo_recurso || '',
       autor: initialData?.autor || '',
       parlamentar: initialData?.parlamentar || '',
       numero_emenda: initialData?.numero_emenda || '',
@@ -94,21 +94,6 @@ export const EmendaForm = ({
         portaria: initialData.portaria || '',
         deliberacao_cie: initialData.deliberacao_cie || '',
         anexos_essenciais: initialData.anexos_essenciais,
-      })
-    } else {
-      form.reset({
-        tipo: 'Individual',
-        tipo_recurso: 'CUSTEIO_MAC',
-        autor: '',
-        parlamentar: '',
-        numero_emenda: '',
-        numero_proposta: '',
-        valor_total: 0,
-        situacao: 'EM_ANALISE',
-        status_interno: 'RASCUNHO',
-        portaria: '',
-        deliberacao_cie: '',
-        anexos_essenciais: false,
       })
     }
   }, [initialData, form])

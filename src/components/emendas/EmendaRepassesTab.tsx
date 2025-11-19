@@ -34,11 +34,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Repasse } from '@/lib/mock-data'
-import { formatCurrencyBRL } from '@/lib/utils'
+import { formatCurrencyBRL, cn } from '@/lib/utils'
 import { useToast } from '@/components/ui/use-toast'
 import { RepasseForm } from './RepasseForm'
 import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
 
 interface EmendaRepassesTabProps {
@@ -133,61 +132,69 @@ export const EmendaRepassesTab = forwardRef<
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Data</TableHead>
-                <TableHead>Fonte</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
-                {!isReadOnly && (
-                  <TableHead>
-                    <span className="sr-only">Ações</span>
-                  </TableHead>
-                )}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedRepasses.map((repasse) => (
-                <TableRow key={repasse.id}>
-                  <TableCell>
-                    {new Date(repasse.data).toLocaleDateString('pt-BR')}
-                  </TableCell>
-                  <TableCell>{repasse.fonte}</TableCell>
-                  <TableCell>
-                    <Badge className={cn(statusVariant[repasse.status])}>
-                      {repasse.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {formatCurrencyBRL(repasse.valor)}
-                  </TableCell>
+          {sortedRepasses.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Nenhum repasse registrado.
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Fonte</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Valor</TableHead>
                   {!isReadOnly && (
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => handleEdit(repasse)}>
-                            <Edit className="mr-2 h-4 w-4" /> Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-destructive"
-                            onClick={() => handleDelete(repasse)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+                    <TableHead>
+                      <span className="sr-only">Ações</span>
+                    </TableHead>
                   )}
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {sortedRepasses.map((repasse) => (
+                  <TableRow key={repasse.id}>
+                    <TableCell>
+                      {new Date(repasse.data).toLocaleDateString('pt-BR')}
+                    </TableCell>
+                    <TableCell>{repasse.fonte}</TableCell>
+                    <TableCell>
+                      <Badge className={cn(statusVariant[repasse.status])}>
+                        {repasse.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {formatCurrencyBRL(repasse.valor)}
+                    </TableCell>
+                    {!isReadOnly && (
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem
+                              onClick={() => handleEdit(repasse)}
+                            >
+                              <Edit className="mr-2 h-4 w-4" /> Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => handleDelete(repasse)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 

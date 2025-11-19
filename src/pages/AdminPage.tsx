@@ -11,7 +11,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import { User, Cargo, AuditLog } from '@/lib/mock-data'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/use-toast'
-import { Loader2, Shield, Database } from 'lucide-react'
+import { Loader2, Shield, Database, AlertTriangle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 const AdminPage = () => {
   const { isAdmin, user } = useAuth()
@@ -20,53 +21,56 @@ const AdminPage = () => {
   const [cargos, setCargos] = useState<Cargo[]>([])
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchData = async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const { data: usersData, error: usersError } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (usersError) throw usersError
+
+      const { data: cargosData, error: cargosError } = await supabase
+        .from('cargos')
+        .select('*')
+        .order('nome', { ascending: true })
+
+      if (cargosError) throw cargosError
+
+      const { data: logsData, error: logsError } = await supabase
+        .from('audit_logs')
+        .select('*, profiles:changed_by(name)')
+        .order('changed_at', { ascending: false })
+        .limit(100)
+
+      if (logsError) throw logsError
+
+      setUsers(usersData as User[])
+      setCargos(cargosData as Cargo[])
+      setAuditLogs(
+        logsData.map((log: any) => ({
+          ...log,
+          changed_by: log.profiles?.name || 'Sistema',
+        })) as AuditLog[],
+      )
+    } catch (error: any) {
+      console.error('Error fetching admin data:', error.message)
+      setError(error.message || 'Erro ao carregar dados administrativos.')
+      toast({
+        title: 'Erro ao carregar dados',
+        description: error.message,
+        variant: 'destructive',
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true)
-      try {
-        const { data: usersData, error: usersError } = await supabase
-          .from('profiles')
-          .select('*')
-          .order('created_at', { ascending: false })
-
-        if (usersError) throw usersError
-
-        const { data: cargosData, error: cargosError } = await supabase
-          .from('cargos')
-          .select('*')
-          .order('nome', { ascending: true })
-
-        if (cargosError) throw cargosError
-
-        const { data: logsData, error: logsError } = await supabase
-          .from('audit_logs')
-          .select('*, profiles:changed_by(name)')
-          .order('changed_at', { ascending: false })
-          .limit(100)
-
-        if (logsError) throw logsError
-
-        setUsers(usersData as User[])
-        setCargos(cargosData as Cargo[])
-        setAuditLogs(
-          logsData.map((log: any) => ({
-            ...log,
-            changed_by: log.profiles?.name || 'Sistema',
-          })) as AuditLog[],
-        )
-      } catch (error: any) {
-        console.error('Error fetching admin data:', error.message)
-        toast({
-          title: 'Erro ao carregar dados',
-          description: error.message,
-          variant: 'destructive',
-        })
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
     if (isAdmin) {
       fetchData()
     }
@@ -239,6 +243,17 @@ const AdminPage = () => {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-100px)]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-100px)] gap-4">
+        <AlertTriangle className="h-12 w-12 text-destructive" />
+        <h2 className="text-xl font-semibold">Erro ao carregar dados</h2>
+        <p className="text-muted-foreground">{error}</p>
+        <Button onClick={fetchData}>Tentar Novamente</Button>
       </div>
     )
   }

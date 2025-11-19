@@ -105,11 +105,6 @@ export const UsersTable = ({
   const confirmDelete = () => {
     if (userToDelete && onDeleteUser) {
       onDeleteUser(userToDelete.id)
-      toast({
-        title: 'Usuário excluído',
-        description:
-          'O usuário e todos os seus registros históricos foram removidos.',
-      })
     }
     setDeleteConfirmOpen(false)
     setUserToDelete(null)
@@ -147,10 +142,8 @@ export const UsersTable = ({
         updatedUser.password = password
       }
       onUpdateUser(updatedUser)
-      toast({ title: 'Usuário atualizado com sucesso.' })
     } else {
       onCreateUser({ ...userData, password })
-      toast({ title: 'Usuário criado com sucesso.' })
     }
   }
 
@@ -177,68 +170,78 @@ export const UsersTable = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell className="font-medium">{user.name}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>{user.cpf || '-'}</TableCell>
-                <TableCell>{getCargoName(user.cargo_id)}</TableCell>
-                <TableCell>
-                  <Badge variant="outline">{user.role}</Badge>
-                </TableCell>
-                <TableCell>{user.unidade || '-'}</TableCell>
-                <TableCell>
-                  <Badge
-                    className={
-                      user.status === 'ATIVO'
-                        ? 'bg-success hover:bg-success/80'
-                        : user.status === 'BLOQUEADO'
-                          ? 'bg-destructive hover:bg-destructive/80'
-                          : 'bg-warning hover:bg-warning/80'
-                    }
-                  >
-                    {user.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEdit(user)}>
-                        <Edit className="mr-2 h-4 w-4" /> Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleToggleBlock(user)}>
-                        {user.status === 'BLOQUEADO' ? (
-                          <>
-                            <Unlock className="mr-2 h-4 w-4" /> Desbloquear
-                          </>
-                        ) : (
-                          <>
-                            <Lock className="mr-2 h-4 w-4" /> Bloquear
-                          </>
-                        )}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleResetPassword(user)}
-                      >
-                        <RotateCcw className="mr-2 h-4 w-4" /> Resetar Senha
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={() => handleDelete(user)}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+            {users.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center py-8">
+                  Nenhum usuário encontrado.
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              users.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell className="font-medium">{user.name}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.cpf || '-'}</TableCell>
+                  <TableCell>{getCargoName(user.cargo_id)}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{user.role}</Badge>
+                  </TableCell>
+                  <TableCell>{user.unidade || '-'}</TableCell>
+                  <TableCell>
+                    <Badge
+                      className={
+                        user.status === 'ATIVO'
+                          ? 'bg-success hover:bg-success/80'
+                          : user.status === 'BLOQUEADO'
+                            ? 'bg-destructive hover:bg-destructive/80'
+                            : 'bg-warning hover:bg-warning/80'
+                      }
+                    >
+                      {user.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEdit(user)}>
+                          <Edit className="mr-2 h-4 w-4" /> Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleToggleBlock(user)}
+                        >
+                          {user.status === 'BLOQUEADO' ? (
+                            <>
+                              <Unlock className="mr-2 h-4 w-4" /> Desbloquear
+                            </>
+                          ) : (
+                            <>
+                              <Lock className="mr-2 h-4 w-4" /> Bloquear
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleResetPassword(user)}
+                        >
+                          <RotateCcw className="mr-2 h-4 w-4" /> Resetar Senha
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => handleDelete(user)}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

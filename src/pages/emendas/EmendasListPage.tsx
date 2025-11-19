@@ -9,6 +9,7 @@ import {
   Trash2,
   Eye,
   Loader2,
+  AlertTriangle,
 } from 'lucide-react'
 import { parse, format } from 'date-fns'
 import { Amendment, SituacaoOficial, StatusInterno } from '@/lib/mock-data'
@@ -142,6 +143,7 @@ const EmendasListPage = () => {
   )
   const [localAmendments, setLocalAmendments] = useState<Amendment[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingEmenda, setEditingEmenda] = useState<Amendment | null>(null)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
@@ -151,6 +153,7 @@ const EmendasListPage = () => {
 
   const fetchAmendments = useCallback(async () => {
     setIsLoading(true)
+    setError(null)
     try {
       const { data, error } = await supabase
         .from('emendas')
@@ -160,8 +163,9 @@ const EmendasListPage = () => {
       if (error) throw error
 
       setLocalAmendments(data as Amendment[])
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching amendments:', error)
+      setError(error.message || 'Erro ao carregar emendas.')
       toast({
         title: 'Erro ao carregar emendas',
         description: 'Não foi possível conectar ao servidor.',
@@ -385,8 +389,6 @@ const EmendasListPage = () => {
           amendment.total_gasto <= amendment.total_repassado
         )
           return false
-        // Note: comDespesasNaoAutorizadas filter requires fetching details, which we skip for list view performance
-        // unless we implement a specific query or flag in the main table.
         return true
       })
   }, [filters, localAmendments])
@@ -430,6 +432,17 @@ const EmendasListPage = () => {
       Pendências: a.pendencias.join('; '),
     }))
     exportToCsv('emendas.csv', dataToExport)
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-100px)] gap-4">
+        <AlertTriangle className="h-12 w-12 text-destructive" />
+        <h2 className="text-xl font-semibold">Erro ao carregar emendas</h2>
+        <p className="text-muted-foreground">{error}</p>
+        <Button onClick={fetchAmendments}>Tentar Novamente</Button>
+      </div>
+    )
   }
 
   return (
@@ -549,124 +562,132 @@ const EmendasListPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedData.map((amendment) => (
-                    <TableRow
-                      key={amendment.id}
-                      className="h-auto py-2 cursor-pointer odd:bg-white even:bg-neutral-50 hover:bg-neutral-100 dark:odd:bg-card dark:even:bg-muted/50 dark:hover:bg-muted text-neutral-600 dark:text-neutral-400"
-                      onClick={() => navigate(`/emenda/${amendment.id}`)}
-                    >
-                      <TableCell className="align-top">
-                        {amendment.tipo}
-                      </TableCell>
-                      <TableCell className="align-top font-medium text-neutral-900 dark:text-neutral-200">
-                        {amendment.autor}
-                      </TableCell>
-                      <TableCell className="align-top">
-                        {amendment.numero_emenda}
-                      </TableCell>
-                      <TableCell className="align-top">
-                        {amendment.numero_proposta}
-                      </TableCell>
-                      <TableCell className="align-top text-right tabular-nums font-medium text-neutral-900 dark:text-neutral-200">
-                        {formatCurrencyBRL(amendment.valor_total)}
-                      </TableCell>
-                      <TableCell className="align-top">
-                        <StatusBadge
-                          status={amendment.situacao}
-                          className="whitespace-normal text-center w-full h-auto py-1"
-                        />
-                      </TableCell>
-                      <TableCell className="align-top">
-                        <StatusBadge
-                          status={amendment.status_interno}
-                          className="whitespace-normal text-center w-full h-auto py-1"
-                        />
-                      </TableCell>
-                      <TableCell className="align-top">
-                        <div className="flex flex-wrap gap-1">
-                          {amendment.pendencias.length > 0 ? (
-                            amendment.pendencias.map((p) => (
-                              <Badge
-                                key={p}
-                                variant="destructive"
-                                className="text-[10px] px-1 py-0.5 h-auto whitespace-normal text-center"
-                              >
-                                {p}
-                              </Badge>
-                            ))
-                          ) : (
-                            <span className="text-xs text-muted-foreground">
-                              -
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="align-top">
-                        <div
-                          className="flex items-center justify-center gap-1"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-8 w-8 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  navigate(`/emenda/${amendment.id}`)
-                                }}
-                              >
-                                <Eye className="h-4 w-4" />
-                                <span className="sr-only">Ver Detalhes</span>
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Ver Detalhes</TooltipContent>
-                          </Tooltip>
-
-                          {!isReadOnly && (
-                            <>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30"
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      handleEdit(amendment)
-                                    }}
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                    <span className="sr-only">Editar</span>
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Editar</TooltipContent>
-                              </Tooltip>
-
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      handleDelete(amendment)
-                                    }}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                    <span className="sr-only">Excluir</span>
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Excluir</TooltipContent>
-                              </Tooltip>
-                            </>
-                          )}
-                        </div>
+                  {paginatedData.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center py-8">
+                        Nenhuma emenda encontrada.
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    paginatedData.map((amendment) => (
+                      <TableRow
+                        key={amendment.id}
+                        className="h-auto py-2 cursor-pointer odd:bg-white even:bg-neutral-50 hover:bg-neutral-100 dark:odd:bg-card dark:even:bg-muted/50 dark:hover:bg-muted text-neutral-600 dark:text-neutral-400"
+                        onClick={() => navigate(`/emenda/${amendment.id}`)}
+                      >
+                        <TableCell className="align-top">
+                          {amendment.tipo}
+                        </TableCell>
+                        <TableCell className="align-top font-medium text-neutral-900 dark:text-neutral-200">
+                          {amendment.autor}
+                        </TableCell>
+                        <TableCell className="align-top">
+                          {amendment.numero_emenda}
+                        </TableCell>
+                        <TableCell className="align-top">
+                          {amendment.numero_proposta}
+                        </TableCell>
+                        <TableCell className="align-top text-right tabular-nums font-medium text-neutral-900 dark:text-neutral-200">
+                          {formatCurrencyBRL(amendment.valor_total)}
+                        </TableCell>
+                        <TableCell className="align-top">
+                          <StatusBadge
+                            status={amendment.situacao}
+                            className="whitespace-normal text-center w-full h-auto py-1"
+                          />
+                        </TableCell>
+                        <TableCell className="align-top">
+                          <StatusBadge
+                            status={amendment.status_interno}
+                            className="whitespace-normal text-center w-full h-auto py-1"
+                          />
+                        </TableCell>
+                        <TableCell className="align-top">
+                          <div className="flex flex-wrap gap-1">
+                            {amendment.pendencias.length > 0 ? (
+                              amendment.pendencias.map((p) => (
+                                <Badge
+                                  key={p}
+                                  variant="destructive"
+                                  className="text-[10px] px-1 py-0.5 h-auto whitespace-normal text-center"
+                                >
+                                  {p}
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-xs text-muted-foreground">
+                                -
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="align-top">
+                          <div
+                            className="flex items-center justify-center gap-1"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    navigate(`/emenda/${amendment.id}`)
+                                  }}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                  <span className="sr-only">Ver Detalhes</span>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Ver Detalhes</TooltipContent>
+                            </Tooltip>
+
+                            {!isReadOnly && (
+                              <>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleEdit(amendment)
+                                      }}
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                      <span className="sr-only">Editar</span>
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Editar</TooltipContent>
+                                </Tooltip>
+
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleDelete(amendment)
+                                      }}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                      <span className="sr-only">Excluir</span>
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Excluir</TooltipContent>
+                                </Tooltip>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </div>

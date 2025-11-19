@@ -82,44 +82,52 @@ export const RolesTable = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {cargos.map((cargo) => (
-              <TableRow key={cargo.id}>
-                <TableCell className="font-medium">{cargo.nome}</TableCell>
-                <TableCell>{cargo.descricao || '-'}</TableCell>
-                <TableCell>
-                  {cargo.default_role ? (
-                    <Badge variant="outline">{cargo.default_role}</Badge>
-                  ) : (
-                    '-'
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Badge variant={cargo.active ? 'default' : 'secondary'}>
-                    {cargo.active ? 'Ativo' : 'Inativo'}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEdit(cargo)}>
-                        <Edit className="mr-2 h-4 w-4" /> Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleToggleActive(cargo)}
-                      >
-                        <Power className="mr-2 h-4 w-4" />
-                        {cargo.active ? 'Desativar' : 'Ativar'}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+            {cargos.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8">
+                  Nenhum cargo encontrado.
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              cargos.map((cargo) => (
+                <TableRow key={cargo.id}>
+                  <TableCell className="font-medium">{cargo.nome}</TableCell>
+                  <TableCell>{cargo.descricao || '-'}</TableCell>
+                  <TableCell>
+                    {cargo.default_role ? (
+                      <Badge variant="outline">{cargo.default_role}</Badge>
+                    ) : (
+                      '-'
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={cargo.active ? 'default' : 'secondary'}>
+                      {cargo.active ? 'Ativo' : 'Inativo'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEdit(cargo)}>
+                          <Edit className="mr-2 h-4 w-4" /> Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleToggleActive(cargo)}
+                        >
+                          <Power className="mr-2 h-4 w-4" />
+                          {cargo.active ? 'Desativar' : 'Ativar'}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

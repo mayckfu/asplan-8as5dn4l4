@@ -20,6 +20,7 @@ import {
   ShoppingBag,
   Activity,
   Loader2,
+  AlertTriangle,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -29,18 +30,12 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart'
-import {
-  DetailedAmendment,
-  Amendment,
-  Repasse,
-  Despesa,
-  getAmendmentDetails,
-  amendments as mockAmendments,
-} from '@/lib/mock-data'
+import { DetailedAmendment, Amendment } from '@/lib/mock-data'
 import { formatCurrencyBRL, formatPercent } from '@/lib/utils'
 import { PendingItemsSidebar } from '@/components/dashboard/PendingItemsSidebar'
 import { FinancialSummary } from '@/components/dashboard/FinancialSummary'
 import { supabase } from '@/lib/supabase/client'
+import { Button } from '@/components/ui/button'
 
 const COLORS = [
   'hsl(var(--chart-1))',
@@ -52,92 +47,89 @@ const COLORS = [
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [amendments, setAmendments] = useState<Amendment[]>([])
   const [detailedAmendments, setDetailedAmendments] = useState<
     DetailedAmendment[]
   >([])
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true)
-      try {
-        // Fetch basic amendments
-        const { data: emendasData, error: emendasError } = await supabase
-          .from('emendas')
-          .select('*')
+  const fetchData = async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      // Fetch basic amendments
+      const { data: emendasData, error: emendasError } = await supabase
+        .from('emendas')
+        .select('*')
 
-        if (emendasError) throw emendasError
+      if (emendasError) throw emendasError
 
-        // Fetch related data for details
-        const { data: repassesData, error: repassesError } = await supabase
-          .from('repasses')
-          .select('*')
+      // Fetch related data for details
+      const { data: repassesData, error: repassesError } = await supabase
+        .from('repasses')
+        .select('*')
 
-        if (repassesError) throw repassesError
+      if (repassesError) throw repassesError
 
-        const { data: despesasData, error: despesasError } = await supabase
-          .from('despesas')
-          .select('*, profiles:registrada_por(name)')
+      const { data: despesasData, error: despesasError } = await supabase
+        .from('despesas')
+        .select('*, profiles:registrada_por(name)')
 
-        if (despesasError) throw despesasError
+      if (despesasError) throw despesasError
 
-        const { data: anexosData, error: anexosError } = await supabase
-          .from('anexos')
-          .select('*, profiles:uploader(name)')
+      const { data: anexosData, error: anexosError } = await supabase
+        .from('anexos')
+        .select('*, profiles:uploader(name)')
 
-        if (anexosError) throw anexosError
+      if (anexosError) throw anexosError
 
-        // Transform data to match DetailedAmendment type
-        const detailed: DetailedAmendment[] = (emendasData || []).map(
-          (emenda: any) => {
-            const emendaRepasses = (repassesData || []).filter(
-              (r: any) => r.emenda_id === emenda.id,
-            )
-            const emendaDespesas = (despesasData || []).filter(
-              (d: any) => d.emenda_id === emenda.id,
-            )
-            const emendaAnexos = (anexosData || []).filter(
-              (a: any) => a.emenda_id === emenda.id,
-            )
+      // Transform data to match DetailedAmendment type
+      const detailed: DetailedAmendment[] = (emendasData || []).map(
+        (emenda: any) => {
+          const emendaRepasses = (repassesData || []).filter(
+            (r: any) => r.emenda_id === emenda.id,
+          )
+          const emendaDespesas = (despesasData || []).filter(
+            (d: any) => d.emenda_id === emenda.id,
+          )
+          const emendaAnexos = (anexosData || []).filter(
+            (a: any) => a.emenda_id === emenda.id,
+          )
 
-            // Map despesas to include profile name
-            const mappedDespesas = emendaDespesas.map((d: any) => ({
-              ...d,
-              registrada_por: d.profiles?.name || 'Desconhecido',
-            }))
+          // Map despesas to include profile name
+          const mappedDespesas = emendaDespesas.map((d: any) => ({
+            ...d,
+            registrada_por: d.profiles?.name || 'Desconhecido',
+          }))
 
-            // Map anexos to include uploader name
-            const mappedAnexos = emendaAnexos.map((a: any) => ({
-              ...a,
-              uploader: a.profiles?.name || 'Desconhecido',
-            }))
+          // Map anexos to include uploader name
+          const mappedAnexos = emendaAnexos.map((a: any) => ({
+            ...a,
+            uploader: a.profiles?.name || 'Desconhecido',
+          }))
 
-            return {
-              ...emenda,
-              repasses: emendaRepasses,
-              despesas: mappedDespesas,
-              anexos: mappedAnexos,
-              historico: [], // Fetching history might be too heavy for dashboard, can be fetched on demand or simplified
-              pendencias: [], // Calculated in component or fetched if stored
-            }
-          },
-        )
+          return {
+            ...emenda,
+            repasses: emendaRepasses,
+            despesas: mappedDespesas,
+            anexos: mappedAnexos,
+            historico: [],
+            pendencias: [],
+          }
+        },
+      )
 
-        setAmendments(emendasData as Amendment[])
-        setDetailedAmendments(detailed)
-      } catch (error) {
-        console.error('Error fetching dashboard data, using mock data:', error)
-        // Fallback to mock data
-        setAmendments(mockAmendments)
-        const detailedMock = mockAmendments
-          .map((a) => getAmendmentDetails(a.id))
-          .filter((a): a is DetailedAmendment => !!a)
-        setDetailedAmendments(detailedMock)
-      } finally {
-        setIsLoading(false)
-      }
+      setAmendments(emendasData as Amendment[])
+      setDetailedAmendments(detailed)
+    } catch (error: any) {
+      console.error('Error fetching dashboard data:', error)
+      setError(error.message || 'Erro ao carregar dados.')
+    } finally {
+      setIsLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchData()
   }, [])
 
@@ -147,7 +139,6 @@ const Index = () => {
 
     const totalPropostas = amendments.length
     const totalValor = amendments.reduce((sum, a) => sum + a.valor_total, 0)
-    // Recalculate total repassado from repasses table for accuracy
     const realTotalRepassado = allRepasses.reduce(
       (sum, r) => (r.status === 'REPASSADO' ? sum + r.valor : sum),
       0,
@@ -245,6 +236,17 @@ const Index = () => {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-100px)]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-100px)] gap-4">
+        <AlertTriangle className="h-12 w-12 text-destructive" />
+        <h2 className="text-xl font-semibold">Erro ao carregar dados</h2>
+        <p className="text-muted-foreground">{error}</p>
+        <Button onClick={fetchData}>Tentar Novamente</Button>
       </div>
     )
   }
