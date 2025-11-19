@@ -29,13 +29,16 @@ import {
 } from '@/components/ui/select'
 import { User, Cargo } from '@/lib/mock-data'
 
+const passwordRegex =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+
 const userSchema = z
   .object({
     name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
     email: z.string().email('Email inválido'),
     cpf: z.string().optional(),
     role: z.enum(['ADMIN', 'GESTOR', 'ANALISTA', 'CONSULTA'] as const),
-    cargo_id: z.string().optional(),
+    cargo_id: z.string().min(1, 'Cargo é obrigatório'),
     unidade: z.string().optional(),
     status: z.enum(['ATIVO', 'BLOQUEADO', 'PENDENTE'] as const),
     password: z.string().optional(),
@@ -51,6 +54,19 @@ const userSchema = z
     {
       message: 'As senhas não coincidem',
       path: ['confirmPassword'],
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.password && !passwordRegex.test(data.password)) {
+        return false
+      }
+      return true
+    },
+    {
+      message:
+        'A senha deve ter no mínimo 8 caracteres, incluindo maiúscula, minúscula, número e caractere especial.',
+      path: ['password'],
     },
   )
 
@@ -115,7 +131,7 @@ export const UserFormDialog = ({
   }, [user, form, open])
 
   const handleSubmit = (values: UserFormValues) => {
-    // Enforce password for new users if not provided (mock logic)
+    // Enforce password for new users if not provided
     if (!user && !values.password) {
       form.setError('password', {
         type: 'manual',

@@ -14,7 +14,7 @@ import { useToast } from '@/components/ui/use-toast'
 import { Loader2, Shield, Database } from 'lucide-react'
 
 const AdminPage = () => {
-  const { isAdmin } = useAuth()
+  const { isAdmin, user } = useAuth()
   const { toast } = useToast()
   const [users, setUsers] = useState<User[]>([])
   const [cargos, setCargos] = useState<Cargo[]>([])
@@ -108,42 +108,56 @@ const AdminPage = () => {
 
   const handleCreateUser = async (newUser: Omit<User, 'id' | 'created_at'>) => {
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: newUser.email,
-        password: newUser.password || '12345678',
-        options: {
-          data: {
-            name: newUser.name,
+      // Call Edge Function to create user in Auth
+      const { data: authData, error: authError } =
+        await supabase.functions.invoke('create-user', {
+          body: {
+            email: newUser.email,
+            password: newUser.password,
+            email_confirm: true,
           },
+        })
+
+      if (authError) throw new Error(authError.message || 'Erro na função')
+      if (authData?.error) throw new Error(authData.error)
+
+      const newUserId = authData.user.id
+
+      // Create Profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .insert([
+          {
+            id: newUserId,
+            name: newUser.name,
+            email: newUser.email,
+            cpf: newUser.cpf,
+            role: newUser.role,
+            cargo_id: newUser.cargo_id,
+            unidade: newUser.unidade,
+            status: newUser.status,
+          },
+        ])
+        .select()
+        .single()
+
+      if (profileError) throw profileError
+
+      // Manually log CREATE_USER action
+      await supabase.from('audit_logs').insert([
+        {
+          table_name: 'profiles',
+          record_id: newUserId,
+          action: 'CREATE_USER',
+          new_data: profileData,
+          changed_by: user?.id,
         },
-      })
+      ])
 
-      if (authError) throw authError
-
-      if (authData.user) {
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: authData.user.id,
-              name: newUser.name,
-              email: newUser.email,
-              cpf: newUser.cpf,
-              role: newUser.role,
-              cargo_id: newUser.cargo_id,
-              unidade: newUser.unidade,
-              status: newUser.status,
-            },
-          ])
-          .select()
-          .single()
-
-        if (profileError) throw profileError
-
-        setUsers((prev) => [profileData as User, ...prev])
-        toast({ title: 'Usuário criado com sucesso.' })
-      }
+      setUsers((prev) => [profileData as User, ...prev])
+      toast({ title: 'Usuário criado com sucesso.' })
     } catch (error: any) {
+      console.error('Error creating user:', error)
       toast({
         title: 'Erro ao criar usuário',
         description: error.message,
@@ -243,7 +257,7 @@ const AdminPage = () => {
         <CardContent>
           <Tabs defaultValue="users" className="w-full">
             <TabsList className="grid w-full grid-cols-5 max-w-[800px]">
-              <TabsTrigger value="users">Usuários</TabsTrigger>
+              <TabsTrigger value="users">Gerenciamento de Usuários</TabsTrigger>
               <TabsTrigger value="roles">Cargos</TabsTrigger>
               <TabsTrigger value="audit">Auditoria</TabsTrigger>
               <TabsTrigger value="security" className="flex items-center gap-2">

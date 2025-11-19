@@ -104,6 +104,47 @@ export type Database = {
           },
         ]
       }
+      backup_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          initiated_by: string | null
+          size: string | null
+          status: string
+          type: string
+          url: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          initiated_by?: string | null
+          size?: string | null
+          status: string
+          type: string
+          url?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          initiated_by?: string | null
+          size?: string | null
+          status?: string
+          type?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'backup_logs_initiated_by_fkey'
+            columns: ['initiated_by']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       cargos: {
         Row: {
           active: boolean | null
@@ -469,6 +510,44 @@ export type Database = {
           },
         ]
       }
+      security_notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          read: boolean | null
+          severity: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          read?: boolean | null
+          severity?: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          severity?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'security_notifications_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -477,6 +556,15 @@ export type Database = {
       get_user_role: {
         Args: never
         Returns: Database['public']['Enums']['user_role']
+      }
+      log_security_notification: {
+        Args: {
+          p_message: string
+          p_severity: string
+          p_type: string
+          p_user_id?: string
+        }
+        Returns: undefined
       }
     }
     Enums: {
