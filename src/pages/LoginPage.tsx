@@ -158,6 +158,17 @@ const LoginPage = () => {
               </Button>
             </form>
           </Form>
+          <div className="mt-4 text-center">
+            <span className="text-sm text-muted-foreground">
+              Não tem uma conta?{' '}
+            </span>
+            <Link
+              to="/register"
+              className="text-sm font-medium text-asplan-primary hover:underline"
+            >
+              Criar conta
+            </Link>
+          </div>
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-xs text-muted-foreground text-center">
