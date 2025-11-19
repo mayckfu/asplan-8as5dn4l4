@@ -1,301 +1,237 @@
--- Supabase Schema for Planning & Health Dashboard (APS)
--- Version: 1.0
--- Date: 2025-11-07
+-- ASPLAN Database Schema
+-- Based on User Story for Parliamentary Amendment Control
+
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- =============================================
 -- ENUMS
 -- =============================================
 
-CREATE TYPE public.papel_usuario AS ENUM (
-    'admin',
-    'planejador',
-    'tecnico',
-    'visualizador'
-);
-
-CREATE TYPE public.area_cuidado AS ENUM (
-    'APS',
-    'ODONTO',
-    'VIGILANCIA',
-    'ESPECIALIZADA'
-);
-
-CREATE TYPE public.status_registro AS ENUM (
-    'OK',
-    'PENDENTE',
-    'INCONSISTENTE'
-);
+CREATE TYPE public.user_role AS ENUM ('ADMIN', 'GESTOR', 'ANALISTA', 'CONSULTA');
+CREATE TYPE public.user_status AS ENUM ('ATIVO', 'BLOQUEADO', 'PENDENTE');
+CREATE TYPE public.tipo_recurso AS ENUM ('CUSTEIO_MAC', 'CUSTEIO_PAP', 'EQUIPAMENTO', 'INCREMENTO_MAC', 'INCREMENTO_PAP', 'OUTRO');
+CREATE TYPE public.situacao_oficial AS ENUM ('PAGA', 'EMPENHADA_AGUARDANDO_FORMALIZACAO', 'FAVORAVEL', 'EM_ANALISE', 'LIBERADO_PAGAMENTO_FNS', 'OUTRA');
+CREATE TYPE public.status_interno AS ENUM ('RASCUNHO', 'EM_EXECUCAO', 'PAGA_SEM_DOCUMENTOS', 'PAGA_COM_PENDENCIAS', 'CONCLUIDA', 'PROPOSTA_PAGA', 'EM_ANALISE_PAGAMENTO', 'APROVADA_PAGAMENTO', 'AUTORIZADA_AGUARDANDO_EMPENHO', 'AGUARDANDO_AUTORIZACAO_FNS', 'PORTARIA_PUBLICADA_AGUARDANDO_FNS', 'ENVIADA_PUBLICACAO_PORTARIA', 'PROPOSTA_APROVADA', 'CLASSIFICADA_AGUARDANDO_SECRETARIA');
 
 -- =============================================
 -- TABLES
 -- =============================================
 
--- Profiles Table
-CREATE TABLE public.profiles (
-    id uuid PRIMARY KEY REFERENCES auth.users ON DELETE CASCADE,
-    nome text,
-    email text UNIQUE,
-    papel public.papel_usuario NOT NULL,
-    created_at timestamptz DEFAULT now() NOT NULL
-);
-COMMENT ON TABLE public.profiles IS 'Stores user profile information and roles.';
-
--- UBS Table
-CREATE TABLE public.ubs (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    nome text NOT NULL,
-    cnes text UNIQUE,
-    bairro text,
-    microarea text,
-    latitude numeric,
-    longitude numeric,
-    ativa boolean DEFAULT true
-);
-COMMENT ON TABLE public.ubs IS 'Stores information about Unidades Básicas de Saúde (UBS).';
-
--- Profissionais Table
-CREATE TABLE public.profissionais (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    nome text NOT NULL,
-    cns text,
-    cbo text,
-    vinculo text,
-    ubs_id uuid REFERENCES public.ubs(id) ON DELETE SET NULL
-);
-COMMENT ON TABLE public.profissionais IS 'Stores information about health professionals.';
-
--- Equipes Table
-CREATE TABLE public.equipes (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    ine text UNIQUE,
-    tipo text,
-    ubs_id uuid REFERENCES public.ubs(id) ON DELETE SET NULL
-);
-COMMENT ON TABLE public.equipes IS 'Stores information about health teams.';
-
--- Indicadores Table
-CREATE TABLE public.indicadores (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+-- CARGOS TABLE
+CREATE TABLE public.cargos (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     nome text NOT NULL,
     descricao text,
-    area public.area_cuidado,
-    meta numeric,
-    unidade_medida text
+    default_role public.user_role,
+    active boolean DEFAULT true,
+    created_at timestamptz DEFAULT now()
 );
-COMMENT ON TABLE public.indicadores IS 'Defines health indicators and their goals.';
+COMMENT ON TABLE public.cargos IS 'Job roles for users.';
 
--- Series Indicadores Table
-CREATE TABLE public.series_indicadores (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    indicador_id uuid NOT NULL REFERENCES public.indicadores(id) ON DELETE CASCADE,
+-- PROFILES TABLE (Extends auth.users)
+CREATE TABLE public.profiles (
+    id uuid PRIMARY KEY REFERENCES auth.users ON DELETE CASCADE,
+    name text NOT NULL,
+    email text NOT NULL,
+    cpf text,
+    cargo_id uuid REFERENCES public.cargos(id) ON DELETE SET NULL,
+    unidade text,
+    role public.user_role NOT NULL DEFAULT 'CONSULTA',
+    status public.user_status NOT NULL DEFAULT 'PENDENTE',
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+COMMENT ON TABLE public.profiles IS 'Extended user profile information.';
+
+-- EMENDAS TABLE
+CREATE TABLE public.emendas (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    numero_emenda text NOT NULL,
+    numero_proposta text,
+    autor text NOT NULL,
+    parlamentar text NOT NULL,
+    tipo text NOT NULL, -- Individual, Bancada, etc.
+    tipo_recurso public.tipo_recurso NOT NULL,
+    valor_total numeric(15, 2) NOT NULL DEFAULT 0,
+    situacao public.situacao_oficial NOT NULL DEFAULT 'EM_ANALISE',
+    status_interno public.status_interno NOT NULL DEFAULT 'RASCUNHO',
+    portaria text,
+    deliberacao_cie text,
+    anexos_essenciais boolean DEFAULT false,
+    descricao_completa text,
+    natureza text,
+    objeto_emenda text,
+    meta_operacional text,
+    destino_recurso text,
+    data_repasse date,
+    valor_repasse numeric(15, 2),
+    situacao_recurso text,
+    observacoes text,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+COMMENT ON TABLE public.emendas IS 'Main table for parliamentary amendments.';
+
+-- REPASSES TABLE
+CREATE TABLE public.repasses (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    emenda_id uuid REFERENCES public.emendas(id) ON DELETE CASCADE,
     data date NOT NULL,
-    valor numeric,
-    ubs_id uuid REFERENCES public.ubs(id) ON DELETE SET NULL,
-    equipe_id uuid REFERENCES public.equipes(id) ON DELETE SET NULL,
-    status public.status_registro DEFAULT 'OK'
+    valor numeric(15, 2) NOT NULL,
+    fonte text NOT NULL,
+    status text NOT NULL DEFAULT 'PENDENTE', -- REPASSADO, PENDENTE, CANCELADO
+    observacoes text,
+    created_at timestamptz DEFAULT now()
 );
-COMMENT ON TABLE public.series_indicadores IS 'Stores time series data for indicators.';
+COMMENT ON TABLE public.repasses IS 'Financial transfers related to amendments.';
 
--- Produção e-SUS Table
-CREATE TABLE public.producao_esus (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+-- DESPESAS TABLE
+CREATE TABLE public.despesas (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    emenda_id uuid REFERENCES public.emendas(id) ON DELETE CASCADE,
     data date NOT NULL,
-    tipo text,
-    quantidade numeric,
-    ubs_id uuid REFERENCES public.ubs(id) ON DELETE SET NULL,
-    equipe_id uuid REFERENCES public.equipes(id) ON DELETE SET NULL,
-    status public.status_registro DEFAULT 'OK'
+    valor numeric(15, 2) NOT NULL,
+    categoria text,
+    descricao text NOT NULL,
+    fornecedor_nome text,
+    nota_fiscal_url text,
+    registrada_por uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
+    autorizada_por uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
+    responsavel_execucao uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
+    unidade_destino text,
+    status_execucao text NOT NULL DEFAULT 'PLANEJADA', -- PLANEJADA, EMPENHADA, LIQUIDADA, PAGA
+    demanda text,
+    created_at timestamptz DEFAULT now()
 );
-COMMENT ON TABLE public.producao_esus IS 'Stores production data from e-SUS.';
+COMMENT ON TABLE public.despesas IS 'Expenses incurred against amendments.';
 
--- Odontologia Table
-CREATE TABLE public.odontologia (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    data date NOT NULL,
-    procedimento text,
-    quantidade numeric,
-    ubs_id uuid REFERENCES public.ubs(id) ON DELETE SET NULL,
-    equipe_id uuid REFERENCES public.equipes(id) ON DELETE SET NULL,
-    status public.status_registro DEFAULT 'OK'
-);
-COMMENT ON TABLE public.odontologia IS 'Stores dental care production data.';
-
--- Estoque Table (Optional)
-CREATE TABLE public.estoque (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    insumo text NOT NULL,
-    quantidade numeric,
-    ubs_id uuid REFERENCES public.ubs(id) ON DELETE SET NULL,
-    atualizado_em timestamptz
-);
-COMMENT ON TABLE public.estoque IS 'Optional table for inventory management.';
-
--- Anexos Table
+-- ANEXOS TABLE
 CREATE TABLE public.anexos (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    tipo text,
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    emenda_id uuid REFERENCES public.emendas(id) ON DELETE CASCADE,
+    titulo text NOT NULL,
     url text NOT NULL,
-    publico boolean DEFAULT false,
-    created_at timestamptz DEFAULT now() NOT NULL
+    tipo text NOT NULL, -- PORTARIA, DELIBERACAO_CIE, etc.
+    uploader uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
+    data_documento date,
+    created_at timestamptz DEFAULT now()
 );
-COMMENT ON TABLE public.anexos IS 'Stores file attachments.';
+COMMENT ON TABLE public.anexos IS 'Documents and attachments.';
 
--- Historicos Table
-CREATE TABLE public.historicos (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    tabela text NOT NULL,
-    registro_id uuid,
+-- HISTORICO TABLE
+CREATE TABLE public.historico (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    emenda_id uuid REFERENCES public.emendas(id) ON DELETE CASCADE,
     evento text NOT NULL,
-    detalhe jsonb,
-    feito_por uuid REFERENCES public.profiles(id),
-    criado_em timestamptz DEFAULT now() NOT NULL
+    detalhe text,
+    feito_por uuid REFERENCES public.profiles(id) ON DELETE CASCADE, -- Cascade delete as per user story
+    criado_em timestamptz DEFAULT now()
 );
-COMMENT ON TABLE public.historicos IS 'Audit log for changes in critical tables.';
+COMMENT ON TABLE public.historico IS 'History log for amendments.';
+
+-- PENDENCIAS TABLE
+CREATE TABLE public.pendencias (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    emenda_id uuid REFERENCES public.emendas(id) ON DELETE CASCADE,
+    descricao text NOT NULL,
+    dispensada boolean DEFAULT false,
+    resolvida boolean DEFAULT false,
+    justificativa text,
+    target_type text,
+    target_id text,
+    created_at timestamptz DEFAULT now()
+);
+COMMENT ON TABLE public.pendencias IS 'Tracked issues or requirements for amendments.';
+
+-- AUDIT LOGS TABLE (System-wide)
+CREATE TABLE public.audit_logs (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    table_name text NOT NULL,
+    record_id uuid,
+    action text NOT NULL, -- INSERT, UPDATE, DELETE
+    old_data jsonb,
+    new_data jsonb,
+    changed_by uuid REFERENCES public.profiles(id) ON DELETE CASCADE, -- Cascade delete as per user story
+    changed_at timestamptz DEFAULT now()
+);
+COMMENT ON TABLE public.audit_logs IS 'System-wide audit trail for all critical actions.';
 
 -- =============================================
--- INDEXES
+-- RLS POLICIES
 -- =============================================
 
-CREATE INDEX idx_series_indicadores_data ON public.series_indicadores(data);
-CREATE INDEX idx_series_indicadores_ubs_data ON public.series_indicadores(ubs_id, data);
-CREATE INDEX idx_series_indicadores_equipe_data ON public.series_indicadores(equipe_id, data);
+ALTER TABLE public.cargos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.emendas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.repasses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.despesas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.anexos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.historico ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.pendencias ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 
-CREATE INDEX idx_producao_esus_data ON public.producao_esus(data);
-CREATE INDEX idx_producao_esus_ubs_data ON public.producao_esus(ubs_id, data);
-CREATE INDEX idx_producao_esus_equipe_data ON public.producao_esus(equipe_id, data);
+-- Helper function to get user role
+CREATE OR REPLACE FUNCTION public.get_user_role()
+RETURNS public.user_role AS $$
+  SELECT role FROM public.profiles WHERE id = auth.uid();
+$$ LANGUAGE sql SECURITY DEFINER;
 
-CREATE INDEX idx_odontologia_data ON public.odontologia(data);
-CREATE INDEX idx_odontologia_ubs_data ON public.odontologia(ubs_id, data);
-CREATE INDEX idx_odontologia_equipe_data ON public.odontologia(equipe_id, data);
+-- Profiles Policies
+CREATE POLICY "Admins can manage all profiles" ON public.profiles FOR ALL USING (public.get_user_role() = 'ADMIN');
+CREATE POLICY "Users can view their own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
 
--- =============================================
--- VIEWS
--- =============================================
+-- Emendas Policies
+CREATE POLICY "Read access for all authenticated users" ON public.emendas FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Write access for ADMIN, GESTOR, ANALISTA" ON public.emendas FOR ALL USING (public.get_user_role() IN ('ADMIN', 'GESTOR', 'ANALISTA'));
 
-CREATE OR REPLACE VIEW public.vw_kpi_gerais AS
-SELECT
-    (SELECT COUNT(*) FROM public.producao_esus WHERE data >= date_trunc('month', now())) AS producao_mensal_total,
-    (SELECT COUNT(*) FROM public.odontologia WHERE data >= date_trunc('month', now())) AS odonto_mensal_total;
+-- Repasses Policies
+CREATE POLICY "Read access for all authenticated users" ON public.repasses FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Write access for ADMIN, GESTOR" ON public.repasses FOR ALL USING (public.get_user_role() IN ('ADMIN', 'GESTOR'));
 
-CREATE OR REPLACE VIEW public.vw_producao_por_ubs AS
-SELECT u.nome, p.tipo, SUM(p.quantidade) as total
-FROM public.producao_esus p
-JOIN public.ubs u ON p.ubs_id = u.id
-GROUP BY u.nome, p.tipo;
+-- Despesas Policies
+CREATE POLICY "Read access for all authenticated users" ON public.despesas FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Write access for ADMIN, GESTOR, ANALISTA" ON public.despesas FOR ALL USING (public.get_user_role() IN ('ADMIN', 'GESTOR', 'ANALISTA'));
 
-CREATE OR REPLACE VIEW public.vw_odonto_por_ubs AS
-SELECT u.nome, o.procedimento, SUM(o.quantidade) as total
-FROM public.odontologia o
-JOIN public.ubs u ON o.ubs_id = u.id
-GROUP BY u.nome, o.procedimento;
+-- Anexos Policies
+CREATE POLICY "Read access for all authenticated users" ON public.anexos FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Write access for ADMIN, GESTOR, ANALISTA" ON public.anexos FOR ALL USING (public.get_user_role() IN ('ADMIN', 'GESTOR', 'ANALISTA'));
 
-CREATE OR REPLACE VIEW public.vw_indicadores_evolucao AS
-SELECT
-    i.nome,
-    s.data,
-    s.valor
-FROM public.series_indicadores s
-JOIN public.indicadores i ON s.indicador_id = i.id
-WHERE s.data >= now() - interval '12 months'
-ORDER BY i.nome, s.data;
+-- Audit Logs Policies
+CREATE POLICY "Admins can view audit logs" ON public.audit_logs FOR SELECT USING (public.get_user_role() = 'ADMIN');
 
 -- =============================================
--- FUNCTIONS AND TRIGGERS
+-- TRIGGERS
 -- =============================================
 
-CREATE OR REPLACE FUNCTION public.log_changes()
-RETURNS TRIGGER AS $
+-- Audit Trigger Function
+CREATE OR REPLACE FUNCTION public.audit_trigger_func()
+RETURNS TRIGGER AS $$
 DECLARE
     user_id uuid := auth.uid();
-    details jsonb;
 BEGIN
     IF (TG_OP = 'INSERT') THEN
-        details := jsonb_build_object('new', to_jsonb(NEW));
-        INSERT INTO public.historicos (tabela, registro_id, evento, detalhe, feito_por)
-        VALUES (TG_TABLE_NAME, NEW.id, 'INSERT', details, user_id);
+        INSERT INTO public.audit_logs (table_name, record_id, action, new_data, changed_by)
+        VALUES (TG_TABLE_NAME, NEW.id, 'INSERT', to_jsonb(NEW), user_id);
         RETURN NEW;
     ELSIF (TG_OP = 'UPDATE') THEN
-        details := jsonb_build_object('old', to_jsonb(OLD), 'new', to_jsonb(NEW));
-        INSERT INTO public.historicos (tabela, registro_id, evento, detalhe, feito_por)
-        VALUES (TG_TABLE_NAME, NEW.id, 'UPDATE', details, user_id);
+        INSERT INTO public.audit_logs (table_name, record_id, action, old_data, new_data, changed_by)
+        VALUES (TG_TABLE_NAME, NEW.id, 'UPDATE', to_jsonb(OLD), to_jsonb(NEW), user_id);
         RETURN NEW;
     ELSIF (TG_OP = 'DELETE') THEN
-        details := jsonb_build_object('old', to_jsonb(OLD));
-        INSERT INTO public.historicos (tabela, registro_id, evento, detalhe, feito_por)
-        VALUES (TG_TABLE_NAME, OLD.id, 'DELETE', details, user_id);
+        INSERT INTO public.audit_logs (table_name, record_id, action, old_data, changed_by)
+        VALUES (TG_TABLE_NAME, OLD.id, 'DELETE', to_jsonb(OLD), user_id);
         RETURN OLD;
     END IF;
     RETURN NULL;
 END;
-$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Apply audit triggers to critical tables
-CREATE TRIGGER series_indicadores_audit AFTER INSERT OR UPDATE OR DELETE ON public.series_indicadores FOR EACH ROW EXECUTE FUNCTION public.log_changes();
-CREATE TRIGGER producao_esus_audit AFTER INSERT OR UPDATE OR DELETE ON public.producao_esus FOR EACH ROW EXECUTE FUNCTION public.log_changes();
-CREATE TRIGGER odontologia_audit AFTER INSERT OR UPDATE OR DELETE ON public.odontologia FOR EACH ROW EXECUTE FUNCTION public.log_changes();
-CREATE TRIGGER indicadores_audit AFTER INSERT OR UPDATE OR DELETE ON public.indicadores FOR EACH ROW EXECUTE FUNCTION public.log_changes();
-
--- =============================================
--- SECURITY & RLS
--- =============================================
-
-CREATE OR REPLACE FUNCTION public.get_my_claim(claim TEXT) RETURNS TEXT AS $
-    SELECT nullif(current_setting('request.jwt.claims', true)::jsonb ->> claim, '')::TEXT;
-$ LANGUAGE sql STABLE;
-
-CREATE OR REPLACE FUNCTION public.get_my_role() RETURNS public.papel_usuario AS $
-    SELECT public.get_my_claim('role')::public.papel_usuario;
-$ LANGUAGE sql STABLE;
-
--- Enable RLS for all tables
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.ubs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.profissionais ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.equipes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.indicadores ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.series_indicadores ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.producao_esus ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.odontologia ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.estoque ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.anexos ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.historicos ENABLE ROW LEVEL SECURITY;
-
--- Policies for read access (all authenticated users)
-CREATE POLICY "Allow read access to all authenticated users" ON public.profiles FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Allow read access to all authenticated users" ON public.ubs FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Allow read access to all authenticated users" ON public.profissionais FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Allow read access to all authenticated users" ON public.equipes FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Allow read access to all authenticated users" ON public.indicadores FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Allow read access to all authenticated users" ON public.series_indicadores FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Allow read access to all authenticated users" ON public.producao_esus FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Allow read access to all authenticated users" ON public.odontologia FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Allow read access to all authenticated users" ON public.estoque FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Allow read access to all authenticated users" ON public.anexos FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Allow read access to all authenticated users" ON public.historicos FOR SELECT USING (auth.role() = 'authenticated');
-
--- Policies for write access (admin, planejador, tecnico)
-CREATE POLICY "Allow write access for admin/planejador/tecnico" ON public.ubs FOR ALL USING (get_my_role() IN ('admin', 'planejador', 'tecnico'));
-CREATE POLICY "Allow write access for admin/planejador/tecnico" ON public.profissionais FOR ALL USING (get_my_role() IN ('admin', 'planejador', 'tecnico'));
-CREATE POLICY "Allow write access for admin/planejador/tecnico" ON public.equipes FOR ALL USING (get_my_role() IN ('admin', 'planejador', 'tecnico'));
-CREATE POLICY "Allow write access for admin/planejador/tecnico" ON public.indicadores FOR ALL USING (get_my_role() IN ('admin', 'planejador', 'tecnico'));
-CREATE POLICY "Allow write access for admin/planejador/tecnico" ON public.series_indicadores FOR ALL USING (get_my_role() IN ('admin', 'planejador', 'tecnico'));
-CREATE POLICY "Allow write access for admin/planejador/tecnico" ON public.producao_esus FOR ALL USING (get_my_role() IN ('admin', 'planejador', 'tecnico'));
-CREATE POLICY "Allow write access for admin/planejador/tecnico" ON public.odontologia FOR ALL USING (get_my_role() IN ('admin', 'planejador', 'tecnico'));
-CREATE POLICY "Allow write access for admin/planejador/tecnico" ON public.estoque FOR ALL USING (get_my_role() IN ('admin', 'planejador', 'tecnico'));
-CREATE POLICY "Allow write access for admin/planejador/tecnico" ON public.anexos FOR ALL USING (get_my_role() IN ('admin', 'planejador', 'tecnico'));
-
--- Special policies for profiles
-CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
-CREATE POLICY "Admins can manage profiles" ON public.profiles FOR ALL USING (get_my_role() = 'admin');
-
--- =============================================
--- STORAGE POLICIES
--- =============================================
-INSERT INTO storage.buckets (id, name, public) VALUES ('anexos', 'anexos', false) ON CONFLICT (id) DO NOTHING;
-
-CREATE POLICY "Allow read access to anexos for authenticated users" ON storage.objects FOR SELECT
-USING ( bucket_id = 'anexos' AND auth.role() = 'authenticated' );
-
-CREATE POLICY "Allow write access to anexos for tecnico/admin" ON storage.objects FOR INSERT, UPDATE, DELETE
-USING ( bucket_id = 'anexos' AND get_my_role() IN ('admin', 'tecnico') );
+-- Apply Audit Triggers
+CREATE TRIGGER audit_emendas AFTER INSERT OR UPDATE OR DELETE ON public.emendas FOR EACH ROW EXECUTE FUNCTION public.audit_trigger_func();
+CREATE TRIGGER audit_repasses AFTER INSERT OR UPDATE OR DELETE ON public.repasses FOR EACH ROW EXECUTE FUNCTION public.audit_trigger_func();
+CREATE TRIGGER audit_despesas AFTER INSERT OR UPDATE OR DELETE ON public.despesas FOR EACH ROW EXECUTE FUNCTION public.audit_trigger_func();
+CREATE TRIGGER audit_anexos AFTER INSERT OR UPDATE OR DELETE ON public.anexos FOR EACH ROW EXECUTE FUNCTION public.audit_trigger_func();
+CREATE TRIGGER audit_profiles AFTER INSERT OR UPDATE OR DELETE ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.audit_trigger_func();
 

@@ -148,12 +148,13 @@ export type User = {
   id: string
   name: string
   email: string
+  cpf?: string
   role: UserRole
   cargo_id?: string
   unidade?: string
   status: UserStatus
   created_at: string
-  password?: string // Optional for mock purposes
+  password?: string
 }
 
 export type Cargo = {
@@ -162,6 +163,16 @@ export type Cargo = {
   descricao?: string
   default_role?: UserRole
   active: boolean
+}
+
+export type AuditLog = {
+  id: string
+  table_name: string
+  record_id: string
+  action: 'INSERT' | 'UPDATE' | 'DELETE'
+  changed_by: string
+  changed_at: string
+  details: string
 }
 
 // --- Mock Data for Auth & Admin ---
@@ -202,6 +213,7 @@ export const mockUsers: User[] = [
     id: '1',
     name: 'Admin Master',
     email: 'admin@asplan.gov',
+    cpf: '123.456.789-00',
     role: 'ADMIN',
     cargo_id: '1',
     unidade: 'Gabinete',
@@ -213,6 +225,7 @@ export const mockUsers: User[] = [
     id: '2',
     name: 'Gestor Financeiro',
     email: 'gestor@asplan.gov',
+    cpf: '234.567.890-11',
     role: 'GESTOR',
     cargo_id: '2',
     unidade: 'Financeiro',
@@ -224,6 +237,7 @@ export const mockUsers: User[] = [
     id: '3',
     name: 'Analista Operacional',
     email: 'analista@asplan.gov',
+    cpf: '345.678.901-22',
     role: 'ANALISTA',
     cargo_id: '3',
     unidade: 'Operações',
@@ -235,12 +249,52 @@ export const mockUsers: User[] = [
     id: '4',
     name: 'Usuário Bloqueado',
     email: 'bloqueado@asplan.gov',
+    cpf: '456.789.012-33',
     role: 'CONSULTA',
     cargo_id: '4',
     unidade: 'Auditoria',
     status: 'BLOQUEADO',
     created_at: '2023-04-05T09:15:00Z',
     password: '123',
+  },
+]
+
+export const mockAuditLogs: AuditLog[] = [
+  {
+    id: '1',
+    table_name: 'users',
+    record_id: '2',
+    action: 'UPDATE',
+    changed_by: 'Admin Master',
+    changed_at: '2023-10-01T10:00:00Z',
+    details: 'Alterou status de PENDENTE para ATIVO',
+  },
+  {
+    id: '2',
+    table_name: 'emendas',
+    record_id: '1',
+    action: 'UPDATE',
+    changed_by: 'Gestor Financeiro',
+    changed_at: '2023-10-02T14:30:00Z',
+    details: 'Atualizou valor_total para 150000',
+  },
+  {
+    id: '3',
+    table_name: 'repasses',
+    record_id: 'R1-1',
+    action: 'INSERT',
+    changed_by: 'Gestor Financeiro',
+    changed_at: '2023-10-03T09:15:00Z',
+    details: 'Registrou novo repasse de 150000',
+  },
+  {
+    id: '4',
+    table_name: 'users',
+    record_id: '4',
+    action: 'UPDATE',
+    changed_by: 'Admin Master',
+    changed_at: '2023-10-05T16:45:00Z',
+    details: 'Bloqueou usuário por inatividade',
   },
 ]
 

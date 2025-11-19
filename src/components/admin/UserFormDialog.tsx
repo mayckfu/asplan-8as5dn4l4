@@ -33,6 +33,7 @@ const userSchema = z
   .object({
     name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
     email: z.string().email('Email inválido'),
+    cpf: z.string().optional(),
     role: z.enum(['ADMIN', 'GESTOR', 'ANALISTA', 'CONSULTA'] as const),
     cargo_id: z.string().optional(),
     unidade: z.string().optional(),
@@ -75,6 +76,7 @@ export const UserFormDialog = ({
     defaultValues: {
       name: '',
       email: '',
+      cpf: '',
       role: 'CONSULTA',
       cargo_id: '',
       unidade: '',
@@ -89,6 +91,7 @@ export const UserFormDialog = ({
       form.reset({
         name: user.name,
         email: user.email,
+        cpf: user.cpf || '',
         role: user.role,
         cargo_id: user.cargo_id || '',
         unidade: user.unidade || '',
@@ -100,6 +103,7 @@ export const UserFormDialog = ({
       form.reset({
         name: '',
         email: '',
+        cpf: '',
         role: 'CONSULTA',
         cargo_id: '',
         unidade: '',
@@ -150,19 +154,34 @@ export const UserFormDialog = ({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>E-mail</FormLabel>
-                  <FormControl>
-                    <Input placeholder="joao@asplan.gov" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>E-mail</FormLabel>
+                    <FormControl>
+                      <Input placeholder="joao@asplan.gov" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="cpf"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CPF (Opcional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="000.000.000-00" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <div className="grid grid-cols-2 gap-4">
               <FormField

@@ -6,6 +6,7 @@ import {
   MoreHorizontal,
   RotateCcw,
   Plus,
+  Trash2,
 } from 'lucide-react'
 import {
   Table,
@@ -21,6 +22,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -42,6 +44,7 @@ interface UsersTableProps {
   cargos: Cargo[]
   onUpdateUser: (user: User) => void
   onCreateUser: (user: Omit<User, 'id' | 'created_at'>) => void
+  onDeleteUser?: (userId: string) => void
 }
 
 export const UsersTable = ({
@@ -49,12 +52,15 @@ export const UsersTable = ({
   cargos,
   onUpdateUser,
   onCreateUser,
+  onDeleteUser,
 }: UsersTableProps) => {
   const { toast } = useToast()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [blockConfirmOpen, setBlockConfirmOpen] = useState(false)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [userToBlock, setUserToBlock] = useState<User | null>(null)
+  const [userToDelete, setUserToDelete] = useState<User | null>(null)
 
   const getCargoName = (id?: string) => {
     return cargos.find((c) => c.id === id)?.nome || '-'
@@ -89,6 +95,24 @@ export const UsersTable = ({
     }
     setBlockConfirmOpen(false)
     setUserToBlock(null)
+  }
+
+  const handleDelete = (user: User) => {
+    setUserToDelete(user)
+    setDeleteConfirmOpen(true)
+  }
+
+  const confirmDelete = () => {
+    if (userToDelete && onDeleteUser) {
+      onDeleteUser(userToDelete.id)
+      toast({
+        title: 'Usuário excluído',
+        description:
+          'O usuário e todos os seus registros históricos foram removidos.',
+      })
+    }
+    setDeleteConfirmOpen(false)
+    setUserToDelete(null)
   }
 
   const handleResetPassword = (user: User) => {
@@ -144,6 +168,7 @@ export const UsersTable = ({
             <TableRow>
               <TableHead>Nome</TableHead>
               <TableHead>E-mail</TableHead>
+              <TableHead>CPF</TableHead>
               <TableHead>Cargo</TableHead>
               <TableHead>Perfil</TableHead>
               <TableHead>Unidade</TableHead>
@@ -156,6 +181,7 @@ export const UsersTable = ({
               <TableRow key={user.id}>
                 <TableCell className="font-medium">{user.name}</TableCell>
                 <TableCell>{user.email}</TableCell>
+                <TableCell>{user.cpf || '-'}</TableCell>
                 <TableCell>{getCargoName(user.cargo_id)}</TableCell>
                 <TableCell>
                   <Badge variant="outline">{user.role}</Badge>
@@ -201,6 +227,13 @@ export const UsersTable = ({
                       >
                         <RotateCcw className="mr-2 h-4 w-4" /> Resetar Senha
                       </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => handleDelete(user)}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
@@ -234,6 +267,28 @@ export const UsersTable = ({
               className="bg-destructive hover:bg-destructive/90"
             >
               Bloquear Usuário
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Usuário?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação é irreversível. O usuário <b>{userToDelete?.name}</b>{' '}
+              será removido permanentemente, juntamente com todos os registros
+              de auditoria associados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Excluir Permanentemente
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
