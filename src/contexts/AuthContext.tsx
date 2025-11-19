@@ -5,8 +5,10 @@ import {
   useEffect,
   ReactNode,
 } from 'react'
-import { User, mockUsers, mockCargos } from '@/lib/mock-data'
+import { User } from '@/lib/mock-data'
 import { useToast } from '@/components/ui/use-toast'
+import { supabase } from '@/lib/supabase/client'
+import { Session } from '@supabase/supabase-js'
 
 interface AuthContextType {
   user: User | null
@@ -15,63 +17,70 @@ interface AuthContextType {
     password?: string,
     rememberMe?: boolean,
   ) => Promise<boolean>
-  logout: () => void
+  logout: () => Promise<void>
   isAuthenticated: boolean
   isAdmin: boolean
   isLoading: boolean
+  session: Session | null
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const { toast } = useToast()
 
-  // Initialize "Database" in localStorage if not present
   useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        const storedUsers = localStorage.getItem('asplan_users_db')
-        if (!storedUsers) {
-          localStorage.setItem('asplan_users_db', JSON.stringify(mockUsers))
-        }
-        const storedCargos = localStorage.getItem('asplan_cargos_db')
-        if (!storedCargos) {
-          localStorage.setItem('asplan_cargos_db', JSON.stringify(mockCargos))
-        }
-
-        // Check for active session in both storages
-        const storedUser =
-          localStorage.getItem('asplan_user') ||
-          sessionStorage.getItem('asplan_user')
-
-        if (storedUser) {
-          const parsedUser = JSON.parse(storedUser)
-          // Verify if user still exists and is active in the "DB"
-          const currentUsers = JSON.parse(
-            localStorage.getItem('asplan_users_db') || '[]',
-          ) as User[]
-          const dbUser = currentUsers.find((u) => u.id === parsedUser.id)
-
-          if (dbUser && dbUser.status === 'ATIVO') {
-            setUser(dbUser)
-          } else {
-            // If user was deleted or blocked, logout
-            localStorage.removeItem('asplan_user')
-            sessionStorage.removeItem('asplan_user')
-            setUser(null)
-          }
-        }
-      } catch (error) {
-        console.error('Failed to initialize auth:', error)
-      } finally {
+    // Check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      if (session?.user) {
+        fetchProfile(session.user.id)
+      } else {
         setIsLoading(false)
       }
-    }
+    })
 
-    initializeAuth()
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+      if (session?.user) {
+        fetchProfile(session.user.id)
+      } else {
+        setUser(null)
+        setIsLoading(false)
+      }
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
+
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
+
+      if (error) {
+        console.error('Error fetching profile:', error)
+        // If profile doesn't exist but auth does, we might want to handle it.
+        // For now, we'll just log it.
+      }
+
+      if (data) {
+        setUser(data as User)
+      }
+    } catch (error) {
+      console.error('Unexpected error fetching profile:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const login = async (
     email: string,
@@ -79,63 +88,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     rememberMe: boolean = false,
   ): Promise<boolean> => {
     setIsLoading(true)
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500))
-
     try {
-      const currentUsers = JSON.parse(
-        localStorage.getItem('asplan_users_db') || '[]',
-      ) as User[]
-      const foundUser = currentUsers.find(
-        (u) => u.email.toLowerCase() === email.toLowerCase(),
-      )
-
-      if (!foundUser) {
-        toast({
-          title: 'Erro de login',
-          description: 'Credenciais inválidas.',
-          variant: 'destructive',
-        })
-        return false
+      if (!password) {
+        throw new Error('Senha é obrigatória')
       }
 
-      if (foundUser.status === 'BLOQUEADO') {
-        toast({
-          title: 'Acesso negado',
-          description: 'Sua conta está bloqueada. Contate o administrador.',
-          variant: 'destructive',
-        })
-        return false
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (error) {
+        throw error
       }
 
-      // Simple password check for mock purposes
-      if (password && foundUser.password && password !== foundUser.password) {
-        toast({
-          title: 'Erro de login',
-          description: 'Credenciais inválidas.',
-          variant: 'destructive',
-        })
-        return false
-      }
-
-      setUser(foundUser)
-
-      if (rememberMe) {
-        localStorage.setItem('asplan_user', JSON.stringify(foundUser))
-      } else {
-        sessionStorage.setItem('asplan_user', JSON.stringify(foundUser))
-      }
+      // Session persistence is handled by Supabase client config (autoRefreshToken, persistSession)
+      // 'rememberMe' logic in Supabase is usually about session duration, but standard login persists by default in local storage.
+      // We can ignore explicit 'rememberMe' handling for basic JWT flow or configure client storage if needed.
+      // For this implementation, we rely on default Supabase behavior which persists session.
 
       toast({
         title: 'Login realizado',
-        description: `Bem-vindo, ${foundUser.name}!`,
+        description: 'Bem-vindo ao sistema!',
       })
       return true
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error)
       toast({
-        title: 'Erro',
-        description: 'Ocorreu um erro ao tentar fazer login.',
+        title: 'Erro de login',
+        description: error.message || 'Credenciais inválidas.',
         variant: 'destructive',
       })
       return false
@@ -144,21 +125,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
-  const logout = () => {
-    setUser(null)
-    localStorage.removeItem('asplan_user')
-    sessionStorage.removeItem('asplan_user')
-    toast({
-      title: 'Logout',
-      description: 'Você saiu do sistema.',
-    })
+  const logout = async () => {
+    setIsLoading(true)
+    try {
+      await supabase.auth.signOut()
+      setUser(null)
+      setSession(null)
+      toast({
+        title: 'Logout',
+        description: 'Você saiu do sistema.',
+      })
+    } catch (error) {
+      console.error('Logout error:', error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const value = {
     user,
+    session,
     login,
     logout,
-    isAuthenticated: !!user,
+    isAuthenticated: !!session && !!user,
     isAdmin: user?.role === 'ADMIN',
     isLoading,
   }

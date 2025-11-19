@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -9,7 +9,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
@@ -23,7 +22,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { useToast } from '@/components/ui/use-toast'
-import { User } from '@/lib/mock-data'
+import { supabase } from '@/lib/supabase/client'
 
 const resetPasswordSchema = z
   .object({
@@ -44,21 +43,19 @@ type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
-  const [isValidToken, setIsValidToken] = useState(true)
-
-  const email = searchParams.get('email')
-  const token = searchParams.get('token')
 
   useEffect(() => {
-    // Mock token validation
-    if (!token || !email) {
-      setIsValidToken(false)
-    }
-  }, [token, email])
+    // Check if we have a session (which happens after clicking the email link)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        // If no session, redirect to login or show error
+        // But for reset password flow, the link usually logs the user in.
+      }
+    })
+  }, [])
 
   const form = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
@@ -69,65 +66,33 @@ const ResetPasswordPage = () => {
   })
 
   const onSubmit = async (data: ResetPasswordFormValues) => {
-    if (!email) return
-
     setIsLoading(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-
-    // Update mock database
     try {
-      const currentUsers = JSON.parse(
-        localStorage.getItem('asplan_users_db') || '[]',
-      ) as User[]
-      const userIndex = currentUsers.findIndex(
-        (u) => u.email.toLowerCase() === email.toLowerCase(),
-      )
+      const { error } = await supabase.auth.updateUser({
+        password: data.password,
+      })
 
-      if (userIndex !== -1) {
-        currentUsers[userIndex].password = data.password
-        localStorage.setItem('asplan_users_db', JSON.stringify(currentUsers))
-        setIsSuccess(true)
-        toast({
-          title: 'Senha atualizada',
-          description: 'Sua senha foi redefinida com sucesso.',
-        })
-      } else {
-        // Even if user not found (shouldn't happen with valid token flow), show success to avoid enumeration or handle error
-        toast({
-          title: 'Erro',
-          description: 'Não foi possível atualizar a senha. Tente novamente.',
-          variant: 'destructive',
-        })
+      if (error) {
+        throw error
       }
-    } catch (error) {
+
+      setIsSuccess(true)
+      toast({
+        title: 'Senha atualizada',
+        description: 'Sua senha foi redefinida com sucesso.',
+      })
+    } catch (error: any) {
       console.error('Error updating password:', error)
+      toast({
+        title: 'Erro',
+        description:
+          error.message ||
+          'Não foi possível atualizar a senha. Tente novamente.',
+        variant: 'destructive',
+      })
     } finally {
       setIsLoading(false)
     }
-  }
-
-  if (!isValidToken) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-900 p-4">
-        <Card className="w-full max-w-md shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-xl font-bold text-center text-destructive">
-              Link Inválido ou Expirado
-            </CardTitle>
-            <CardDescription className="text-center">
-              O link de recuperação de senha que você utilizou não é válido ou
-              já expirou.
-            </CardDescription>
-          </CardHeader>
-          <CardFooter className="flex justify-center">
-            <Button onClick={() => navigate('/forgot-password')}>
-              Solicitar Novo Link
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
-    )
   }
 
   return (

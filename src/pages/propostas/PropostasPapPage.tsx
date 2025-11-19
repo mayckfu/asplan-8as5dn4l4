@@ -1,6 +1,6 @@
-import { useMemo } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -11,16 +11,46 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { amendments } from '@/lib/mock-data'
+import { Amendment } from '@/lib/mock-data'
 import { formatCurrencyBRL } from '@/lib/utils'
 import { StatusBadge } from '@/components/StatusBadge'
+import { supabase } from '@/lib/supabase/client'
 
 const PropostasPapPage = () => {
   const navigate = useNavigate()
+  const [papAmendments, setPapAmendments] = useState<Amendment[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  const papAmendments = useMemo(() => {
-    return amendments.filter((a) => a.tipo_recurso === 'INCREMENTO_PAP')
+  useEffect(() => {
+    const fetchPapAmendments = async () => {
+      setIsLoading(true)
+      try {
+        const { data, error } = await supabase
+          .from('emendas')
+          .select('*')
+          .eq('tipo_recurso', 'INCREMENTO_PAP')
+          .order('created_at', { ascending: false })
+
+        if (error) throw error
+
+        setPapAmendments(data as Amendment[])
+      } catch (error) {
+        console.error('Error fetching PAP amendments:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchPapAmendments()
   }, [])
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-100px)]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -55,26 +85,34 @@ const PropostasPapPage = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {papAmendments.map((amendment) => (
-                <TableRow
-                  key={amendment.id}
-                  className="cursor-pointer"
-                  onClick={() => navigate(`/emenda/${amendment.id}`)}
-                >
-                  <TableCell>{amendment.autor}</TableCell>
-                  <TableCell>{amendment.numero_emenda}</TableCell>
-                  <TableCell>{amendment.numero_proposta}</TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {formatCurrencyBRL(amendment.valor_total)}
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={amendment.situacao} />
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={amendment.status_interno} />
+              {papAmendments.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8">
+                    Nenhuma proposta encontrada.
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                papAmendments.map((amendment) => (
+                  <TableRow
+                    key={amendment.id}
+                    className="cursor-pointer"
+                    onClick={() => navigate(`/emenda/${amendment.id}`)}
+                  >
+                    <TableCell>{amendment.autor}</TableCell>
+                    <TableCell>{amendment.numero_emenda}</TableCell>
+                    <TableCell>{amendment.numero_proposta}</TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {formatCurrencyBRL(amendment.valor_total)}
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={amendment.situacao} />
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={amendment.status_interno} />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

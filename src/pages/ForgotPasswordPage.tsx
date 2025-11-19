@@ -23,6 +23,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { useToast } from '@/components/ui/use-toast'
+import { supabase } from '@/lib/supabase/client'
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -45,18 +46,31 @@ const ForgotPasswordPage = () => {
 
   const onSubmit = async (data: ForgotPasswordFormValues) => {
     setIsLoading(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    setIsLoading(false)
-    setIsSubmitted(true)
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      })
 
-    // In a real app, this would trigger the backend to send an email.
-    // For this mock, we'll just show a success message.
-    // We are not validating if the email exists to prevent enumeration, as per requirements.
-    toast({
-      title: 'Email enviado',
-      description: `Se o email ${data.email} estiver cadastrado, você receberá um link para redefinir sua senha.`,
-    })
+      if (error) {
+        throw error
+      }
+
+      setIsSubmitted(true)
+      toast({
+        title: 'Email enviado',
+        description: `Se o email ${data.email} estiver cadastrado, você receberá um link para redefinir sua senha.`,
+      })
+    } catch (error: any) {
+      console.error('Reset password error:', error)
+      toast({
+        title: 'Erro',
+        description:
+          error.message || 'Não foi possível enviar o email de recuperação.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -92,18 +106,6 @@ const ForgotPasswordPage = () => {
                 >
                   Voltar para o Login
                 </Button>
-              </div>
-              {/* Mock link for demonstration purposes */}
-              <div className="pt-4 border-t">
-                <p className="text-xs text-muted-foreground mb-2">
-                  (Ambiente de Teste) Link simulado:
-                </p>
-                <Link
-                  to={`/reset-password?email=${encodeURIComponent(form.getValues('email'))}&token=mock-token`}
-                  className="text-xs text-blue-600 hover:underline break-all"
-                >
-                  Redefinir Senha Agora
-                </Link>
               </div>
             </div>
           ) : (

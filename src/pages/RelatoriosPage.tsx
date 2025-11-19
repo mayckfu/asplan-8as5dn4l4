@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   Bar,
   BarChart,
@@ -33,15 +33,14 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
-import { ListFilter, FileDown } from 'lucide-react'
+import { ListFilter, FileDown, Loader2 } from 'lucide-react'
 import {
-  amendments,
-  getAmendmentDetails,
   DetailedAmendment,
   TipoRecurso,
   SituacaoOficial,
 } from '@/lib/mock-data'
 import { formatCurrencyBRL } from '@/lib/utils'
+import { supabase } from '@/lib/supabase/client'
 
 const initialFilters: ReportFiltersState = {
   autor: '',
@@ -112,6 +111,51 @@ const exportToCsv = (filename: string, rows: object[]) => {
 
 const RelatoriosPage = () => {
   const [filters, setFilters] = useState<ReportFiltersState>(initialFilters)
+  const [allData, setAllData] = useState<DetailedAmendment[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true)
+      try {
+        const { data: emendas, error: emendasError } = await supabase
+          .from('emendas')
+          .select('*')
+        if (emendasError) throw emendasError
+
+        const { data: despesas, error: despesasError } = await supabase
+          .from('despesas')
+          .select('*, profiles:registrada_por(name)')
+        if (despesasError) throw despesasError
+
+        const detailed: DetailedAmendment[] = (emendas || []).map((e: any) => {
+          const emendaDespesas = (despesas || [])
+            .filter((d: any) => d.emenda_id === e.id)
+            .map((d: any) => ({
+              ...d,
+              registrada_por: d.profiles?.name || 'Desconhecido',
+            }))
+
+          return {
+            ...e,
+            despesas: emendaDespesas,
+            repasses: [], // Not needed for current reports
+            anexos: [],
+            historico: [],
+            pendencias: [],
+          }
+        })
+
+        setAllData(detailed)
+      } catch (error) {
+        console.error('Error fetching report data:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
 
   const handleFilterChange = (newFilters: Partial<ReportFiltersState>) => {
     setFilters((prev) => ({ ...prev, ...newFilters }))
@@ -122,11 +166,7 @@ const RelatoriosPage = () => {
   }
 
   const filteredData = useMemo(() => {
-    const allDetailedAmendments = amendments
-      .map((a) => getAmendmentDetails(a.id))
-      .filter((d): d is DetailedAmendment => !!d)
-
-    return allDetailedAmendments.filter((amendment) => {
+    return allData.filter((amendment) => {
       if (
         filters.autor &&
         !amendment.autor.toLowerCase().includes(filters.autor.toLowerCase())
@@ -210,7 +250,7 @@ const RelatoriosPage = () => {
 
       return true
     })
-  }, [filters])
+  }, [filters, allData])
 
   const allDespesas = useMemo(
     () => filteredData.flatMap((a) => a.despesas),
@@ -306,6 +346,14 @@ const RelatoriosPage = () => {
     )
     return Object.entries(data).map(([name, value]) => ({ name, value }))
   }, [allDespesas])
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-100px)]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">

@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -10,7 +10,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  ResponsiveContainer,
 } from 'recharts'
 import { format } from 'date-fns'
 import {
@@ -19,9 +18,8 @@ import {
   Package,
   Percent,
   ShoppingBag,
-  TrendingUp,
-  TrendingDown,
   Activity,
+  Loader2,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -32,13 +30,16 @@ import {
   ChartLegendContent,
 } from '@/components/ui/chart'
 import {
-  amendments,
-  getAmendmentDetails,
   DetailedAmendment,
+  Amendment,
+  Repasse,
+  Despesa,
+  getAmendmentDetails,
 } from '@/lib/mock-data'
-import { formatCurrencyBRL, formatPercent, cn } from '@/lib/utils'
+import { formatCurrencyBRL, formatPercent } from '@/lib/utils'
 import { PendingItemsSidebar } from '@/components/dashboard/PendingItemsSidebar'
 import { FinancialSummary } from '@/components/dashboard/FinancialSummary'
+import { supabase } from '@/lib/supabase/client'
 
 const COLORS = [
   'hsl(var(--chart-1))',
@@ -49,23 +50,110 @@ const COLORS = [
 ]
 
 const Index = () => {
-  const dashboardData = useMemo(() => {
-    const allDetailedAmendments = amendments
-      .map((a) => getAmendmentDetails(a.id))
-      .filter((d): d is DetailedAmendment => !!d)
+  const [isLoading, setIsLoading] = useState(true)
+  const [amendments, setAmendments] = useState<Amendment[]>([])
+  const [detailedAmendments, setDetailedAmendments] = useState<
+    DetailedAmendment[]
+  >([])
 
-    const allDespesas = allDetailedAmendments.flatMap((a) => a.despesas)
-    const allRepasses = allDetailedAmendments.flatMap((a) => a.repasses)
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true)
+      try {
+        // Fetch basic amendments
+        const { data: emendasData, error: emendasError } = await supabase
+          .from('emendas')
+          .select('*')
+
+        if (emendasError) throw emendasError
+
+        // Fetch related data for details
+        const { data: repassesData, error: repassesError } = await supabase
+          .from('repasses')
+          .select('*')
+
+        if (repassesError) throw repassesError
+
+        const { data: despesasData, error: despesasError } = await supabase
+          .from('despesas')
+          .select('*, profiles:registrada_por(name)')
+
+        if (despesasError) throw despesasError
+
+        const { data: anexosData, error: anexosError } = await supabase
+          .from('anexos')
+          .select('*, profiles:uploader(name)')
+
+        if (anexosError) throw anexosError
+
+        // Transform data to match DetailedAmendment type
+        const detailed: DetailedAmendment[] = (emendasData || []).map(
+          (emenda: any) => {
+            const emendaRepasses = (repassesData || []).filter(
+              (r: any) => r.emenda_id === emenda.id,
+            )
+            const emendaDespesas = (despesasData || []).filter(
+              (d: any) => d.emenda_id === emenda.id,
+            )
+            const emendaAnexos = (anexosData || []).filter(
+              (a: any) => a.emenda_id === emenda.id,
+            )
+
+            // Map despesas to include profile name
+            const mappedDespesas = emendaDespesas.map((d: any) => ({
+              ...d,
+              registrada_por: d.profiles?.name || 'Desconhecido',
+            }))
+
+            // Map anexos to include uploader name
+            const mappedAnexos = emendaAnexos.map((a: any) => ({
+              ...a,
+              uploader: a.profiles?.name || 'Desconhecido',
+            }))
+
+            return {
+              ...emenda,
+              repasses: emendaRepasses,
+              despesas: mappedDespesas,
+              anexos: mappedAnexos,
+              historico: [], // Fetching history might be too heavy for dashboard, can be fetched on demand or simplified
+              pendencias: [], // Calculated in component or fetched if stored
+            }
+          },
+        )
+
+        setAmendments(emendasData as Amendment[])
+        setDetailedAmendments(detailed)
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
+
+  const dashboardData = useMemo(() => {
+    const allDespesas = detailedAmendments.flatMap((a) => a.despesas)
+    const allRepasses = detailedAmendments.flatMap((a) => a.repasses)
 
     const totalPropostas = amendments.length
     const totalValor = amendments.reduce((sum, a) => sum + a.valor_total, 0)
     const totalRepassado = amendments.reduce(
-      (sum, a) => sum + a.total_repassado,
+      (sum, a) => sum + (a.total_repassado || 0), // Use calculated or stored
       0,
     )
-    const totalGasto = amendments.reduce((sum, a) => sum + a.total_gasto, 0)
+    // Recalculate total repassado from repasses table for accuracy
+    const realTotalRepassado = allRepasses.reduce(
+      (sum, r) => (r.status === 'REPASSADO' ? sum + r.valor : sum),
+      0,
+    )
+
+    const totalGasto = allDespesas.reduce((sum, d) => sum + d.valor, 0)
+
     const execucaoMedia =
-      totalRepassado > 0 ? (totalGasto / totalRepassado) * 100 : 0
+      realTotalRepassado > 0 ? (totalGasto / realTotalRepassado) * 100 : 0
     const coberturaMedia = totalValor > 0 ? (totalGasto / totalValor) * 100 : 0
 
     const kpis = [
@@ -85,7 +173,7 @@ const Index = () => {
       },
       {
         title: 'Valor Repassado',
-        value: formatCurrencyBRL(totalRepassado),
+        value: formatCurrencyBRL(realTotalRepassado),
         icon: Banknote,
         description: 'Recursos recebidos',
         trend: 'up',
@@ -128,8 +216,9 @@ const Index = () => {
       (acc, item) => {
         const month = format(new Date(item.data), 'yyyy-MM')
         if (!acc[month]) acc[month] = { month, repasses: 0, despesas: 0 }
-        if ('fonte' in item) acc[month].repasses += item.valor
-        else acc[month].despesas += item.valor
+        if ('fonte' in item) {
+          if (item.status === 'REPASSADO') acc[month].repasses += item.valor
+        } else acc[month].despesas += item.valor
         return acc
       },
       {} as Record<
@@ -145,9 +234,17 @@ const Index = () => {
       kpis,
       gastoPorResponsavelData,
       lineChartData,
-      allDetailedAmendments,
+      allDetailedAmendments: detailedAmendments,
     }
-  }, [])
+  }, [amendments, detailedAmendments])
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-100px)]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
 
   return (
     <div className="grid lg:grid-cols-[1fr_340px] gap-8 items-start pb-8">
