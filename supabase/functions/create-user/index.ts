@@ -1,155 +1,75 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
-import { createClient } from 'npm:@supabase/supabase-js@2'
+import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
-export const onRequest = async (req: Request) => {
+Deno.serve(async (req: Request) => {
+  // Handle CORS preflight request
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // 1. Create a Supabase client with the Auth context of the caller
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      },
-    )
-
-    // 2. Check if the caller is logged in
-    const {
-      data: { user },
-    } = await supabaseClient.auth.getUser()
-
-    if (!user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 401,
-      })
-    }
-
-    // 3. Check if the caller is an ADMIN by querying the profiles table
-    const { data: profile, error: profileError } = await supabaseClient
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (profileError || profile?.role !== 'ADMIN') {
-      return new Response(JSON.stringify({ error: 'Forbidden: Admins only' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 403,
-      })
-    }
-
-    // 4. Parse the request body
-    const {
-      email,
-      password,
-      name,
-      cpf,
-      role,
-      cargo_id,
-      unidade,
-      status,
-      email_confirm,
-    } = await req.json()
-
-    if (!email || !password || !name || !role) {
-      return new Response(
-        JSON.stringify({
-          error: 'Missing required fields (email, password, name, role)',
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400,
-        },
-      )
-    }
-
-    // 5. Initialize Supabase Admin client (Service Role) for privileged operations
+    // Initialize Supabase Admin Client
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
-    // 6. Create the User in Supabase Auth
-    const { data: authData, error: createUserError } =
+    // Parse request body
+    const { email, password, name, role, status, cargo_id, cpf, unidade } =
+      await req.json()
+
+    if (!email || !password) {
+      throw new Error('Email and password are required')
+    }
+
+    // 1. Create the user in Supabase Auth
+    // This triggers the 'on_auth_user_created' trigger in Postgres which creates the initial profile in 'public.profiles'
+    const { data: authData, error: authError } =
       await supabaseAdmin.auth.admin.createUser({
         email,
         password,
-        email_confirm: email_confirm ?? true,
-        user_metadata: {
-          name,
-          role, // Storing role in metadata is good practice for triggers/JWT
-        },
+        email_confirm: true, // Auto-confirm email for admin-created users
+        user_metadata: { name }, // Pass name so trigger can use it
       })
 
-    if (createUserError) {
-      return new Response(JSON.stringify({ error: createUserError.message }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      })
-    }
+    if (authError) throw authError
+    if (!authData.user) throw new Error('User creation failed')
 
-    if (!authData.user) {
-      return new Response(JSON.stringify({ error: 'Failed to create user' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      })
-    }
+    const userId = authData.user.id
 
-    const newUserId = authData.user.id
-
-    // 7. Create the Profile record in the profiles table
-    const { data: newProfile, error: createProfileError } = await supabaseAdmin
+    // 2. Update the profile with additional details
+    // We use 'update' because the trigger should have already inserted the row.
+    const { data: profileData, error: profileError } = await supabaseAdmin
       .from('profiles')
-      .insert([
-        {
-          id: newUserId,
-          email,
-          name,
-          cpf,
-          role,
-          cargo_id,
-          unidade,
-          status: status || 'ATIVO',
-        },
-      ])
+      .update({
+        role: role || 'CONSULTA',
+        status: status || 'PENDENTE',
+        cargo_id,
+        cpf,
+        unidade,
+        // We update name again just in case, or to ensure consistency if metadata wasn't used correctly
+        name: name || authData.user.user_metadata.name,
+      })
+      .eq('id', userId)
       .select()
       .single()
 
-    if (createProfileError) {
-      // If profile creation fails, we should ideally rollback auth creation
-      // For now, we return the error
-      console.error('Error creating profile:', createProfileError)
-
-      // Attempt cleanup (optional but recommended)
-      await supabaseAdmin.auth.admin.deleteUser(newUserId)
-
-      return new Response(
-        JSON.stringify({
-          error: `User created but profile failed: ${createProfileError.message}`,
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 500,
-        },
-      )
+    if (profileError) {
+      // In the rare race condition where trigger hasn't fired yet (unlikely in same region),
+      // or if trigger failed silently, we might get no row updated.
+      // However, for this implementation we rely on the trigger.
+      throw new Error(`Profile update failed: ${profileError.message}`)
     }
 
-    // 8. Return the created profile data
-    return new Response(JSON.stringify(newProfile), {
+    return new Response(JSON.stringify(profileData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
   } catch (error: any) {
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 500,
+      status: 400,
     })
   }
-}
+})
