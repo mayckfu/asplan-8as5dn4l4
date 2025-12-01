@@ -35,6 +35,36 @@ import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase/client'
 import { getSignedUrl } from '@/lib/supabase/storage'
 
+const REQUIRED_PENDENCIES = [
+  {
+    id: 'portaria',
+    descricao: 'Portaria (Campo ou Anexo)',
+    targetType: 'field',
+  },
+  { id: 'proposta', descricao: 'Proposta (Anexo)', targetType: 'tab' },
+  {
+    id: 'cie',
+    descricao: 'CIE ou Deliberação (Campo ou Anexo)',
+    targetType: 'field',
+  },
+  { id: 'oficio', descricao: 'Ofício de Envio (Anexo)', targetType: 'tab' },
+  { id: 'natureza', descricao: 'Natureza', targetType: 'field' },
+  { id: 'objeto', descricao: 'Objeto', targetType: 'field' },
+  {
+    id: 'destino',
+    descricao: 'Destino do Recurso / Responsável',
+    targetType: 'field',
+  },
+  { id: 'valor_repasse', descricao: 'Valor do Repasse', targetType: 'field' },
+  { id: 'observacoes', descricao: 'Observações', targetType: 'field' },
+  {
+    id: 'finalidade',
+    descricao: 'Objeto e Finalidade (Descrição Completa)',
+    targetType: 'field',
+  },
+  { id: 'meta', descricao: 'Meta Operacional', targetType: 'field' },
+] as const
+
 const EmendaDetailPage = () => {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -52,148 +82,132 @@ const EmendaDetailPage = () => {
 
   const isReadOnly = user?.role === 'CONSULTA'
 
-  const calculatePendencies = useCallback(
-    (emenda: DetailedAmendment): Pendencia[] => {
-      const pendencias: Pendencia[] = []
-      const addPendencia = (
-        idSuffix: string,
-        descricao: string,
-        isResolved: boolean,
-        targetType: 'field' | 'tab',
-        targetId: string,
-      ) => {
-        pendencias.push({
-          id: `p-${emenda.id}-${idSuffix}`,
-          descricao,
-          dispensada: false,
-          resolvida: isResolved,
-          targetType,
-          targetId,
-        })
+  const syncPendenciesWithDb = useCallback(async (emendaId: string) => {
+    // 1. Fetch existing pendencies
+    const { data: existingPendencies, error: fetchError } = await supabase
+      .from('pendencias')
+      .select('*')
+      .eq('emenda_id', emendaId)
+
+    if (fetchError) throw fetchError
+
+    // 2. Identify missing pendencies
+    const missingPendencies = REQUIRED_PENDENCIES.filter(
+      (req) => !existingPendencies.some((p) => p.target_id === req.id),
+    )
+
+    // 3. Insert missing pendencies
+    if (missingPendencies.length > 0) {
+      const toInsert = missingPendencies.map((req) => ({
+        emenda_id: emendaId,
+        descricao: req.descricao,
+        target_type: req.targetType,
+        target_id: req.id,
+        resolvida: false,
+        dispensada: false,
+      }))
+
+      const { error: insertError } = await supabase
+        .from('pendencias')
+        .insert(toInsert)
+
+      if (insertError) throw insertError
+    }
+  }, [])
+
+  const checkAutoResolution = useCallback(async (emenda: DetailedAmendment) => {
+    if (!emenda) return
+
+    const updates: { id: string; resolvida: boolean }[] = []
+    const currentPendencies = emenda.pendencias
+
+    const getPendency = (targetId: string) =>
+      currentPendencies.find((p) => p.targetId === targetId)
+
+    // Rules Logic
+    const checks = [
+      {
+        id: 'portaria',
+        condition:
+          !!emenda.portaria || emenda.anexos.some((a) => a.tipo === 'PORTARIA'),
+      },
+      {
+        id: 'proposta',
+        condition: emenda.anexos.some((a) => a.tipo === 'PROPOSTA'),
+      },
+      {
+        id: 'cie',
+        condition:
+          !!emenda.deliberacao_cie ||
+          emenda.anexos.some((a) => a.tipo === 'DELIBERACAO_CIE'),
+      },
+      {
+        id: 'oficio',
+        condition: emenda.anexos.some((a) => a.tipo === 'OFICIO'),
+      },
+      {
+        id: 'natureza',
+        condition: !!emenda.natureza,
+      },
+      {
+        id: 'objeto',
+        condition: !!emenda.objeto_emenda,
+      },
+      {
+        id: 'destino',
+        condition: !!emenda.destino_recurso,
+      },
+      {
+        id: 'valor_repasse',
+        condition: !!emenda.valor_repasse && emenda.valor_repasse > 0,
+      },
+      {
+        id: 'observacoes',
+        condition: !!emenda.observacoes,
+      },
+      {
+        id: 'finalidade',
+        condition: !!emenda.descricao_completa,
+      },
+      {
+        id: 'meta',
+        condition: !!emenda.meta_operacional,
+      },
+    ]
+
+    for (const check of checks) {
+      const pendency = getPendency(check.id)
+      if (
+        pendency &&
+        pendency.resolvida !== check.condition &&
+        !pendency.dispensada
+      ) {
+        updates.push({ id: pendency.id, resolvida: check.condition })
       }
+    }
 
-      // 1. Portaria
-      const hasPortaria =
-        !!emenda.portaria || emenda.anexos.some((a) => a.tipo === 'PORTARIA')
-      addPendencia(
-        'portaria',
-        'Portaria (Campo ou Anexo)',
-        hasPortaria,
-        'field',
-        'portaria',
-      )
-
-      // 2. Proposta
-      const hasProposta = emenda.anexos.some((a) => a.tipo === 'PROPOSTA')
-      addPendencia('proposta', 'Proposta (Anexo)', hasProposta, 'tab', 'anexos')
-
-      // 3. CIE ou Deliberação
-      const hasCie =
-        !!emenda.deliberacao_cie ||
-        emenda.anexos.some((a) => a.tipo === 'DELIBERACAO_CIE')
-      addPendencia(
-        'cie',
-        'CIE ou Deliberação (Campo ou Anexo)',
-        hasCie,
-        'field',
-        'deliberacao_cie',
-      )
-
-      // 4. Ofício de Envio
-      const hasOficio = emenda.anexos.some((a) => a.tipo === 'OFICIO')
-      addPendencia(
-        'oficio',
-        'Ofício de Envio (Anexo)',
-        hasOficio,
-        'tab',
-        'anexos',
-      )
-
-      // 5. Natureza
-      addPendencia(
-        'natureza',
-        'Natureza',
-        !!emenda.natureza,
-        'field',
-        'natureza',
-      )
-
-      // 6. Objeto
-      addPendencia(
-        'objeto',
-        'Objeto',
-        !!emenda.objeto_emenda,
-        'field',
-        'objeto_emenda',
-      )
-
-      // 7. Destino do Recurso
-      addPendencia(
-        'destino',
-        'Destino do Recurso / Responsável',
-        !!emenda.destino_recurso,
-        'field',
-        'destino_recurso',
-      )
-
-      // 8. Valor do Repasse
-      addPendencia(
-        'valor_repasse',
-        'Valor do Repasse',
-        !!emenda.valor_repasse && emenda.valor_repasse > 0,
-        'field',
-        'valor_repasse',
-      )
-
-      // 9. Observações
-      addPendencia(
-        'observacoes',
-        'Observações',
-        !!emenda.observacoes,
-        'field',
-        'observacoes',
-      )
-
-      // 10. Objeto e Finalidade
-      addPendencia(
-        'finalidade',
-        'Objeto e Finalidade (Descrição Completa)',
-        !!emenda.descricao_completa,
-        'field',
-        'descricao_completa',
-      )
-
-      // 11. Meta Operacional
-      addPendencia(
-        'meta',
-        'Meta Operacional',
-        !!emenda.meta_operacional,
-        'field',
-        'meta_operacional',
-      )
-
-      // Extra: Despesas > Repasses
-      if (emenda.total_gasto > emenda.total_repassado) {
-        pendencias.push({
-          id: `p-${emenda.id}-despesas-overflow`,
-          descricao: 'Despesas excedem o valor repassado',
-          dispensada: false,
-          resolvida: false,
-          targetType: 'tab',
-          targetId: 'despesas',
-        })
+    if (updates.length > 0) {
+      // Update DB
+      for (const update of updates) {
+        await supabase
+          .from('pendencias')
+          .update({ resolvida: update.resolvida })
+          .eq('id', update.id)
       }
-
-      return pendencias
-    },
-    [],
-  )
+      // Refetch details to update UI
+      return true
+    }
+    return false
+  }, [])
 
   const fetchEmendaDetails = useCallback(async () => {
     if (!id) return
     setIsLoading(true)
     setError(null)
     try {
+      // Ensure pendencies exist
+      await syncPendenciesWithDb(id)
+
       const { data: emenda, error: emendaError } = await supabase
         .from('emendas')
         .select('*')
@@ -231,17 +245,23 @@ const EmendaDetailPage = () => {
 
       if (historicoError) throw historicoError
 
-      // Map despesas to include profile name
+      const { data: pendenciasData, error: pendenciasError } = await supabase
+        .from('pendencias')
+        .select('*')
+        .eq('emenda_id', id)
+
+      if (pendenciasError) throw pendenciasError
+
+      // Map despesas
       const mappedDespesas = despesas.map((d: any) => ({
         ...d,
         registrada_por: d.profiles?.name || 'Desconhecido',
       }))
 
-      // Map anexos to include uploader name and sign URLs
+      // Map anexos
       const mappedAnexos = await Promise.all(
         anexos.map(async (a: any) => {
           let signedUrl = a.url
-          // Check if it's a storage path (not http)
           if (!a.url.startsWith('http')) {
             const signed = await getSignedUrl(a.url)
             if (signed) signedUrl = signed
@@ -260,7 +280,17 @@ const EmendaDetailPage = () => {
         feito_por: h.profiles?.name || 'Desconhecido',
       }))
 
-      // Calculate totals
+      // Map pendencias to UI model
+      const mappedPendencias: Pendencia[] = pendenciasData.map((p: any) => ({
+        id: p.id,
+        descricao: p.descricao,
+        dispensada: p.dispensada,
+        resolvida: p.resolvida,
+        justificativa: p.justificativa,
+        targetType: p.target_type,
+        targetId: p.target_id,
+      }))
+
       const totalRepassado = repasses.reduce(
         (sum: number, r: any) =>
           r.status === 'REPASSADO' ? sum + Number(r.valor) : sum,
@@ -277,13 +307,40 @@ const EmendaDetailPage = () => {
         despesas: mappedDespesas as Despesa[],
         anexos: mappedAnexos as Anexo[],
         historico: mappedHistorico as Historico[],
-        pendencias: [], // Calculated below
+        pendencias: mappedPendencias,
         total_repassado: totalRepassado,
         total_gasto: totalGasto,
       }
 
-      const calculatedPendencies = calculatePendencies(detailedEmenda)
-      setEmendaData({ ...detailedEmenda, pendencias: calculatedPendencies })
+      setEmendaData(detailedEmenda)
+
+      // Run auto-check once loaded to sync state if things changed externally
+      const updated = await checkAutoResolution(detailedEmenda)
+      if (updated) {
+        // If updated, we should just refetch pendencias to be clean, but for now UI is consistent on next reload or we can mutate state.
+        // Let's just update local state to reflect what we just saved.
+        // Ideally fetchEmendaDetails runs again but to avoid loops we skip or use a flag.
+        // For this implementation, we'll assume next action triggers reload or user sees it on refresh.
+        // Actually, let's do a quick state update.
+        const { data: newPendencias } = await supabase
+          .from('pendencias')
+          .select('*')
+          .eq('emenda_id', id)
+        if (newPendencias) {
+          const refreshedPendencias = newPendencias.map((p: any) => ({
+            id: p.id,
+            descricao: p.descricao,
+            dispensada: p.dispensada,
+            resolvida: p.resolvida,
+            justificativa: p.justificativa,
+            targetType: p.target_type,
+            targetId: p.target_id,
+          }))
+          setEmendaData((prev) =>
+            prev ? { ...prev, pendencias: refreshedPendencias } : null,
+          )
+        }
+      }
     } catch (error: any) {
       console.error('Error fetching emenda details:', error)
       setError(error.message || 'Erro ao carregar detalhes.')
@@ -295,17 +352,20 @@ const EmendaDetailPage = () => {
     } finally {
       setIsLoading(false)
     }
-  }, [id, toast, calculatePendencies])
+  }, [id, toast, syncPendenciesWithDb, checkAutoResolution])
 
   useEffect(() => {
     fetchEmendaDetails()
   }, [fetchEmendaDetails])
 
+  const refreshData = async () => {
+    await fetchEmendaDetails()
+  }
+
   const handleEmendaDataChange = async (updatedEmenda: DetailedAmendment) => {
     if (isReadOnly || !emendaData) return
 
     try {
-      // Update main emenda table
       const { error } = await supabase
         .from('emendas')
         .update({
@@ -329,8 +389,15 @@ const EmendaDetailPage = () => {
 
       if (error) throw error
 
-      const newPendencies = calculatePendencies(updatedEmenda)
-      setEmendaData({ ...updatedEmenda, pendencias: newPendencies })
+      // Optimistic update
+      setEmendaData(updatedEmenda)
+
+      // Check checklist
+      await checkAutoResolution(updatedEmenda)
+
+      // Refresh to get latest (including audit logs if needed)
+      refreshData()
+
       toast({ title: 'Dados atualizados com sucesso!' })
     } catch (error: any) {
       console.error('Error updating emenda:', error)
@@ -352,9 +419,15 @@ const EmendaDetailPage = () => {
 
   const handleAddRepasse = async (repasse: Repasse) => {
     try {
+      // Using ID from URL directly to ensure reliability
+      if (!id) throw new Error('Emenda ID not found')
+
+      // Omit ID to let DB generate it (gen_random_uuid)
+      const { id: _, ...repasseData } = repasse
+
       const { data, error } = await supabase
         .from('repasses')
-        .insert([{ ...repasse, emenda_id: id, id: undefined }])
+        .insert([{ ...repasseData, emenda_id: id }])
         .select()
         .single()
 
@@ -367,11 +440,14 @@ const EmendaDetailPage = () => {
           (sum, r) => (r.status === 'REPASSADO' ? sum + Number(r.valor) : sum),
           0,
         )
-        return {
+        const newData = {
           ...prev,
           repasses: newRepasses,
           total_repassado: totalRepassado,
         }
+        // Check auto resolution immediately
+        checkAutoResolution(newData)
+        return newData
       })
       toast({ title: 'Repasse adicionado com sucesso!' })
     } catch (error: any) {
@@ -407,11 +483,13 @@ const EmendaDetailPage = () => {
           (sum, r) => (r.status === 'REPASSADO' ? sum + Number(r.valor) : sum),
           0,
         )
-        return {
+        const newData = {
           ...prev,
           repasses: newRepasses,
           total_repassado: totalRepassado,
         }
+        checkAutoResolution(newData)
+        return newData
       })
       toast({ title: 'Repasse atualizado com sucesso!' })
     } catch (error: any) {
@@ -456,13 +534,15 @@ const EmendaDetailPage = () => {
 
   const handleAddDespesa = async (despesa: Despesa) => {
     try {
+      if (!id) throw new Error('Emenda ID not found')
+      const { id: _, ...despesaData } = despesa
+
       const { data, error } = await supabase
         .from('despesas')
         .insert([
           {
-            ...despesa,
+            ...despesaData,
             emenda_id: id,
-            id: undefined,
             registrada_por: user?.id,
           },
         ])
@@ -563,13 +643,15 @@ const EmendaDetailPage = () => {
 
   const handleAddAnexo = async (anexo: Anexo) => {
     try {
+      if (!id) throw new Error('Emenda ID not found')
+      const { id: _, ...anexoData } = anexo
+
       const { data, error } = await supabase
         .from('anexos')
         .insert([
           {
-            ...anexo,
+            ...anexoData,
             emenda_id: id,
-            id: undefined,
             uploader: user?.id,
           },
         ])
@@ -582,7 +664,9 @@ const EmendaDetailPage = () => {
 
       setEmendaData((prev) => {
         if (!prev) return null
-        return { ...prev, anexos: [...prev.anexos, newAnexo as Anexo] }
+        const newData = { ...prev, anexos: [...prev.anexos, newAnexo as Anexo] }
+        checkAutoResolution(newData)
+        return newData
       })
       toast({ title: 'Anexo adicionado com sucesso!' })
     } catch (error: any) {
@@ -610,10 +694,12 @@ const EmendaDetailPage = () => {
 
       setEmendaData((prev) => {
         if (!prev) return null
-        return {
+        const newData = {
           ...prev,
           anexos: prev.anexos.map((a) => (a.id === anexo.id ? anexo : a)),
         }
+        checkAutoResolution(newData)
+        return newData
       })
       toast({ title: 'Anexo atualizado com sucesso!' })
     } catch (error: any) {
@@ -632,7 +718,12 @@ const EmendaDetailPage = () => {
 
       setEmendaData((prev) => {
         if (!prev) return null
-        return { ...prev, anexos: prev.anexos.filter((a) => a.id !== anexoId) }
+        const newData = {
+          ...prev,
+          anexos: prev.anexos.filter((a) => a.id !== anexoId),
+        }
+        checkAutoResolution(newData)
+        return newData
       })
       toast({ title: 'Anexo excluído com sucesso!' })
     } catch (error: any) {
@@ -662,7 +753,10 @@ const EmendaDetailPage = () => {
 
   const handlePendencyClick = (pendencia: Pendencia) => {
     if (pendencia.targetType === 'field') {
-      if (pendencia.targetId === 'descricao_completa') {
+      if (
+        pendencia.targetId === 'descricao_completa' ||
+        pendencia.targetId === 'finalidade'
+      ) {
         const element = document.getElementById('objeto-finalidade-section')
         if (element) {
           element.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -671,7 +765,11 @@ const EmendaDetailPage = () => {
         dadosTecnicosRef.current?.triggerEditAndFocus(pendencia.targetId)
       }
     } else if (pendencia.targetType === 'tab') {
-      setActiveTab(pendencia.targetId)
+      setActiveTab(
+        pendencia.targetId === 'proposta' || pendencia.targetId === 'oficio'
+          ? 'anexos'
+          : pendencia.targetId,
+      )
       setTimeout(() => {
         switch (pendencia.targetId) {
           case 'repasses':
@@ -681,6 +779,8 @@ const EmendaDetailPage = () => {
             despesasTabRef.current?.triggerAdd()
             break
           case 'anexos':
+          case 'proposta':
+          case 'oficio':
             anexosTabRef.current?.scrollIntoView({ behavior: 'smooth' })
             break
         }
@@ -776,6 +876,15 @@ const EmendaDetailPage = () => {
             ref={repassesTabRef}
             repasses={emendaData.repasses}
             onRepassesChange={(repasses) => {
+              // Optimistic handling (already handled by helper methods but needed for completeness if this prop is used directly)
+              // Since helper methods (handleAddRepasse etc) update state, we can just refresh list if needed,
+              // but strictly the helpers handle the DB and State update.
+              // This prop is mostly for the TAB to notify PARENT.
+              // The Tab calls `handleAddRepasse` indirectly? No, the Tab manages UI and calls `handleAddRepasse` logic if we passed it down.
+              // In this architecture, `EmendaRepassesTab` has its own Dialog logic but calls `onRepassesChange`.
+              // Let's look at `EmendaRepassesTab.tsx`. It calls `onRepassesChange`.
+              // We need to intercept this and call our handlers.
+
               const oldRepasses = emendaData.repasses
               if (repasses.length > oldRepasses.length) {
                 const newRepasse = repasses.find(

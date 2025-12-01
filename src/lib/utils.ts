@@ -26,8 +26,11 @@ export function formatPercent(
 
 export function parseCurrencyBRL(value: string): number {
   if (!value) return 0
+  // If input is already a number type (edge case), return it
+  if (typeof value === 'number') return value
+
   // Remove "R$", whitespace, and dots (thousand separators)
-  const cleanValue = value.replace(/[R$\s.]/g, '')
+  const cleanValue = value.toString().replace(/[R$\s.]/g, '')
   // Replace comma with dot for decimal
   const dotValue = cleanValue.replace(',', '.')
   const number = parseFloat(dotValue)

@@ -36,7 +36,7 @@ const repasseSchema = z.object({
   data: z.date({ required_error: 'A data é obrigatória.' }),
   valor: z.coerce
     .number({ invalid_type_error: 'O valor deve ser um número.' })
-    .positive('O valor deve ser positivo.'),
+    .positive('O valor deve ser maior que zero.'),
   fonte: z.string().min(1, 'A fonte é obrigatória.'),
   status: z.enum(['REPASSADO', 'PENDENTE', 'CANCELADO'], {
     required_error: 'O status é obrigatório.',
@@ -70,7 +70,7 @@ export const RepasseForm = ({
 
   const handleSubmit = (values: RepasseFormValues) => {
     const newRepasse: Repasse = {
-      id: repasse?.id || `R-${Date.now()}`,
+      id: repasse?.id || '', // ID will be handled by backend/DB if empty, but keeping compatibility
       ...values,
       data: values.data.toISOString(),
     }
