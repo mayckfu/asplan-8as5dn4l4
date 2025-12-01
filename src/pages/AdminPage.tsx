@@ -112,51 +112,39 @@ const AdminPage = () => {
 
   const handleCreateUser = async (newUser: Omit<User, 'id' | 'created_at'>) => {
     try {
-      // 1. Call Edge Function to create user in Auth (returns the new user ID)
-      const { data: authData, error: authError } =
+      // Call Edge Function to create user in Auth AND Profiles
+      const { data: profileData, error: funcError } =
         await supabase.functions.invoke('create-user', {
           body: {
             email: newUser.email,
             password: newUser.password,
-            email_confirm: true,
-          },
-        })
-
-      if (authError)
-        throw new Error(
-          authError.message || 'Erro na função de criação de usuário',
-        )
-      if (authData?.error) throw new Error(authData.error)
-      if (!authData?.user?.id) throw new Error('ID do usuário não retornado.')
-
-      const newUserId = authData.user.id
-
-      // 2. Create Profile for the new user
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .insert([
-          {
-            id: newUserId,
             name: newUser.name,
-            email: newUser.email,
             cpf: newUser.cpf,
             role: newUser.role,
             cargo_id: newUser.cargo_id,
             unidade: newUser.unidade,
             status: newUser.status,
+            email_confirm: true,
           },
-        ])
-        .select()
-        .single()
+        })
 
-      if (profileError)
-        throw new Error(`Erro ao criar perfil: ${profileError.message}`)
+      if (funcError) {
+        throw new Error(funcError.message || 'Erro ao conectar com o servidor')
+      }
 
-      // 3. Manually log CREATE_USER action (best effort)
+      if (profileData?.error) {
+        throw new Error(profileData.error)
+      }
+
+      if (!profileData || !profileData.id) {
+        throw new Error('Dados do usuário não retornados.')
+      }
+
+      // Log CREATE_USER action
       await supabase.from('audit_logs').insert([
         {
           table_name: 'profiles',
-          record_id: newUserId,
+          record_id: profileData.id,
           action: 'CREATE_USER',
           new_data: profileData,
           changed_by: user?.id,
