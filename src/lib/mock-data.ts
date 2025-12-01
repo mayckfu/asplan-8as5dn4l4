@@ -40,13 +40,20 @@ export const StatusInterno = {
     'Proposta Classificada aguardando autorização Secretaria',
 } as const
 
+export const TipoEmenda = {
+  individual: 'Individual',
+  bancada: 'Bancada',
+  comissao: 'Comissão',
+} as const
+
 export type TipoRecursoEnum = keyof typeof TipoRecurso
 export type SituacaoOficialEnum = keyof typeof SituacaoOficial
 export type StatusInternoEnum = keyof typeof StatusInterno
+export type TipoEmendaEnum = keyof typeof TipoEmenda
 
 export type Amendment = {
   id: string
-  tipo: string
+  tipo: TipoEmendaEnum
   tipo_recurso: TipoRecursoEnum
   autor: string
   parlamentar: string

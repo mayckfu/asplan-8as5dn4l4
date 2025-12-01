@@ -112,7 +112,7 @@ const AdminPage = () => {
 
   const handleCreateUser = async (newUser: Omit<User, 'id' | 'created_at'>) => {
     try {
-      // Call Edge Function to create user in Auth
+      // 1. Call Edge Function to create user in Auth (returns the new user ID)
       const { data: authData, error: authError } =
         await supabase.functions.invoke('create-user', {
           body: {
@@ -122,12 +122,16 @@ const AdminPage = () => {
           },
         })
 
-      if (authError) throw new Error(authError.message || 'Erro na função')
+      if (authError)
+        throw new Error(
+          authError.message || 'Erro na função de criação de usuário',
+        )
       if (authData?.error) throw new Error(authData.error)
+      if (!authData?.user?.id) throw new Error('ID do usuário não retornado.')
 
       const newUserId = authData.user.id
 
-      // Create Profile
+      // 2. Create Profile for the new user
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .insert([
@@ -145,9 +149,12 @@ const AdminPage = () => {
         .select()
         .single()
 
-      if (profileError) throw profileError
+      if (profileError)
+        throw new Error(`Erro ao criar perfil: ${profileError.message}`)
 
-      // Manually log CREATE_USER action
+      // 3. Manually log CREATE_USER action (best effort)
+      // We use select to get current user info for changed_by if possible, or rely on context
+      // RLS allows Admins to insert into audit_logs
       await supabase.from('audit_logs').insert([
         {
           table_name: 'profiles',

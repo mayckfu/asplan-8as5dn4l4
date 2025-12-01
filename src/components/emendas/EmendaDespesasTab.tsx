@@ -47,6 +47,7 @@ import { formatCurrencyBRL } from '@/lib/utils'
 import { useToast } from '@/components/ui/use-toast'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { MoneyInput } from '@/components/ui/money-input'
 import {
   Select,
   SelectContent,
@@ -88,6 +89,7 @@ export const EmendaDespesasTab = forwardRef<
       setFormData({
         data: new Date().toISOString().split('T')[0],
         status_execucao: 'PLANEJADA',
+        valor: 0,
       })
       setIsFormOpen(true)
     },
@@ -98,6 +100,7 @@ export const EmendaDespesasTab = forwardRef<
     setFormData({
       data: new Date().toISOString().split('T')[0],
       status_execucao: 'PLANEJADA',
+      valor: 0,
     })
     setIsFormOpen(true)
   }
@@ -295,15 +298,14 @@ export const EmendaDespesasTab = forwardRef<
               <Label htmlFor="valor" className="text-right">
                 Valor
               </Label>
-              <Input
-                id="valor"
-                type="number"
-                className="col-span-3"
-                value={formData.valor || ''}
-                onChange={(e) =>
-                  setFormData({ ...formData, valor: Number(e.target.value) })
-                }
-              />
+              <div className="col-span-3">
+                <MoneyInput
+                  value={formData.valor || 0}
+                  onChange={(value) =>
+                    setFormData({ ...formData, valor: value })
+                  }
+                />
+              </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="status" className="text-right">

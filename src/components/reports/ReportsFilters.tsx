@@ -1,6 +1,11 @@
 import { DateRange } from 'react-day-picker'
 import { X } from 'lucide-react'
-import { TipoRecurso, SituacaoOficial, StatusInterno } from '@/lib/mock-data'
+import {
+  TipoRecurso,
+  SituacaoOficial,
+  StatusInterno,
+  TipoEmenda,
+} from '@/lib/mock-data'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -11,15 +16,17 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { DateRangePicker } from '@/components/ui/date-range-picker'
+import { MoneyInput } from '@/components/ui/money-input'
 
 export type ReportFiltersState = {
   autor: string
+  tipo: string
   tipoRecurso: string
   situacao: string
   statusInterno: string
   periodo: DateRange | undefined
-  valorMin: string
-  valorMax: string
+  valorMin: number
+  valorMax: number
   responsavel: string
   unidade: string
   demanda: string
@@ -47,6 +54,9 @@ export const ReportsFilters = ({
   const handleDateChange = (date: DateRange | undefined) => {
     onFilterChange({ periodo: date })
   }
+  const handleMoneyChange = (name: string) => (value: number) => {
+    onFilterChange({ [name]: value })
+  }
 
   return (
     <div className="space-y-4 p-1">
@@ -57,6 +67,19 @@ export const ReportsFilters = ({
           value={filters.autor}
           onChange={handleInputChange}
         />
+        <Select value={filters.tipo} onValueChange={handleSelectChange('tipo')}>
+          <SelectTrigger>
+            <SelectValue placeholder="Tipo de Emenda" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas</SelectItem>
+            {Object.entries(TipoEmenda).map(([key, value]) => (
+              <SelectItem key={key} value={key}>
+                {value}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Select
           value={filters.tipoRecurso}
           onValueChange={handleSelectChange('tipoRecurso')}
@@ -109,22 +132,16 @@ export const ReportsFilters = ({
           date={filters.periodo}
           onDateChange={handleDateChange}
         />
-        <div className="flex items-center gap-2">
-          <Input
-            type="number"
-            placeholder="Valor Mín."
-            name="valorMin"
-            value={filters.valorMin}
-            onChange={handleInputChange}
-          />
-          <Input
-            type="number"
-            placeholder="Valor Máx."
-            name="valorMax"
-            value={filters.valorMax}
-            onChange={handleInputChange}
-          />
-        </div>
+        <MoneyInput
+          placeholder="Valor Mín."
+          value={filters.valorMin}
+          onChange={handleMoneyChange('valorMin')}
+        />
+        <MoneyInput
+          placeholder="Valor Máx."
+          value={filters.valorMax}
+          onChange={handleMoneyChange('valorMax')}
+        />
         <Input
           placeholder="Filtrar por Responsável..."
           name="responsavel"

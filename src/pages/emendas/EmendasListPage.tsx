@@ -12,7 +12,12 @@ import {
   AlertTriangle,
 } from 'lucide-react'
 import { parse, format } from 'date-fns'
-import { Amendment, SituacaoOficial, StatusInterno } from '@/lib/mock-data'
+import {
+  Amendment,
+  SituacaoOficial,
+  StatusInterno,
+  TipoEmenda,
+} from '@/lib/mock-data'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -185,6 +190,7 @@ const EmendasListPage = () => {
     const toStr = searchParams.get('to')
     return {
       autor: searchParams.get('autor') ?? '',
+      tipo: searchParams.get('tipo') ?? 'all',
       tipoRecurso: searchParams.get('tipoRecurso') ?? 'all',
       situacaoOficial: searchParams.get('situacaoOficial') ?? 'all',
       statusInterno: searchParams.get('statusInterno') ?? 'all',
@@ -194,8 +200,8 @@ const EmendasListPage = () => {
             to: toStr ? parse(toStr, 'yyyy-MM-dd', new Date()) : undefined,
           }
         : undefined,
-      valorMin: searchParams.get('valorMin') ?? '',
-      valorMax: searchParams.get('valorMax') ?? '',
+      valorMin: parseFloat(searchParams.get('valorMin') || '0'),
+      valorMax: parseFloat(searchParams.get('valorMax') || '0'),
       comPortaria: searchParams.get('comPortaria') === 'true',
       comCIE: searchParams.get('comCIE') === 'true',
       comAnexos: searchParams.get('comAnexos') === 'true',
@@ -233,7 +239,12 @@ const EmendasListPage = () => {
             newParams.delete('from')
             newParams.delete('to')
           }
-        } else if (value === '' || value === 'all' || value === false) {
+        } else if (
+          value === '' ||
+          value === 'all' ||
+          value === false ||
+          value === 0
+        ) {
           newParams.delete(key)
         } else {
           newParams.set(key, String(value))
@@ -344,6 +355,8 @@ const EmendasListPage = () => {
           !amendment.autor.toLowerCase().includes(filters.autor.toLowerCase())
         )
           return false
+        if (filters.tipo !== 'all' && amendment.tipo !== filters.tipo)
+          return false
         if (
           filters.tipoRecurso !== 'all' &&
           amendment.tipo_recurso !== filters.tipoRecurso
@@ -359,15 +372,9 @@ const EmendasListPage = () => {
           amendment.status_interno !== filters.statusInterno
         )
           return false
-        if (
-          filters.valorMin &&
-          amendment.valor_total < parseFloat(filters.valorMin)
-        )
+        if (filters.valorMin && amendment.valor_total < filters.valorMin)
           return false
-        if (
-          filters.valorMax &&
-          amendment.valor_total > parseFloat(filters.valorMax)
-        )
+        if (filters.valorMax && amendment.valor_total > filters.valorMax)
           return false
         if (filters.periodo?.from) {
           const amendmentDate = new Date(amendment.created_at)
@@ -422,7 +429,7 @@ const EmendasListPage = () => {
 
   const handleExport = () => {
     const dataToExport = filteredAmendments.map((a) => ({
-      Tipo: a.tipo,
+      Tipo: TipoEmenda[a.tipo] || a.tipo,
       Autor: a.autor,
       'Nº Emenda': a.numero_emenda,
       'Nº Proposta': a.numero_proposta,
@@ -575,8 +582,8 @@ const EmendasListPage = () => {
                         className="h-auto py-2 cursor-pointer odd:bg-white even:bg-neutral-50 hover:bg-neutral-100 dark:odd:bg-card dark:even:bg-muted/50 dark:hover:bg-muted text-neutral-600 dark:text-neutral-400"
                         onClick={() => navigate(`/emenda/${amendment.id}`)}
                       >
-                        <TableCell className="align-top">
-                          {amendment.tipo}
+                        <TableCell className="align-top capitalize">
+                          {TipoEmenda[amendment.tipo] || amendment.tipo}
                         </TableCell>
                         <TableCell className="align-top font-medium text-neutral-900 dark:text-neutral-200">
                           {amendment.autor}

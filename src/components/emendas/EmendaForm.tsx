@@ -21,18 +21,23 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
+import { MoneyInput } from '@/components/ui/money-input'
 import {
   Amendment,
   TipoRecurso,
   SituacaoOficial,
   StatusInterno,
+  TipoEmenda,
   TipoRecursoEnum,
   SituacaoOficialEnum,
   StatusInternoEnum,
+  TipoEmendaEnum,
 } from '@/lib/mock-data'
 
 const emendaSchema = z.object({
-  tipo: z.string().min(1, 'O tipo é obrigatório.'),
+  tipo: z.enum(['individual', 'bancada', 'comissao'], {
+    required_error: 'O tipo é obrigatório.',
+  }),
   tipo_recurso: z.string().min(1, 'O tipo de recurso é obrigatório.'),
   autor: z.string().min(1, 'O autor é obrigatório.'),
   parlamentar: z.string().min(1, 'O parlamentar é obrigatório.'),
@@ -64,7 +69,7 @@ export const EmendaForm = ({
   const form = useForm<EmendaFormValues>({
     resolver: zodResolver(emendaSchema),
     defaultValues: {
-      tipo: initialData?.tipo || '',
+      tipo: initialData?.tipo || 'individual',
       tipo_recurso: initialData?.tipo_recurso || '',
       autor: initialData?.autor || '',
       parlamentar: initialData?.parlamentar || '',
@@ -101,6 +106,7 @@ export const EmendaForm = ({
   const handleSubmit = (values: EmendaFormValues) => {
     onSubmit({
       ...values,
+      tipo: values.tipo as TipoEmendaEnum,
       tipo_recurso: values.tipo_recurso as TipoRecursoEnum,
       situacao: values.situacao as SituacaoOficialEnum,
       status_interno: values.status_interno as StatusInternoEnum,
@@ -129,9 +135,11 @@ export const EmendaForm = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="Individual">Individual</SelectItem>
-                    <SelectItem value="Bancada">Bancada</SelectItem>
-                    <SelectItem value="Comissão">Comissão</SelectItem>
+                    {Object.entries(TipoEmenda).map(([key, label]) => (
+                      <SelectItem key={key} value={key}>
+                        {label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -230,7 +238,11 @@ export const EmendaForm = ({
               <FormItem>
                 <FormLabel>Valor Total (R$)</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="0,00" {...field} />
+                  <MoneyInput
+                    placeholder="0,00"
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

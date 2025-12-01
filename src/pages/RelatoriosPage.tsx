@@ -44,12 +44,13 @@ import { supabase } from '@/lib/supabase/client'
 
 const initialFilters: ReportFiltersState = {
   autor: '',
+  tipo: 'all',
   tipoRecurso: 'all',
   situacao: 'all',
   statusInterno: 'all',
   periodo: undefined,
-  valorMin: '',
-  valorMax: '',
+  valorMin: 0,
+  valorMax: 0,
   responsavel: '',
   unidade: '',
   demanda: '',
@@ -172,6 +173,8 @@ const RelatoriosPage = () => {
         !amendment.autor.toLowerCase().includes(filters.autor.toLowerCase())
       )
         return false
+      if (filters.tipo !== 'all' && amendment.tipo !== filters.tipo)
+        return false
       if (
         filters.tipoRecurso !== 'all' &&
         amendment.tipo_recurso !== filters.tipoRecurso
@@ -184,15 +187,9 @@ const RelatoriosPage = () => {
         amendment.status_interno !== filters.statusInterno
       )
         return false
-      if (
-        filters.valorMin &&
-        amendment.valor_total < parseFloat(filters.valorMin)
-      )
+      if (filters.valorMin && amendment.valor_total < filters.valorMin)
         return false
-      if (
-        filters.valorMax &&
-        amendment.valor_total > parseFloat(filters.valorMax)
-      )
+      if (filters.valorMax && amendment.valor_total > filters.valorMax)
         return false
       if (filters.periodo?.from) {
         const amendmentDate = new Date(amendment.created_at)
@@ -346,6 +343,41 @@ const RelatoriosPage = () => {
     )
     return Object.entries(data).map(([name, value]) => ({ name, value }))
   }, [allDespesas])
+
+  // New Grouping Logic: Parlamentar x Responsável Execution
+  const executionByParlamentarAndResponsavel = useMemo(() => {
+    const grouping: Record<string, Record<string, number>> = {}
+
+    allData.forEach((emenda) => {
+      const parlamentar = emenda.parlamentar || 'Não informado'
+      if (!grouping[parlamentar]) {
+        grouping[parlamentar] = {}
+      }
+
+      emenda.despesas.forEach((despesa) => {
+        const responsavel = despesa.registrada_por || 'Desconhecido'
+        grouping[parlamentar][responsavel] =
+          (grouping[parlamentar][responsavel] || 0) + despesa.valor
+      })
+    })
+
+    return Object.entries(grouping)
+      .map(([parlamentar, responsaveis]) => {
+        const totalExecuted = Object.values(responsaveis).reduce(
+          (a, b) => a + b,
+          0,
+        )
+        return {
+          parlamentar,
+          responsaveis: Object.entries(responsaveis).map(([name, value]) => ({
+            name,
+            value,
+          })),
+          totalExecuted,
+        }
+      })
+      .sort((a, b) => b.totalExecuted - a.totalExecuted)
+  }, [allData])
 
   if (isLoading) {
     return (
@@ -564,6 +596,62 @@ const RelatoriosPage = () => {
               size="sm"
               onClick={() =>
                 exportToCsv('execucao_responsavel.csv', executionByResponsavel)
+              }
+            >
+              Exportar CSV
+            </Button>
+          </CardFooter>
+        </Card>
+
+        {/* New Chart: Execution by Parlamentar */}
+        <Card className="lg:col-span-2 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
+          <CardHeader>
+            <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
+              Execução por Parlamentar e Responsável
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={{}} className="w-full h-[400px]">
+              <BarChart
+                data={executionByParlamentarAndResponsavel}
+                layout="vertical"
+                margin={{ left: 20 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  type="number"
+                  tickFormatter={(v) => formatCurrencyBRL(v)}
+                />
+                <YAxis type="category" dataKey="parlamentar" width={150} />
+                <Tooltip
+                  content={
+                    <ChartTooltipContent
+                      formatter={formatCurrencyBRL}
+                      className="tabular-nums"
+                    />
+                  }
+                />
+                <Bar
+                  dataKey="totalExecuted"
+                  fill="hsl(var(--chart-2))"
+                  radius={4}
+                  name="Total Executado"
+                />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+          <CardFooter>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                exportToCsv(
+                  'execucao_parlamentar.csv',
+                  executionByParlamentarAndResponsavel.map((p) => ({
+                    Parlamentar: p.parlamentar,
+                    'Total Executado': p.totalExecuted,
+                  })),
+                )
               }
             >
               Exportar CSV
