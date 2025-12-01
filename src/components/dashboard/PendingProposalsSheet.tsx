@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Sheet,
   SheetContent,
@@ -8,11 +8,12 @@ import {
 } from '@/components/ui/sheet'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { DetailedAmendment } from '@/lib/mock-data'
 import { formatCurrencyBRL } from '@/lib/utils'
 import { StatusBadge } from '@/components/StatusBadge'
-import { Users, ChevronRight } from 'lucide-react'
+import { Users, ChevronRight, ArrowLeft } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 interface PendingProposalsSheetProps {
   isOpen: boolean
@@ -27,7 +28,9 @@ export const PendingProposalsSheet = ({
   pendingType,
   proposals,
 }: PendingProposalsSheetProps) => {
-  const navigate = useNavigate()
+  const [selectedParliamentarian, setSelectedParliamentarian] = useState<
+    string | null
+  >(null)
 
   const parliamentarians = useMemo(() => {
     if (pendingType !== 'Por Parlamentar') return []
@@ -52,38 +55,69 @@ export const PendingProposalsSheet = ({
     return Object.values(groups).sort((a, b) => b.totalValue - a.totalValue)
   }, [pendingType, proposals])
 
+  const filteredProposals = useMemo(() => {
+    if (selectedParliamentarian) {
+      return proposals.filter(
+        (p) => (p.parlamentar || 'Desconhecido') === selectedParliamentarian,
+      )
+    }
+    return proposals
+  }, [selectedParliamentarian, proposals])
+
   if (!pendingType) return null
 
-  const handleParliamentarianClick = (name: string) => {
-    onOpenChange(false)
-    navigate(`/emendas?autor=${encodeURIComponent(name)}`)
+  const handleBack = () => {
+    setSelectedParliamentarian(null)
+  }
+
+  const handleClose = (open: boolean) => {
+    if (!open) {
+      setSelectedParliamentarian(null)
+    }
+    onOpenChange(open)
   }
 
   return (
-    <Sheet open={isOpen} onOpenChange={onOpenChange}>
+    <Sheet open={isOpen} onOpenChange={handleClose}>
       <SheetContent className="w-full sm:max-w-lg">
         <SheetHeader>
-          <SheetTitle className="text-neutral-900 dark:text-neutral-200">
-            {pendingType === 'Por Parlamentar'
-              ? 'Parlamentares'
-              : 'Propostas com Pendência'}
-          </SheetTitle>
+          <div className="flex items-center gap-2">
+            {selectedParliamentarian && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 -ml-2"
+                onClick={handleBack}
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            )}
+            <SheetTitle className="text-neutral-900 dark:text-neutral-200">
+              {selectedParliamentarian
+                ? selectedParliamentarian
+                : pendingType === 'Por Parlamentar'
+                  ? 'Parlamentares'
+                  : 'Propostas com Pendência'}
+            </SheetTitle>
+          </div>
           <SheetDescription className="text-neutral-600 dark:text-neutral-400">
-            {pendingType} (
-            {pendingType === 'Por Parlamentar'
-              ? parliamentarians.length
-              : proposals.length}
-            )
+            {selectedParliamentarian
+              ? `${filteredProposals.length} propostas encontradas`
+              : `${pendingType} (${
+                  pendingType === 'Por Parlamentar'
+                    ? parliamentarians.length
+                    : proposals.length
+                })`}
           </SheetDescription>
         </SheetHeader>
         <ScrollArea className="h-[calc(100vh-8rem)] mt-4">
           <div className="space-y-4 pr-4">
-            {pendingType === 'Por Parlamentar'
+            {pendingType === 'Por Parlamentar' && !selectedParliamentarian
               ? parliamentarians.map((p) => (
                   <Card
                     key={p.name}
                     className="hover:shadow-md transition-shadow cursor-pointer"
-                    onClick={() => handleParliamentarianClick(p.name)}
+                    onClick={() => setSelectedParliamentarian(p.name)}
                   >
                     <CardContent className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -108,7 +142,7 @@ export const PendingProposalsSheet = ({
                     </CardContent>
                   </Card>
                 ))
-              : proposals.map((proposal) => (
+              : filteredProposals.map((proposal) => (
                   <Link
                     to={`/emenda/${proposal.id}`}
                     key={proposal.id}

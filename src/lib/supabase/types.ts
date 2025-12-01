@@ -276,7 +276,7 @@ export type Database = {
           situacao: Database['public']['Enums']['situacao_oficial']
           situacao_recurso: string | null
           status_interno: Database['public']['Enums']['status_interno']
-          tipo: string
+          tipo: Database['public']['Enums']['tipo_emenda_enum']
           tipo_recurso: Database['public']['Enums']['tipo_recurso']
           updated_at: string | null
           valor_repasse: number | null
@@ -302,7 +302,7 @@ export type Database = {
           situacao?: Database['public']['Enums']['situacao_oficial']
           situacao_recurso?: string | null
           status_interno?: Database['public']['Enums']['status_interno']
-          tipo: string
+          tipo: Database['public']['Enums']['tipo_emenda_enum']
           tipo_recurso: Database['public']['Enums']['tipo_recurso']
           updated_at?: string | null
           valor_repasse?: number | null
@@ -328,7 +328,7 @@ export type Database = {
           situacao?: Database['public']['Enums']['situacao_oficial']
           situacao_recurso?: string | null
           status_interno?: Database['public']['Enums']['status_interno']
-          tipo?: string
+          tipo?: Database['public']['Enums']['tipo_emenda_enum']
           tipo_recurso?: Database['public']['Enums']['tipo_recurso']
           updated_at?: string | null
           valor_repasse?: number | null
@@ -590,6 +590,7 @@ export type Database = {
         | 'ENVIADA_PUBLICACAO_PORTARIA'
         | 'PROPOSTA_APROVADA'
         | 'CLASSIFICADA_AGUARDANDO_SECRETARIA'
+      tipo_emenda_enum: 'individual' | 'bancada' | 'comissao'
       tipo_recurso:
         | 'CUSTEIO_MAC'
         | 'CUSTEIO_PAP'
@@ -750,6 +751,7 @@ export const Constants = {
         'PROPOSTA_APROVADA',
         'CLASSIFICADA_AGUARDANDO_SECRETARIA',
       ],
+      tipo_emenda_enum: ['individual', 'bancada', 'comissao'],
       tipo_recurso: [
         'CUSTEIO_MAC',
         'CUSTEIO_PAP',

@@ -153,8 +153,6 @@ const AdminPage = () => {
         throw new Error(`Erro ao criar perfil: ${profileError.message}`)
 
       // 3. Manually log CREATE_USER action (best effort)
-      // We use select to get current user info for changed_by if possible, or rely on context
-      // RLS allows Admins to insert into audit_logs
       await supabase.from('audit_logs').insert([
         {
           table_name: 'profiles',
@@ -193,6 +191,28 @@ const AdminPage = () => {
         title: 'Erro ao excluir usuário',
         description:
           'Talvez você não tenha permissão para excluir usuários do sistema de autenticação. Tente bloquear.',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleResetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      })
+
+      if (error) throw error
+
+      toast({
+        title: 'Email enviado',
+        description: `Link de redefinição enviado para ${email}.`,
+      })
+    } catch (error: any) {
+      console.error('Error resetting password:', error)
+      toast({
+        title: 'Erro ao enviar email',
+        description: error.message,
         variant: 'destructive',
       })
     }
@@ -296,6 +316,7 @@ const AdminPage = () => {
                 onUpdateUser={handleUpdateUser}
                 onCreateUser={handleCreateUser}
                 onDeleteUser={handleDeleteUser}
+                onResetPassword={handleResetPassword}
               />
             </TabsContent>
             <TabsContent value="roles" className="mt-6">

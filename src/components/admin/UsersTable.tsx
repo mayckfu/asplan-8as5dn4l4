@@ -45,6 +45,7 @@ interface UsersTableProps {
   onUpdateUser: (user: User) => void
   onCreateUser: (user: Omit<User, 'id' | 'created_at'>) => void
   onDeleteUser?: (userId: string) => void
+  onResetPassword: (email: string) => void
 }
 
 export const UsersTable = ({
@@ -53,6 +54,7 @@ export const UsersTable = ({
   onUpdateUser,
   onCreateUser,
   onDeleteUser,
+  onResetPassword,
 }: UsersTableProps) => {
   const { toast } = useToast()
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -110,11 +112,8 @@ export const UsersTable = ({
     setUserToDelete(null)
   }
 
-  const handleResetPassword = (user: User) => {
-    toast({
-      title: 'Email enviado',
-      description: `Instruções de reset de senha enviadas para ${user.email}`,
-    })
+  const handleResetPasswordClick = (user: User) => {
+    onResetPassword(user.email)
   }
 
   const handleFormSubmit = (data: any) => {
@@ -225,7 +224,7 @@ export const UsersTable = ({
                           )}
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleResetPassword(user)}
+                          onClick={() => handleResetPasswordClick(user)}
                         >
                           <RotateCcw className="mr-2 h-4 w-4" /> Resetar Senha
                         </DropdownMenuItem>
