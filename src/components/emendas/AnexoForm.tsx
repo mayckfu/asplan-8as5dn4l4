@@ -30,12 +30,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Anexo } from '@/lib/mock-data'
-import { cn } from '@/lib/utils'
+import { cn, formatBytes } from '@/lib/utils'
 import { uploadFile } from '@/lib/supabase/storage'
 import { useToast } from '@/components/ui/use-toast'
 
 const anexoSchema = z.object({
-  titulo: z.string().min(1, 'O título é obrigatório.'),
+  filename: z.string().min(1, 'O nome do arquivo é obrigatório.'),
   url: z.string().min(1, 'A URL ou arquivo é obrigatório.'),
   tipo: z.enum(
     [
@@ -52,6 +52,8 @@ const anexoSchema = z.object({
     },
   ),
   data: z.date({ required_error: 'A data é obrigatória.' }),
+  size: z.number().optional(),
+  metadata: z.any().optional(),
 })
 
 type AnexoFormValues = z.infer<typeof anexoSchema>
@@ -70,7 +72,7 @@ export const AnexoForm = ({ anexo, onSubmit, onCancel }: AnexoFormProps) => {
   const form = useForm<AnexoFormValues>({
     resolver: zodResolver(anexoSchema),
     defaultValues: {
-      titulo: anexo?.titulo || '',
+      filename: anexo?.filename || '',
       url: anexo?.url || '',
       tipo: anexo?.tipo || 'OUTRO',
       data: anexo?.data
@@ -78,6 +80,8 @@ export const AnexoForm = ({ anexo, onSubmit, onCancel }: AnexoFormProps) => {
         : anexo?.created_at
           ? new Date(anexo.created_at)
           : new Date(),
+      size: anexo?.size || 0,
+      metadata: anexo?.metadata || {},
     },
   })
 
@@ -85,10 +89,12 @@ export const AnexoForm = ({ anexo, onSubmit, onCancel }: AnexoFormProps) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
       setSelectedFile(file)
-      // Auto-fill title if empty
-      if (!form.getValues('titulo')) {
-        form.setValue('titulo', file.name)
+      // Auto-fill filename if empty
+      if (!form.getValues('filename')) {
+        form.setValue('filename', file.name)
       }
+      form.setValue('size', file.size)
+      form.setValue('metadata', { type: file.type })
     }
   }
 
@@ -98,10 +104,7 @@ export const AnexoForm = ({ anexo, onSubmit, onCancel }: AnexoFormProps) => {
     if (selectedFile) {
       setIsUploading(true)
       try {
-        // Generate a unique path: emendas/{timestamp}_{filename}
-        // Note: In a real app, we might want to organize by emenda ID, but we might not have it here if it's new.
-        // We'll use a generic 'uploads' folder or similar structure.
-        const path = `uploads/${Date.now()}_${selectedFile.name}`
+        const path = `uploads/${Date.now()}_${selectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
         const uploadedPath = await uploadFile(selectedFile, path)
 
         if (!uploadedPath) {
@@ -136,10 +139,10 @@ export const AnexoForm = ({ anexo, onSubmit, onCancel }: AnexoFormProps) => {
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="titulo"
+          name="filename"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Título</FormLabel>
+              <FormLabel>Nome do Arquivo</FormLabel>
               <FormControl>
                 <Input placeholder="Ex: Portaria 123" {...field} />
               </FormControl>
@@ -167,7 +170,7 @@ export const AnexoForm = ({ anexo, onSubmit, onCancel }: AnexoFormProps) => {
                       </div>
                     </FormControl>
                     <FormDescription>
-                      Cole um link externo (Google Drive, etc.) ou faça upload.
+                      Cole um link externo ou faça upload.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -197,16 +200,19 @@ export const AnexoForm = ({ anexo, onSubmit, onCancel }: AnexoFormProps) => {
           </div>
           {selectedFile && (
             <p className="text-sm text-muted-foreground flex items-center gap-2">
-              Arquivo selecionado:{' '}
-              <span className="font-medium">{selectedFile.name}</span>
+              Arquivo: <span className="font-medium">{selectedFile.name}</span>
+              <span className="text-xs">
+                ({formatBytes(selectedFile.size)})
+              </span>
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="h-auto p-0 text-destructive"
+                className="h-auto p-0 text-destructive ml-auto"
                 onClick={() => {
                   setSelectedFile(null)
                   form.setValue('url', '')
+                  form.setValue('size', 0)
                 }}
               >
                 Remover

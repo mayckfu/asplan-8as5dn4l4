@@ -10,6 +10,7 @@ import {
   Edit,
   Send,
   FileCode,
+  Download,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -33,6 +34,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { useToast } from '@/components/ui/use-toast'
 import { AnexoForm } from './AnexoForm'
+import { formatBytes } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
 
 interface EmendaAnexosTabProps {
@@ -111,7 +113,7 @@ export const EmendaAnexosTab = ({
             {!isReadOnly && (
               <Button size="sm" onClick={handleAddNew}>
                 <PlusCircle className="h-4 w-4 mr-2" />
-                Adicionar Link
+                Adicionar Anexo
               </Button>
             )}
           </div>
@@ -121,12 +123,12 @@ export const EmendaAnexosTab = ({
             <div className="text-center py-8 text-muted-foreground">
               {isReadOnly
                 ? 'Nenhum anexo registrado.'
-                : 'Nenhum anexo registrado. Clique em "Adicionar Link" para começar.'}
+                : 'Nenhum anexo registrado. Clique em "Adicionar Anexo" para começar.'}
             </div>
           ) : (
             <ul className="space-y-2">
               {anexos.map((anexo) => {
-                const Icon = anexoIcons[anexo.tipo]
+                const Icon = anexoIcons[anexo.tipo] || FileQuestion
                 const displayDate = anexo.data
                   ? new Date(anexo.data).toLocaleDateString('pt-BR')
                   : new Date(anexo.created_at).toLocaleDateString('pt-BR')
@@ -145,33 +147,47 @@ export const EmendaAnexosTab = ({
                           rel="noopener noreferrer"
                           className="font-medium text-neutral-900 dark:text-neutral-200 hover:underline flex items-center gap-1 truncate"
                         >
-                          {anexo.titulo}
+                          {anexo.filename}
                           <ExternalLink className="h-3 w-3 opacity-50" />
                         </a>
                         <p className="text-xs text-neutral-600 dark:text-neutral-400 truncate">
                           {anexo.tipo} • {displayDate} • Por {anexo.uploader}
+                          {anexo.size && anexo.size > 0 && (
+                            <span> • {formatBytes(anexo.size)}</span>
+                          )}
                         </p>
                       </div>
                     </div>
-                    {!isReadOnly && (
-                      <div className="flex items-center gap-1 shrink-0">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(anexo)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => handleDeleteClick(anexo)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <a
+                        href={anexo.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground"
+                        title="Baixar/Visualizar"
+                      >
+                        <Download className="h-4 w-4" />
+                      </a>
+                      {!isReadOnly && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEdit(anexo)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => handleDeleteClick(anexo)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </li>
                 )
               })}
@@ -187,7 +203,7 @@ export const EmendaAnexosTab = ({
               {selectedAnexo ? 'Editar Anexo' : 'Adicionar Anexo'}
             </DialogTitle>
             <DialogDescription>
-              Insira os detalhes do documento ou link do Google Drive.
+              Insira os detalhes do documento ou link.
             </DialogDescription>
           </DialogHeader>
           <AnexoForm
@@ -206,8 +222,8 @@ export const EmendaAnexosTab = ({
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o anexo "{selectedAnexo?.titulo}"?
-              Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir o anexo "{selectedAnexo?.filename}
+              "? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

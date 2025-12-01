@@ -26,13 +26,22 @@ export function formatPercent(
 
 export function parseCurrencyBRL(value: string): number {
   if (!value) return 0
-  // If input is already a number type (edge case), return it
   if (typeof value === 'number') return value
 
-  // Remove "R$", whitespace, and dots (thousand separators)
   const cleanValue = value.toString().replace(/[R$\s.]/g, '')
-  // Replace comma with dot for decimal
   const dotValue = cleanValue.replace(',', '.')
   const number = parseFloat(dotValue)
   return isNaN(number) ? 0 : number
+}
+
+export function formatBytes(bytes: number, decimals = 2) {
+  if (!+bytes) return '0 Bytes'
+
+  const k = 1024
+  const dm = decimals < 0 ? 0 : decimals
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
 }

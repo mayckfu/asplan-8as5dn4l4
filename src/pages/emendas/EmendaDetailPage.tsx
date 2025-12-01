@@ -33,7 +33,7 @@ import { EmendaHistoricoTab } from '@/components/emendas/EmendaHistoricoTab'
 import { useToast } from '@/components/ui/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase/client'
-import { getSignedUrl } from '@/lib/supabase/storage'
+import { getSignedUrl, deleteFile } from '@/lib/supabase/storage'
 
 const REQUIRED_PENDENCIES = [
   {
@@ -83,7 +83,6 @@ const EmendaDetailPage = () => {
   const isReadOnly = user?.role === 'CONSULTA'
 
   const syncPendenciesWithDb = useCallback(async (emendaId: string) => {
-    // 1. Fetch existing pendencies
     const { data: existingPendencies, error: fetchError } = await supabase
       .from('pendencias')
       .select('*')
@@ -91,12 +90,10 @@ const EmendaDetailPage = () => {
 
     if (fetchError) throw fetchError
 
-    // 2. Identify missing pendencies
     const missingPendencies = REQUIRED_PENDENCIES.filter(
       (req) => !existingPendencies.some((p) => p.target_id === req.id),
     )
 
-    // 3. Insert missing pendencies
     if (missingPendencies.length > 0) {
       const toInsert = missingPendencies.map((req) => ({
         emenda_id: emendaId,
@@ -124,7 +121,6 @@ const EmendaDetailPage = () => {
     const getPendency = (targetId: string) =>
       currentPendencies.find((p) => p.targetId === targetId)
 
-    // Rules Logic
     const checks = [
       {
         id: 'portaria',
@@ -187,14 +183,12 @@ const EmendaDetailPage = () => {
     }
 
     if (updates.length > 0) {
-      // Update DB
       for (const update of updates) {
         await supabase
           .from('pendencias')
           .update({ resolvida: update.resolvida })
           .eq('id', update.id)
       }
-      // Refetch details to update UI
       return true
     }
     return false
@@ -205,7 +199,6 @@ const EmendaDetailPage = () => {
     setIsLoading(true)
     setError(null)
     try {
-      // Ensure pendencies exist
       await syncPendenciesWithDb(id)
 
       const { data: emenda, error: emendaError } = await supabase
@@ -252,13 +245,11 @@ const EmendaDetailPage = () => {
 
       if (pendenciasError) throw pendenciasError
 
-      // Map despesas
       const mappedDespesas = despesas.map((d: any) => ({
         ...d,
         registrada_por: d.profiles?.name || 'Desconhecido',
       }))
 
-      // Map anexos
       const mappedAnexos = await Promise.all(
         anexos.map(async (a: any) => {
           let signedUrl = a.url
@@ -268,19 +259,18 @@ const EmendaDetailPage = () => {
           }
           return {
             ...a,
+            filename: a.filename || a.titulo || 'Sem Nome',
             url: signedUrl,
             uploader: a.profiles?.name || 'Desconhecido',
           }
         }),
       )
 
-      // Map historico
       const mappedHistorico = historico.map((h: any) => ({
         ...h,
         feito_por: h.profiles?.name || 'Desconhecido',
       }))
 
-      // Map pendencias to UI model
       const mappedPendencias: Pendencia[] = pendenciasData.map((p: any) => ({
         id: p.id,
         descricao: p.descricao,
@@ -314,14 +304,8 @@ const EmendaDetailPage = () => {
 
       setEmendaData(detailedEmenda)
 
-      // Run auto-check once loaded to sync state if things changed externally
       const updated = await checkAutoResolution(detailedEmenda)
       if (updated) {
-        // If updated, we should just refetch pendencias to be clean, but for now UI is consistent on next reload or we can mutate state.
-        // Let's just update local state to reflect what we just saved.
-        // Ideally fetchEmendaDetails runs again but to avoid loops we skip or use a flag.
-        // For this implementation, we'll assume next action triggers reload or user sees it on refresh.
-        // Actually, let's do a quick state update.
         const { data: newPendencias } = await supabase
           .from('pendencias')
           .select('*')
@@ -389,18 +373,11 @@ const EmendaDetailPage = () => {
 
       if (error) throw error
 
-      // Optimistic update
       setEmendaData(updatedEmenda)
-
-      // Check checklist
       await checkAutoResolution(updatedEmenda)
-
-      // Refresh to get latest (including audit logs if needed)
       refreshData()
-
       toast({ title: 'Dados atualizados com sucesso!' })
     } catch (error: any) {
-      console.error('Error updating emenda:', error)
       toast({
         title: 'Erro ao atualizar',
         description: error.message,
@@ -419,10 +396,7 @@ const EmendaDetailPage = () => {
 
   const handleAddRepasse = async (repasse: Repasse) => {
     try {
-      // Using ID from URL directly to ensure reliability
       if (!id) throw new Error('Emenda ID not found')
-
-      // Omit ID to let DB generate it (gen_random_uuid)
       const { id: _, ...repasseData } = repasse
 
       const { data, error } = await supabase
@@ -445,7 +419,6 @@ const EmendaDetailPage = () => {
           repasses: newRepasses,
           total_repassado: totalRepassado,
         }
-        // Check auto resolution immediately
         checkAutoResolution(newData)
         return newData
       })
@@ -646,11 +619,18 @@ const EmendaDetailPage = () => {
       if (!id) throw new Error('Emenda ID not found')
       const { id: _, ...anexoData } = anexo
 
+      // We assume anexoData has filename, size, metadata as per the updated form and types
+      // DB columns are: filename, url, type, data_documento, size, metadata, emenda_id, uploader
       const { data, error } = await supabase
         .from('anexos')
         .insert([
           {
-            ...anexoData,
+            filename: anexoData.filename,
+            url: anexoData.url,
+            tipo: anexoData.tipo,
+            data_documento: anexoData.data,
+            size: anexoData.size,
+            metadata: anexoData.metadata,
             emenda_id: id,
             uploader: user?.id,
           },
@@ -660,7 +640,11 @@ const EmendaDetailPage = () => {
 
       if (error) throw error
 
-      const newAnexo = { ...data, uploader: data.profiles?.name || 'Usuário' }
+      const newAnexo = {
+        ...data,
+        filename: data.filename, // Ensuring mapping
+        uploader: data.profiles?.name || 'Usuário',
+      }
 
       setEmendaData((prev) => {
         if (!prev) return null
@@ -683,10 +667,12 @@ const EmendaDetailPage = () => {
       const { error } = await supabase
         .from('anexos')
         .update({
-          titulo: anexo.titulo,
+          filename: anexo.filename,
           url: anexo.url,
           tipo: anexo.tipo,
           data_documento: anexo.data,
+          size: anexo.size,
+          metadata: anexo.metadata,
         })
         .eq('id', anexo.id)
 
@@ -713,6 +699,29 @@ const EmendaDetailPage = () => {
 
   const handleDeleteAnexo = async (anexoId: string) => {
     try {
+      // First get the anexo to delete file from storage if needed
+      const anexoToDelete = emendaData?.anexos.find((a) => a.id === anexoId)
+
+      if (anexoToDelete?.url && !anexoToDelete.url.startsWith('http')) {
+        // It's a storage path (possibly signed, but we need the path stored in DB or we extract it)
+        // In fetchEmendaDetails we convert path to signedUrl.
+        // But wait, uploadFile stores the PATH in DB (e.g. 'uploads/file.pdf').
+        // fetchEmendaDetails overwrites .url with signed URL.
+        // We need the original path.
+        // Ideally, we should store signed URL in a separate property or keep original path.
+        // For now, let's try to delete using the path if we can recover it or fetch from DB again.
+        // To be safe, let's fetch the original record.
+        const { data: originalRecord } = await supabase
+          .from('anexos')
+          .select('url')
+          .eq('id', anexoId)
+          .single()
+
+        if (originalRecord?.url) {
+          await deleteFile(originalRecord.url)
+        }
+      }
+
       const { error } = await supabase.from('anexos').delete().eq('id', anexoId)
       if (error) throw error
 
@@ -876,15 +885,6 @@ const EmendaDetailPage = () => {
             ref={repassesTabRef}
             repasses={emendaData.repasses}
             onRepassesChange={(repasses) => {
-              // Optimistic handling (already handled by helper methods but needed for completeness if this prop is used directly)
-              // Since helper methods (handleAddRepasse etc) update state, we can just refresh list if needed,
-              // but strictly the helpers handle the DB and State update.
-              // This prop is mostly for the TAB to notify PARENT.
-              // The Tab calls `handleAddRepasse` indirectly? No, the Tab manages UI and calls `handleAddRepasse` logic if we passed it down.
-              // In this architecture, `EmendaRepassesTab` has its own Dialog logic but calls `onRepassesChange`.
-              // Let's look at `EmendaRepassesTab.tsx`. It calls `onRepassesChange`.
-              // We need to intercept this and call our handlers.
-
               const oldRepasses = emendaData.repasses
               if (repasses.length > oldRepasses.length) {
                 const newRepasse = repasses.find(

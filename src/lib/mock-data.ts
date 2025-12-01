@@ -1,6 +1,3 @@
-// Types and Enums are kept for type safety across the application.
-// Mock data arrays have been removed to enforce usage of real Supabase data.
-
 export const TipoRecurso = {
   CUSTEIO_MAC: 'Custeio MAC',
   CUSTEIO_PAP: 'Custeio PAP',
@@ -106,11 +103,13 @@ export type Anexo = {
     | 'OFICIO'
     | 'PROPOSTA'
     | 'OUTRO'
-  titulo: string
+  filename: string
   url: string
   created_at: string
   uploader: string
   data?: string
+  size?: number
+  metadata?: any
 }
 
 export type Historico = {
@@ -149,8 +148,6 @@ export type DetailedAmendment = Amendment & {
   observacoes?: string
 }
 
-// --- Auth & Admin Types ---
-
 export type UserRole = 'ADMIN' | 'GESTOR' | 'ANALISTA' | 'CONSULTA'
 export type UserStatus = 'ATIVO' | 'BLOQUEADO' | 'PENDENTE'
 
@@ -164,7 +161,7 @@ export type User = {
   unidade?: string
   status: UserStatus
   created_at: string
-  password?: string // Optional, used only for form handling, never stored in mock data or DB
+  password?: string
 }
 
 export type Cargo = {
@@ -185,16 +182,12 @@ export type AuditLog = {
   details: string
 }
 
-// Helper function to get amendment details (now just a placeholder or utility if needed)
 export const getAmendmentDetails = (
   id: string,
 ): DetailedAmendment | undefined => {
-  // This function is deprecated as we now fetch real data.
-  // Returning undefined to force error if used.
   return undefined
 }
 
-// Empty arrays to ensure no mock data is used
 export const mockCargos: Cargo[] = []
 export const mockUsers: User[] = []
 export const mockAuditLogs: AuditLog[] = []

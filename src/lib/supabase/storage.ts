@@ -13,7 +13,6 @@ export const getSignedUrl = async (
   expiresIn: number = 3600,
 ): Promise<string | null> => {
   try {
-    // If it's already a full URL (e.g. Google Drive), return it as is
     if (path.startsWith('http://') || path.startsWith('https://')) {
       return path
     }
@@ -63,5 +62,35 @@ export const uploadFile = async (
   } catch (error) {
     console.error('Unexpected error in uploadFile:', error)
     return null
+  }
+}
+
+/**
+ * Deletes a file from a bucket.
+ * @param path The file path in the bucket
+ * @param bucket The bucket name (default: 'documents')
+ * @returns True if successful, false otherwise
+ */
+export const deleteFile = async (
+  path: string,
+  bucket: string = 'documents',
+): Promise<boolean> => {
+  try {
+    // If it's a full URL, we can't delete it from storage (it's likely external)
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return true
+    }
+
+    const { error } = await supabase.storage.from(bucket).remove([path])
+
+    if (error) {
+      console.error('Error deleting file:', error)
+      return false
+    }
+
+    return true
+  } catch (error) {
+    console.error('Unexpected error in deleteFile:', error)
+    return false
   }
 }
