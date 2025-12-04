@@ -70,18 +70,27 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         .on(
           'postgres_changes',
           {
-            event: 'INSERT',
+            event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
             schema: 'public',
             table: 'notifications',
             filter: `user_id=eq.${user.id}`,
           },
           (payload) => {
-            const newNotification = payload.new as Notification
-            setNotifications((prev) => [newNotification, ...prev])
-            toast({
-              title: 'Nova Notificação',
-              description: newNotification.message,
-            })
+            if (payload.eventType === 'INSERT') {
+              const newNotification = payload.new as Notification
+              setNotifications((prev) => [newNotification, ...prev])
+              toast({
+                title: 'Nova Notificação',
+                description: newNotification.message,
+              })
+            } else if (payload.eventType === 'UPDATE') {
+              const updatedNotification = payload.new as Notification
+              setNotifications((prev) =>
+                prev.map((n) =>
+                  n.id === updatedNotification.id ? updatedNotification : n,
+                ),
+              )
+            }
           },
         )
         .subscribe()
@@ -94,16 +103,23 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 
   const markAsRead = async (id: string) => {
     try {
+      // Optimistic update
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
+      )
+
       const { error } = await supabase
         .from('notifications')
         .update({ is_read: true })
         .eq('id', id)
 
-      if (error) throw error
-
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
-      )
+      if (error) {
+        // Revert if error
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === id ? { ...n, is_read: false } : n)),
+        )
+        throw error
+      }
     } catch (error) {
       console.error('Error marking notification as read:', error)
     }
@@ -116,14 +132,19 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id)
       if (unreadIds.length === 0) return
 
+      // Optimistic update
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
+
       const { error } = await supabase
         .from('notifications')
         .update({ is_read: true })
         .in('id', unreadIds)
 
-      if (error) throw error
-
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
+      if (error) {
+        // Revert logic is complex for batch, better to refetch or handle error gracefully
+        // For now, we just log it
+        throw error
+      }
 
       toast({
         title: 'Notificações',
@@ -131,6 +152,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       })
     } catch (error) {
       console.error('Error marking all as read:', error)
+      fetchNotifications() // Refetch to sync state
     }
   }
 

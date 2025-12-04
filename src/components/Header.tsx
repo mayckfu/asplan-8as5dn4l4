@@ -1,5 +1,5 @@
-import { Link, useNavigate } from 'react-router-dom'
-import { Menu, User, ChevronLeft, Bell, LogOut, CheckCheck } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Menu, User, ChevronLeft, Bell, LogOut, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -16,6 +16,11 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useNotification } from '@/contexts/NotificationContext'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { formatNotificationDate } from '@/lib/date-utils'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 export const Header = () => {
   const navigate = useNavigate()
@@ -77,11 +82,6 @@ export const Header = () => {
             >
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
-                <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-destructive ring-2 ring-background flex items-center justify-center text-[8px] text-white font-bold animate-pulse">
-                  {/* Badge content is optional if just a dot, but requirement says numerical count */}
-                </span>
-              )}
-              {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive flex items-center justify-center text-[10px] text-white font-bold border border-background">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
@@ -97,7 +97,10 @@ export const Header = () => {
                   variant="ghost"
                   size="sm"
                   className="h-auto p-0 text-xs text-asplan-primary hover:text-asplan-deep"
-                  onClick={markAllAsRead}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    markAllAsRead()
+                  }}
                 >
                   Marcar todas como lidas
                 </Button>
@@ -111,45 +114,74 @@ export const Header = () => {
               ) : (
                 <div className="flex flex-col">
                   {notifications.map((notification) => (
-                    <button
+                    <div
                       key={notification.id}
                       className={cn(
-                        'w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors border-b border-border/50 last:border-0 flex items-start gap-3',
+                        'w-full relative group border-b border-border/50 last:border-0 transition-colors',
                         !notification.is_read
                           ? 'bg-blue-50/50 dark:bg-blue-950/10'
-                          : '',
+                          : 'hover:bg-muted/50',
                       )}
-                      onClick={() =>
-                        handleNotificationClick(
-                          notification.id,
-                          notification.emenda_id,
-                        )
-                      }
                     >
-                      <div
-                        className={cn(
-                          'h-2 w-2 rounded-full mt-1.5 shrink-0',
-                          !notification.is_read
-                            ? 'bg-asplan-primary'
-                            : 'bg-transparent',
-                        )}
-                      />
-                      <div className="flex flex-col gap-1">
-                        <p
+                      <button
+                        className="w-full text-left px-4 py-3 flex items-start gap-3"
+                        onClick={() =>
+                          handleNotificationClick(
+                            notification.id,
+                            notification.emenda_id,
+                          )
+                        }
+                      >
+                        <div
                           className={cn(
-                            'text-sm leading-snug',
+                            'h-2 w-2 rounded-full mt-1.5 shrink-0 transition-colors',
                             !notification.is_read
-                              ? 'font-medium text-foreground'
-                              : 'text-muted-foreground',
+                              ? 'bg-asplan-primary'
+                              : 'bg-transparent',
                           )}
-                        >
-                          {notification.message}
-                        </p>
-                        <span className="text-[10px] text-muted-foreground">
-                          {formatNotificationDate(notification.created_at)}
-                        </span>
-                      </div>
-                    </button>
+                        />
+                        <div className="flex flex-col gap-1 flex-1">
+                          <p
+                            className={cn(
+                              'text-sm leading-snug',
+                              !notification.is_read
+                                ? 'font-medium text-foreground'
+                                : 'text-muted-foreground',
+                            )}
+                          >
+                            {notification.message}
+                          </p>
+                          <span className="text-[10px] text-muted-foreground">
+                            {formatNotificationDate(notification.created_at)}
+                          </span>
+                        </div>
+                      </button>
+                      {!notification.is_read && (
+                        <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  markAsRead(notification.id)
+                                }}
+                              >
+                                <Check className="h-3 w-3 text-muted-foreground" />
+                                <span className="sr-only">
+                                  Marcar como lida
+                                </span>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="left">
+                              <p>Marcar como lida</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}
