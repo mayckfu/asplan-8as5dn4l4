@@ -39,11 +39,11 @@ export function DateRangePicker({
             {date?.from ? (
               date.to ? (
                 <>
-                  {format(date.from, 'dd/MM/y', { locale: ptBR })} -{' '}
-                  {format(date.to, 'dd/MM/y', { locale: ptBR })}
+                  {format(date.from, 'dd/MM/yyyy', { locale: ptBR })} -{' '}
+                  {format(date.to, 'dd/MM/yyyy', { locale: ptBR })}
                 </>
               ) : (
-                format(date.from, 'dd/MM/y', { locale: ptBR })
+                format(date.from, 'dd/MM/yyyy', { locale: ptBR })
               )
             ) : (
               <span>Selecione um período</span>

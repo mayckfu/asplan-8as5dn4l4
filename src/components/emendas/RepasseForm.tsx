@@ -1,8 +1,6 @@
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 import { CalendarIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -31,6 +29,9 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { Repasse } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
+import { ptBR } from 'date-fns/locale'
+import { format } from 'date-fns'
+import { formatDateToDB, parseDateFromDB } from '@/lib/date-utils'
 
 const repasseSchema = z.object({
   data: z.date({ required_error: 'A data é obrigatória.' }),
@@ -60,7 +61,7 @@ export const RepasseForm = ({
   const form = useForm<RepasseFormValues>({
     resolver: zodResolver(repasseSchema),
     defaultValues: {
-      data: repasse ? new Date(repasse.data) : new Date(),
+      data: repasse ? parseDateFromDB(repasse.data) || new Date() : new Date(),
       valor: repasse?.valor || 0,
       fonte: repasse?.fonte || '',
       status: repasse?.status || 'PENDENTE',
@@ -70,9 +71,9 @@ export const RepasseForm = ({
 
   const handleSubmit = (values: RepasseFormValues) => {
     const newRepasse: Repasse = {
-      id: repasse?.id || '', // ID will be handled by backend/DB if empty, but keeping compatibility
+      id: repasse?.id || '',
       ...values,
-      data: values.data.toISOString(),
+      data: formatDateToDB(values.data),
     }
     onSubmit(newRepasse)
   }
@@ -97,7 +98,7 @@ export const RepasseForm = ({
                       )}
                     >
                       {field.value ? (
-                        format(field.value, 'PPP', { locale: ptBR })
+                        format(field.value, 'dd/MM/yyyy', { locale: ptBR })
                       ) : (
                         <span>Escolha uma data</span>
                       )}
@@ -114,6 +115,7 @@ export const RepasseForm = ({
                       date > new Date() || date < new Date('1900-01-01')
                     }
                     initialFocus
+                    locale={ptBR}
                   />
                 </PopoverContent>
               </Popover>

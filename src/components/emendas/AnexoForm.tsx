@@ -33,6 +33,7 @@ import { Anexo } from '@/lib/mock-data'
 import { cn, formatBytes } from '@/lib/utils'
 import { uploadFile } from '@/lib/supabase/storage'
 import { useToast } from '@/components/ui/use-toast'
+import { formatDateToDB, parseDateFromDB } from '@/lib/date-utils'
 
 const anexoSchema = z.object({
   filename: z.string().min(1, 'O nome do arquivo é obrigatório.'),
@@ -76,9 +77,9 @@ export const AnexoForm = ({ anexo, onSubmit, onCancel }: AnexoFormProps) => {
       url: anexo?.url || '',
       tipo: anexo?.tipo || 'OUTRO',
       data: anexo?.data
-        ? new Date(anexo.data)
+        ? parseDateFromDB(anexo.data) || new Date()
         : anexo?.created_at
-          ? new Date(anexo.created_at)
+          ? parseDateFromDB(anexo.created_at) || new Date()
           : new Date(),
       size: anexo?.size || 0,
       metadata: anexo?.metadata || {},
@@ -128,7 +129,7 @@ export const AnexoForm = ({ anexo, onSubmit, onCancel }: AnexoFormProps) => {
       ...values,
       url: finalUrl,
       created_at: anexo?.created_at || new Date().toISOString(),
-      data: values.data.toISOString(),
+      data: formatDateToDB(values.data), // Store as YYYY-MM-DD
       uploader: anexo?.uploader || 'Usuário Atual',
     }
     onSubmit(newAnexo)
@@ -268,7 +269,7 @@ export const AnexoForm = ({ anexo, onSubmit, onCancel }: AnexoFormProps) => {
                       )}
                     >
                       {field.value ? (
-                        format(field.value, 'PPP', { locale: ptBR })
+                        format(field.value, 'dd/MM/yyyy', { locale: ptBR })
                       ) : (
                         <span>Escolha uma data</span>
                       )}
@@ -285,6 +286,7 @@ export const AnexoForm = ({ anexo, onSubmit, onCancel }: AnexoFormProps) => {
                       date > new Date() || date < new Date('1900-01-01')
                     }
                     initialFocus
+                    locale={ptBR}
                   />
                 </PopoverContent>
               </Popover>

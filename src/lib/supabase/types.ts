@@ -19,30 +19,36 @@ export type Database = {
         Row: {
           created_at: string | null
           data_documento: string | null
-          emenda_id: string | null
+          emenda_id: string
+          filename: string
           id: string
+          metadata: Json | null
+          size: number | null
           tipo: string
-          titulo: string
           uploader: string | null
           url: string
         }
         Insert: {
           created_at?: string | null
           data_documento?: string | null
-          emenda_id?: string | null
+          emenda_id: string
+          filename: string
           id?: string
+          metadata?: Json | null
+          size?: number | null
           tipo: string
-          titulo: string
           uploader?: string | null
           url: string
         }
         Update: {
           created_at?: string | null
           data_documento?: string | null
-          emenda_id?: string | null
+          emenda_id?: string
+          filename?: string
           id?: string
+          metadata?: Json | null
+          size?: number | null
           tipo?: string
-          titulo?: string
           uploader?: string | null
           url?: string
         }
@@ -180,7 +186,7 @@ export type Database = {
           data: string
           demanda: string | null
           descricao: string
-          emenda_id: string | null
+          emenda_id: string
           fornecedor_nome: string | null
           id: string
           nota_fiscal_url: string | null
@@ -197,7 +203,7 @@ export type Database = {
           data: string
           demanda?: string | null
           descricao: string
-          emenda_id?: string | null
+          emenda_id: string
           fornecedor_nome?: string | null
           id?: string
           nota_fiscal_url?: string | null
@@ -214,7 +220,7 @@ export type Database = {
           data?: string
           demanda?: string | null
           descricao?: string
-          emenda_id?: string | null
+          emenda_id?: string
           fornecedor_nome?: string | null
           id?: string
           nota_fiscal_url?: string | null
@@ -340,7 +346,7 @@ export type Database = {
         Row: {
           criado_em: string | null
           detalhe: string | null
-          emenda_id: string | null
+          emenda_id: string
           evento: string
           feito_por: string | null
           id: string
@@ -348,7 +354,7 @@ export type Database = {
         Insert: {
           criado_em?: string | null
           detalhe?: string | null
-          emenda_id?: string | null
+          emenda_id: string
           evento: string
           feito_por?: string | null
           id?: string
@@ -356,7 +362,7 @@ export type Database = {
         Update: {
           criado_em?: string | null
           detalhe?: string | null
-          emenda_id?: string | null
+          emenda_id?: string
           evento?: string
           feito_por?: string | null
           id?: string
@@ -473,7 +479,7 @@ export type Database = {
         Row: {
           created_at: string | null
           data: string
-          emenda_id: string | null
+          emenda_id: string
           fonte: string
           id: string
           observacoes: string | null
@@ -483,7 +489,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           data: string
-          emenda_id?: string | null
+          emenda_id: string
           fonte: string
           id?: string
           observacoes?: string | null
@@ -493,7 +499,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           data?: string
-          emenda_id?: string | null
+          emenda_id?: string
           fonte?: string
           id?: string
           observacoes?: string | null

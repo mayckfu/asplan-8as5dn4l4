@@ -30,6 +30,11 @@ import { DetailedAmendment } from '@/lib/mock-data'
 import { cn, formatCurrencyBRL } from '@/lib/utils'
 import { useToast } from '@/components/ui/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
+import {
+  formatDisplayDate,
+  formatDateToDB,
+  parseDateFromDB,
+} from '@/lib/date-utils'
 
 interface EmendaDadosTecnicosProps {
   emenda: DetailedAmendment
@@ -216,9 +221,13 @@ export const EmendaDadosTecnicos = forwardRef<
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {editableEmenda.data_repasse ? (
-                        format(new Date(editableEmenda.data_repasse), 'PPP', {
-                          locale: ptBR,
-                        })
+                        format(
+                          parseDateFromDB(editableEmenda.data_repasse)!,
+                          'dd/MM/yyyy',
+                          {
+                            locale: ptBR,
+                          },
+                        )
                       ) : (
                         <span>Escolha uma data</span>
                       )}
@@ -230,11 +239,11 @@ export const EmendaDadosTecnicos = forwardRef<
                       locale={ptBR}
                       selected={
                         editableEmenda.data_repasse
-                          ? new Date(editableEmenda.data_repasse)
+                          ? parseDateFromDB(editableEmenda.data_repasse)
                           : undefined
                       }
                       onSelect={(date) =>
-                        handleValueChange('data_repasse', date?.toISOString())
+                        handleValueChange('data_repasse', formatDateToDB(date))
                       }
                       initialFocus
                     />
@@ -332,11 +341,7 @@ export const EmendaDadosTecnicos = forwardRef<
               />
               <DetailItem
                 label="Data do Repasse"
-                value={
-                  emenda.data_repasse
-                    ? new Date(emenda.data_repasse).toLocaleDateString('pt-BR')
-                    : '-'
-                }
+                value={formatDisplayDate(emenda.data_repasse)}
               />
               <DetailItem
                 label="Valor do Repasse"

@@ -56,6 +56,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useAuth } from '@/contexts/AuthContext'
+import {
+  formatDisplayDate,
+  formatDateToDB,
+  parseDateFromDB,
+} from '@/lib/date-utils'
 
 interface EmendaDespesasTabProps {
   despesas: Despesa[]
@@ -87,7 +92,7 @@ export const EmendaDespesasTab = forwardRef<
       if (isReadOnly) return
       setSelectedExpense(null)
       setFormData({
-        data: new Date().toISOString().split('T')[0],
+        data: formatDateToDB(new Date()),
         status_execucao: 'PLANEJADA',
         valor: 0,
       })
@@ -98,7 +103,7 @@ export const EmendaDespesasTab = forwardRef<
   const handleAddNew = () => {
     setSelectedExpense(null)
     setFormData({
-      data: new Date().toISOString().split('T')[0],
+      data: formatDateToDB(new Date()),
       status_execucao: 'PLANEJADA',
       valor: 0,
     })
@@ -109,7 +114,8 @@ export const EmendaDespesasTab = forwardRef<
     setSelectedExpense(despesa)
     setFormData({
       ...despesa,
-      data: new Date(despesa.data).toISOString().split('T')[0],
+      // data is already stored as YYYY-MM-DD string in Despesa object based on new utility usage
+      data: despesa.data,
     })
     setIsFormOpen(true)
   }
@@ -140,7 +146,7 @@ export const EmendaDespesasTab = forwardRef<
 
     const newDespesa: Despesa = {
       id: selectedExpense?.id || `D-${Date.now()}`,
-      data: formData.data!,
+      data: formData.data!, // Ensure this is YYYY-MM-DD
       valor: Number(formData.valor),
       descricao: formData.descricao!,
       status_execucao: formData.status_execucao || 'PLANEJADA',
@@ -201,9 +207,7 @@ export const EmendaDespesasTab = forwardRef<
               <TableBody>
                 {despesas.map((despesa) => (
                   <TableRow key={despesa.id}>
-                    <TableCell>
-                      {new Date(despesa.data).toLocaleDateString('pt-BR')}
-                    </TableCell>
+                    <TableCell>{formatDisplayDate(despesa.data)}</TableCell>
                     <TableCell className="font-medium">
                       {despesa.descricao}
                     </TableCell>
@@ -271,6 +275,7 @@ export const EmendaDespesasTab = forwardRef<
               <Label htmlFor="data" className="text-right">
                 Data
               </Label>
+              {/* Using type="date" works well with YYYY-MM-DD strings */}
               <Input
                 id="data"
                 type="date"

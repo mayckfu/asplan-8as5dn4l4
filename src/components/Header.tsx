@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom'
-import { Menu, User, ChevronLeft, Bell, LogOut } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Menu, User, ChevronLeft, Bell, LogOut, CheckCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -13,10 +13,21 @@ import { useSidebar } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from './ThemeToggle'
 import { useAuth } from '@/contexts/AuthContext'
+import { useNotification } from '@/contexts/NotificationContext'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { formatNotificationDate } from '@/lib/date-utils'
 
 export const Header = () => {
+  const navigate = useNavigate()
   const { toggleSidebar, state, isMobile, setOpenMobile } = useSidebar()
   const { user, logout } = useAuth()
+  const { notifications, unreadCount, markAsRead, markAllAsRead } =
+    useNotification()
+
+  const handleNotificationClick = async (id: string, emendaId: string) => {
+    await markAsRead(id)
+    navigate(`/emenda/${emendaId}`)
+  }
 
   return (
     <header className="sticky top-0 flex h-16 items-center justify-between gap-4 border-b border-border/50 bg-background/80 px-6 z-30 shadow-sm backdrop-blur-md transition-all">
@@ -57,15 +68,94 @@ export const Header = () => {
       </div>
 
       <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative text-muted-foreground hover:text-foreground"
-        >
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-destructive ring-2 ring-background" />
-          <span className="sr-only">Notificações</span>
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative text-muted-foreground hover:text-foreground"
+            >
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-destructive ring-2 ring-background flex items-center justify-center text-[8px] text-white font-bold animate-pulse">
+                  {/* Badge content is optional if just a dot, but requirement says numerical count */}
+                </span>
+              )}
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive flex items-center justify-center text-[10px] text-white font-bold border border-background">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+              <span className="sr-only">Notificações</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-80">
+            <div className="flex items-center justify-between px-4 py-2 border-b border-border/50">
+              <span className="font-semibold text-sm">Notificações</span>
+              {unreadCount > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-auto p-0 text-xs text-asplan-primary hover:text-asplan-deep"
+                  onClick={markAllAsRead}
+                >
+                  Marcar todas como lidas
+                </Button>
+              )}
+            </div>
+            <ScrollArea className="h-[300px]">
+              {notifications.length === 0 ? (
+                <div className="p-4 text-center text-sm text-muted-foreground">
+                  Nenhuma notificação.
+                </div>
+              ) : (
+                <div className="flex flex-col">
+                  {notifications.map((notification) => (
+                    <button
+                      key={notification.id}
+                      className={cn(
+                        'w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors border-b border-border/50 last:border-0 flex items-start gap-3',
+                        !notification.is_read
+                          ? 'bg-blue-50/50 dark:bg-blue-950/10'
+                          : '',
+                      )}
+                      onClick={() =>
+                        handleNotificationClick(
+                          notification.id,
+                          notification.emenda_id,
+                        )
+                      }
+                    >
+                      <div
+                        className={cn(
+                          'h-2 w-2 rounded-full mt-1.5 shrink-0',
+                          !notification.is_read
+                            ? 'bg-asplan-primary'
+                            : 'bg-transparent',
+                        )}
+                      />
+                      <div className="flex flex-col gap-1">
+                        <p
+                          className={cn(
+                            'text-sm leading-snug',
+                            !notification.is_read
+                              ? 'font-medium text-foreground'
+                              : 'text-muted-foreground',
+                          )}
+                        >
+                          {notification.message}
+                        </p>
+                        <span className="text-[10px] text-muted-foreground">
+                          {formatNotificationDate(notification.created_at)}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <div className="h-6 w-px bg-border/50 mx-1" />
 
