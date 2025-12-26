@@ -619,8 +619,6 @@ const EmendaDetailPage = () => {
       if (!id) throw new Error('Emenda ID not found')
       const { id: _, ...anexoData } = anexo
 
-      // We assume anexoData has filename, size, metadata as per the updated form and types
-      // DB columns are: filename, url, type, data_documento, size, metadata, emenda_id, uploader
       const { data, error } = await supabase
         .from('anexos')
         .insert([
@@ -642,7 +640,7 @@ const EmendaDetailPage = () => {
 
       const newAnexo = {
         ...data,
-        filename: data.filename, // Ensuring mapping
+        filename: data.filename,
         uploader: data.profiles?.name || 'Usuário',
       }
 
@@ -699,18 +697,9 @@ const EmendaDetailPage = () => {
 
   const handleDeleteAnexo = async (anexoId: string) => {
     try {
-      // First get the anexo to delete file from storage if needed
       const anexoToDelete = emendaData?.anexos.find((a) => a.id === anexoId)
 
       if (anexoToDelete?.url && !anexoToDelete.url.startsWith('http')) {
-        // It's a storage path (possibly signed, but we need the path stored in DB or we extract it)
-        // In fetchEmendaDetails we convert path to signedUrl.
-        // But wait, uploadFile stores the PATH in DB (e.g. 'uploads/file.pdf').
-        // fetchEmendaDetails overwrites .url with signed URL.
-        // We need the original path.
-        // Ideally, we should store signed URL in a separate property or keep original path.
-        // For now, let's try to delete using the path if we can recover it or fetch from DB again.
-        // To be safe, let's fetch the original record.
         const { data: originalRecord } = await supabase
           .from('anexos')
           .select('url')
@@ -758,6 +747,42 @@ const EmendaDetailPage = () => {
       ...emendaData,
       situacao: newStatus,
     })
+  }
+
+  const handleDismissPendency = async (
+    pendencyId: string,
+    justification: string,
+  ) => {
+    if (isReadOnly || !emendaData) return
+
+    try {
+      const { error } = await supabase
+        .from('pendencias')
+        .update({
+          dispensada: true,
+          justificativa: justification,
+        })
+        .eq('id', pendencyId)
+
+      if (error) throw error
+
+      setEmendaData((prev) => {
+        if (!prev) return null
+        const newPendencias = prev.pendencias.map((p) =>
+          p.id === pendencyId
+            ? { ...p, dispensada: true, justificativa: justification }
+            : p,
+        )
+        return { ...prev, pendencias: newPendencias }
+      })
+      toast({ title: 'Pendência dispensada com sucesso!' })
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao dispensar pendência',
+        description: error.message,
+        variant: 'destructive',
+      })
+    }
   }
 
   const handlePendencyClick = (pendencia: Pendencia) => {
@@ -963,6 +988,7 @@ const EmendaDetailPage = () => {
           <EmendaChecklistTab
             pendencias={emendaData.pendencias}
             onPendencyClick={handlePendencyClick}
+            onDismiss={handleDismissPendency}
           />
         </TabsContent>
         <TabsContent value="historico" className="mt-4">

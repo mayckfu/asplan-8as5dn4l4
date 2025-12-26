@@ -29,6 +29,12 @@ interface PendingItemsSidebarProps {
   amendments: DetailedAmendment[]
 }
 
+const isDismissed = (amendment: DetailedAmendment, targetId: string) => {
+  return amendment.pendencias.some(
+    (p) => p.targetId === targetId && (p.dispensada || p.resolvida),
+  )
+}
+
 export const PendingItemsSidebar = ({
   amendments,
 }: PendingItemsSidebarProps) => {
@@ -43,25 +49,37 @@ export const PendingItemsSidebar = ({
     () => [
       {
         title: 'Falta Portaria',
-        count: amendments.filter((a) => !a.portaria).length,
+        count: amendments.filter(
+          (a) => !a.portaria && !isDismissed(a, 'portaria'),
+        ).length,
         icon: FileText,
-        filter: (a) => !a.portaria,
+        filter: (a) => !a.portaria && !isDismissed(a, 'portaria'),
         colorClass: 'hover:bg-amber-50 dark:hover:bg-amber-950/30',
         iconColorClass: 'text-amber-500',
       },
       {
         title: 'Falta Deliberação CIE',
-        count: amendments.filter((a) => !a.deliberacao_cie).length,
+        count: amendments.filter(
+          (a) => !a.deliberacao_cie && !isDismissed(a, 'cie'),
+        ).length,
         icon: FileText,
-        filter: (a) => !a.deliberacao_cie,
+        filter: (a) => !a.deliberacao_cie && !isDismissed(a, 'cie'),
         colorClass: 'hover:bg-blue-50 dark:hover:bg-blue-950/30',
         iconColorClass: 'text-blue-500',
       },
       {
         title: 'Sem Anexos Essenciais',
-        count: amendments.filter((a) => !a.anexos_essenciais).length,
+        count: amendments.filter(
+          (a) =>
+            !a.anexos_essenciais &&
+            !isDismissed(a, 'proposta') &&
+            !isDismissed(a, 'oficio'),
+        ).length,
         icon: Archive,
-        filter: (a) => !a.anexos_essenciais,
+        filter: (a) =>
+          !a.anexos_essenciais &&
+          !isDismissed(a, 'proposta') &&
+          !isDismissed(a, 'oficio'),
         colorClass: 'hover:bg-red-50 dark:hover:bg-red-950/30',
         iconColorClass: 'text-red-500',
       },

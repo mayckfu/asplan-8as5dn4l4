@@ -30,7 +30,7 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart'
-import { DetailedAmendment, Amendment } from '@/lib/mock-data'
+import { DetailedAmendment, Amendment, Pendencia } from '@/lib/mock-data'
 import { formatCurrencyBRL, formatPercent } from '@/lib/utils'
 import { PendingItemsSidebar } from '@/components/dashboard/PendingItemsSidebar'
 import { FinancialSummary } from '@/components/dashboard/FinancialSummary'
@@ -83,6 +83,12 @@ const Index = () => {
 
       if (anexosError) throw anexosError
 
+      const { data: pendenciasData, error: pendenciasError } = await supabase
+        .from('pendencias')
+        .select('*')
+
+      if (pendenciasError) throw pendenciasError
+
       // Transform data to match DetailedAmendment type
       const detailed: DetailedAmendment[] = (emendasData || []).map(
         (emenda: any) => {
@@ -95,6 +101,17 @@ const Index = () => {
           const emendaAnexos = (anexosData || []).filter(
             (a: any) => a.emenda_id === emenda.id,
           )
+          const emendaPendencias = (pendenciasData || [])
+            .filter((p: any) => p.emenda_id === emenda.id)
+            .map((p: any) => ({
+              id: p.id,
+              descricao: p.descricao,
+              dispensada: p.dispensada,
+              resolvida: p.resolvida,
+              justificativa: p.justificativa,
+              targetType: p.target_type,
+              targetId: p.target_id,
+            }))
 
           // Map despesas to include profile name
           const mappedDespesas = emendaDespesas.map((d: any) => ({
@@ -114,7 +131,7 @@ const Index = () => {
             despesas: mappedDespesas,
             anexos: mappedAnexos,
             historico: [],
-            pendencias: [],
+            pendencias: emendaPendencias as Pendencia[],
           }
         },
       )
