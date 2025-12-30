@@ -33,18 +33,28 @@ export const FinancialSummary = ({ amendments }: FinancialSummaryProps) => {
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
-      <FinancialSummaryCard
-        title="Incremento MAC"
-        totalValue={summaryData.mac.total}
-        paidValue={summaryData.mac.paid}
-        type="MAC"
-      />
-      <FinancialSummaryCard
-        title="Incremento PAP"
-        totalValue={summaryData.pap.total}
-        paidValue={summaryData.pap.paid}
-        type="PAP"
-      />
+      <div
+        className="animate-fade-in-up opacity-0"
+        style={{ animationDelay: '250ms', animationFillMode: 'forwards' }}
+      >
+        <FinancialSummaryCard
+          title="Incremento MAC"
+          totalValue={summaryData.mac.total}
+          paidValue={summaryData.mac.paid}
+          type="MAC"
+        />
+      </div>
+      <div
+        className="animate-fade-in-up opacity-0"
+        style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}
+      >
+        <FinancialSummaryCard
+          title="Incremento PAP"
+          totalValue={summaryData.pap.total}
+          paidValue={summaryData.pap.paid}
+          type="PAP"
+        />
+      </div>
     </div>
   )
 }

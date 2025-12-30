@@ -1,5 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card'
-import { formatCurrencyBRL, formatPercent } from '@/lib/utils'
+import { formatCurrencyBRL, formatPercent, cn } from '@/lib/utils'
 import { TrendingUp, Users, Wallet } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
 
@@ -17,9 +17,15 @@ export function KPICards({
   const executionPercentage =
     totalValue > 0 ? (executedValue / totalValue) * 100 : 0
 
+  const cardClass =
+    'overflow-hidden border-none shadow-md bg-gradient-to-br from-background to-muted/30 animate-fade-in-up opacity-0'
+
   return (
     <div className="grid gap-4 md:grid-cols-3">
-      <Card className="overflow-hidden border-none shadow-md bg-gradient-to-br from-background to-muted/30">
+      <Card
+        className={cardClass}
+        style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}
+      >
         <CardContent className="p-6 relative">
           <div className="absolute top-0 right-0 p-6 opacity-10">
             <Wallet className="h-24 w-24 text-primary" />
@@ -38,7 +44,10 @@ export function KPICards({
         </CardContent>
       </Card>
 
-      <Card className="overflow-hidden border-none shadow-md bg-gradient-to-br from-background to-muted/30">
+      <Card
+        className={cardClass}
+        style={{ animationDelay: '150ms', animationFillMode: 'forwards' }}
+      >
         <CardContent className="p-6 relative">
           <div className="absolute top-0 right-0 p-6 opacity-10">
             <TrendingUp className="h-24 w-24 text-success" />
@@ -62,7 +71,10 @@ export function KPICards({
         </CardContent>
       </Card>
 
-      <Card className="overflow-hidden border-none shadow-md bg-gradient-to-br from-background to-muted/30">
+      <Card
+        className={cardClass}
+        style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}
+      >
         <CardContent className="p-6 relative">
           <div className="absolute top-0 right-0 p-6 opacity-10">
             <Users className="h-24 w-24 text-asplan-action" />

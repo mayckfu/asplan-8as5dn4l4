@@ -1,57 +1,15 @@
 import { useMemo, useEffect, useState, useCallback } from 'react'
-import {
-  Line,
-  LineChart,
-  PieChart,
-  Pie,
-  Cell,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts'
-import { format, parseISO, getYear, getMonth } from 'date-fns'
+import { parseISO, getYear, getMonth, format } from 'date-fns'
 import { Banknote, Loader2, AlertTriangle } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltipContent,
-  ChartLegendContent,
-} from '@/components/ui/chart'
 import { DetailedAmendment, Amendment, Pendencia } from '@/lib/mock-data'
-import { formatCurrencyBRL } from '@/lib/utils'
 import { PendingItemsSidebar } from '@/components/dashboard/PendingItemsSidebar'
 import { FinancialSummary } from '@/components/dashboard/FinancialSummary'
 import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { PeriodSelector } from '@/components/PeriodSelector'
 import { KPICards } from '@/components/KPICards'
-
-const COLORS = [
-  'hsl(var(--chart-1))',
-  'hsl(var(--chart-2))',
-  'hsl(var(--chart-3))',
-  'hsl(var(--chart-4))',
-  'hsl(var(--chart-5))',
-]
-
-const chartConfig = {
-  repasses: {
-    label: 'Repasses',
-    color: 'hsl(var(--chart-2))',
-  },
-  despesas: {
-    label: 'Despesas',
-    color: 'hsl(var(--chart-1))',
-  },
-  value: {
-    label: 'Valor',
-    color: 'hsl(var(--primary))',
-  },
-} satisfies ChartConfig
+import { MonthlyFinancialChart } from '@/components/dashboard/MonthlyFinancialChart'
+import { ParliamentaryDistributionChart } from '@/components/dashboard/ParliamentaryDistributionChart'
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(true)
@@ -182,16 +140,6 @@ const Index = () => {
     const year = parseInt(selectedYear)
     const month = selectedMonth === 'all' ? null : parseInt(selectedMonth)
 
-    const filterByDate = (dateString: string) => {
-      if (!dateString) return false
-      const date = parseISO(dateString)
-      const matchesYear = getYear(date) === year
-      if (month !== null) {
-        return matchesYear && getMonth(date) + 1 === month
-      }
-      return matchesYear
-    }
-
     // Since we already fetched by year, we mostly just filter by month here if selected
     const filterByMonth = (dateString: string) => {
       if (!dateString) return false
@@ -309,10 +257,12 @@ const Index = () => {
     )
   }
 
+  const periodKey = `${selectedYear}-${selectedMonth}`
+
   return (
     <div className="grid lg:grid-cols-[1fr_340px] gap-8 items-start pb-8">
       <div className="space-y-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold tracking-tight text-asplan-deep">
               Dashboard — {selectedYear}
@@ -336,7 +286,10 @@ const Index = () => {
         />
 
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-asplan-deep flex items-center gap-2">
+          <h2
+            className="text-xl font-semibold text-asplan-deep flex items-center gap-2 animate-fade-in opacity-0"
+            style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}
+          >
             <Banknote className="h-5 w-5" />
             Resumo Financeiro
           </h2>
@@ -344,146 +297,15 @@ const Index = () => {
         </div>
 
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-          <Card className="bg-card border-border/50 shadow-sm rounded-xl">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-asplan-deep">
-                Repasses x Despesas por Mês
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pl-0">
-              <ChartContainer config={chartConfig} className="w-full h-[300px]">
-                {dashboardData.lineChartData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={dashboardData.lineChartData}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                      <XAxis
-                        dataKey="month"
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={10}
-                        tickFormatter={(value) => value.slice(5)}
-                      />
-                      <YAxis
-                        tickFormatter={(val) =>
-                          new Intl.NumberFormat('pt-BR', {
-                            notation: 'compact',
-                            compactDisplay: 'short',
-                            style: 'currency',
-                            currency: 'BRL',
-                          }).format(val)
-                        }
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={10}
-                      />
-                      <Tooltip
-                        content={
-                          <ChartTooltipContent
-                            formatter={(val) => formatCurrencyBRL(Number(val))}
-                            className="tabular-nums"
-                          />
-                        }
-                      />
-                      <Legend content={<ChartLegendContent />} />
-                      <Line
-                        type="monotone"
-                        dataKey="repasses"
-                        name="Repasses"
-                        stroke="var(--color-repasses)"
-                        strokeWidth={2}
-                        dot={false}
-                        activeDot={{ r: 6 }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="despesas"
-                        name="Despesas"
-                        stroke="var(--color-despesas)"
-                        strokeWidth={2}
-                        dot={false}
-                        activeDot={{ r: 6 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
-                    Sem dados para o período selecionado
-                  </div>
-                )}
-              </ChartContainer>
-            </CardContent>
-          </Card>
+          <MonthlyFinancialChart
+            data={dashboardData.lineChartData}
+            periodKey={periodKey}
+          />
 
-          <Card className="bg-card border-border/50 shadow-sm rounded-xl">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-asplan-deep">
-                Distribuição por Parlamentar
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer
-                config={chartConfig}
-                className="w-full h-[300px] [&_.recharts-pie-label-text]:fill-foreground"
-              >
-                {dashboardData.gastoPorResponsavelData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Tooltip
-                        content={
-                          <ChartTooltipContent
-                            formatter={(value) => {
-                              const total =
-                                dashboardData.gastoPorResponsavelData.reduce(
-                                  (acc, entry) => acc + entry.value,
-                                  0,
-                                )
-                              const percent = (Number(value) / total) * 100
-                              return `${formatCurrencyBRL(Number(value))} (${percent.toFixed(1)}%)`
-                            }}
-                            className="tabular-nums"
-                          />
-                        }
-                      />
-                      <Pie
-                        data={dashboardData.gastoPorResponsavelData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={2}
-                        label={({ percent }) =>
-                          `${(percent * 100).toFixed(0)}%`
-                        }
-                      >
-                        {dashboardData.gastoPorResponsavelData.map(
-                          (entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={COLORS[index % COLORS.length]}
-                              strokeWidth={0}
-                            />
-                          ),
-                        )}
-                      </Pie>
-                      <Legend
-                        content={<ChartLegendContent />}
-                        className="-translate-y-2 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
-                    Sem emendas para o período selecionado
-                  </div>
-                )}
-              </ChartContainer>
-            </CardContent>
-          </Card>
+          <ParliamentaryDistributionChart
+            data={dashboardData.gastoPorResponsavelData}
+            periodKey={periodKey}
+          />
         </div>
       </div>
       <div className="sticky top-24">
