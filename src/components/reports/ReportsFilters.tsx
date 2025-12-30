@@ -1,5 +1,4 @@
-import { DateRange } from 'react-day-picker'
-import { X } from 'lucide-react'
+import { Search, X, Filter } from 'lucide-react'
 import {
   TipoRecurso,
   SituacaoOficial,
@@ -15,8 +14,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { DateRangePicker } from '@/components/ui/date-range-picker'
-import { MoneyInput } from '@/components/ui/money-input'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { Separator } from '@/components/ui/separator'
+import { Badge } from '@/components/ui/badge'
 
 export type ReportFiltersState = {
   autor: string
@@ -24,7 +28,8 @@ export type ReportFiltersState = {
   tipoRecurso: string
   situacao: string
   statusInterno: string
-  periodo: DateRange | undefined
+  year: string
+  month: string
   valorMin: number
   valorMax: number
   responsavel: string
@@ -51,142 +56,205 @@ export const ReportsFilters = ({
   const handleSelectChange = (name: string) => (value: string) => {
     onFilterChange({ [name]: value })
   }
-  const handleDateChange = (date: DateRange | undefined) => {
-    onFilterChange({ periodo: date })
-  }
-  const handleMoneyChange = (name: string) => (value: number) => {
-    onFilterChange({ [name]: value })
-  }
+
+  const activeFiltersCount = [
+    filters.autor,
+    filters.responsavel,
+    filters.unidade,
+    filters.demanda,
+    filters.fornecedor,
+    filters.valorMin > 0,
+    filters.valorMax > 0,
+    filters.tipo !== 'all',
+    filters.tipoRecurso !== 'all',
+    filters.situacao !== 'all',
+    filters.statusInterno !== 'all',
+    filters.statusExecucao !== 'all',
+  ].filter(Boolean).length
 
   return (
-    <div className="space-y-4 p-1">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Input
-          placeholder="Filtrar por Autor..."
-          name="autor"
-          value={filters.autor}
-          onChange={handleInputChange}
-        />
-        <Select value={filters.tipo} onValueChange={handleSelectChange('tipo')}>
-          <SelectTrigger>
-            <SelectValue placeholder="Tipo de Emenda" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas</SelectItem>
-            {Object.entries(TipoEmenda).map(([key, value]) => (
-              <SelectItem key={key} value={key}>
-                {value}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          value={filters.tipoRecurso}
-          onValueChange={handleSelectChange('tipoRecurso')}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Tipo de Recurso" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            {Object.entries(TipoRecurso).map(([key, value]) => (
-              <SelectItem key={key} value={key}>
-                {value}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          value={filters.situacao}
-          onValueChange={handleSelectChange('situacao')}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Situação Oficial" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas</SelectItem>
-            {Object.entries(SituacaoOficial).map(([key, value]) => (
-              <SelectItem key={key} value={key}>
-                {value}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          value={filters.statusInterno}
-          onValueChange={handleSelectChange('statusInterno')}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Status Interno" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            {Object.entries(StatusInterno).map(([key, value]) => (
-              <SelectItem key={key} value={key}>
-                {value}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <DateRangePicker
-          date={filters.periodo}
-          onDateChange={handleDateChange}
-        />
-        <MoneyInput
-          placeholder="Valor Mín."
-          value={filters.valorMin}
-          onChange={handleMoneyChange('valorMin')}
-        />
-        <MoneyInput
-          placeholder="Valor Máx."
-          value={filters.valorMax}
-          onChange={handleMoneyChange('valorMax')}
-        />
-        <Input
-          placeholder="Filtrar por Responsável..."
-          name="responsavel"
-          value={filters.responsavel}
-          onChange={handleInputChange}
-        />
-        <Input
-          placeholder="Filtrar por Unidade..."
-          name="unidade"
-          value={filters.unidade}
-          onChange={handleInputChange}
-        />
-        <Input
-          placeholder="Filtrar por Demanda..."
-          name="demanda"
-          value={filters.demanda}
-          onChange={handleInputChange}
-        />
-        <Select
-          value={filters.statusExecucao}
-          onValueChange={handleSelectChange('statusExecucao')}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Status de Execução" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="PLANEJADA">Planejada</SelectItem>
-            <SelectItem value="EMPENHADA">Empenhada</SelectItem>
-            <SelectItem value="LIQUIDADA">Liquidada</SelectItem>
-            <SelectItem value="PAGA">Paga</SelectItem>
-          </SelectContent>
-        </Select>
-        <Input
-          placeholder="Filtrar por Fornecedor..."
-          name="fornecedor"
-          value={filters.fornecedor}
-          onChange={handleInputChange}
-        />
-      </div>
-      <div className="flex justify-end">
-        <Button variant="ghost" onClick={onReset}>
-          <X className="mr-2 h-4 w-4" />
-          Limpar Filtros
-        </Button>
+    <div className="flex flex-col gap-4">
+      {/* Consolidated Toolbar */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 p-4 rounded-xl border border-border/40 bg-background/60 backdrop-blur-md shadow-sm">
+        <div className="flex items-center gap-2 flex-1 w-full lg:w-auto">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por Autor..."
+              name="autor"
+              value={filters.autor}
+              onChange={handleInputChange}
+              className="pl-9 bg-background/50 border-border/50"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:flex items-center gap-2 w-full lg:w-auto">
+          <Select
+            value={filters.tipoRecurso}
+            onValueChange={handleSelectChange('tipoRecurso')}
+          >
+            <SelectTrigger className="w-full lg:w-[160px] bg-background/50 border-border/50">
+              <SelectValue placeholder="Tipo Recurso" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos Recursos</SelectItem>
+              {Object.entries(TipoRecurso).map(([key, value]) => (
+                <SelectItem key={key} value={key}>
+                  {value}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={filters.situacao}
+            onValueChange={handleSelectChange('situacao')}
+          >
+            <SelectTrigger className="w-full lg:w-[160px] bg-background/50 border-border/50">
+              <SelectValue placeholder="Situação" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas Situações</SelectItem>
+              {Object.entries(SituacaoOficial).map(([key, value]) => (
+                <SelectItem key={key} value={key}>
+                  {value}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full lg:w-auto border-dashed border-border/50 bg-transparent hover:bg-muted/50"
+              >
+                <Filter className="mr-2 h-4 w-4" />
+                Mais Filtros
+                {activeFiltersCount > 0 && (
+                  <Badge
+                    variant="secondary"
+                    className="ml-2 rounded-sm px-1 font-normal h-5"
+                  >
+                    {activeFiltersCount}
+                  </Badge>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-4" align="end">
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <h4 className="font-medium leading-none">
+                    Filtros Avançados
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Refine sua busca por detalhes específicos.
+                  </p>
+                </div>
+                <Separator />
+                <div className="grid gap-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <Select
+                      value={filters.tipo}
+                      onValueChange={handleSelectChange('tipo')}
+                    >
+                      <SelectTrigger className="h-8">
+                        <SelectValue placeholder="Tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos Tipos</SelectItem>
+                        {Object.entries(TipoEmenda).map(([key, value]) => (
+                          <SelectItem key={key} value={key}>
+                            {value}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select
+                      value={filters.statusInterno}
+                      onValueChange={handleSelectChange('statusInterno')}
+                    >
+                      <SelectTrigger className="h-8">
+                        <SelectValue placeholder="Status Int." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos Status</SelectItem>
+                        {Object.entries(StatusInterno).map(([key, value]) => (
+                          <SelectItem key={key} value={key}>
+                            {value}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Input
+                    placeholder="Responsável..."
+                    name="responsavel"
+                    value={filters.responsavel}
+                    onChange={handleInputChange}
+                    className="h-8"
+                  />
+                  <Input
+                    placeholder="Unidade..."
+                    name="unidade"
+                    value={filters.unidade}
+                    onChange={handleInputChange}
+                    className="h-8"
+                  />
+                  <Select
+                    value={filters.statusExecucao}
+                    onValueChange={handleSelectChange('statusExecucao')}
+                  >
+                    <SelectTrigger className="h-8">
+                      <SelectValue placeholder="Execução" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas Execuções</SelectItem>
+                      <SelectItem value="PLANEJADA">Planejada</SelectItem>
+                      <SelectItem value="EMPENHADA">Empenhada</SelectItem>
+                      <SelectItem value="LIQUIDADA">Liquidada</SelectItem>
+                      <SelectItem value="PAGA">Paga</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      placeholder="Min R$"
+                      type="number"
+                      value={filters.valorMin || ''}
+                      onChange={(e) =>
+                        onFilterChange({ valorMin: Number(e.target.value) })
+                      }
+                      className="h-8"
+                    />
+                    <Input
+                      placeholder="Max R$"
+                      type="number"
+                      value={filters.valorMax || ''}
+                      onChange={(e) =>
+                        onFilterChange({ valorMax: Number(e.target.value) })
+                      }
+                      className="h-8"
+                    />
+                  </div>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {(activeFiltersCount > 0 ||
+            filters.year !== new Date().getFullYear().toString() ||
+            filters.month !== 'all') && (
+            <Button
+              variant="ghost"
+              className="w-full lg:w-auto text-muted-foreground hover:text-foreground"
+              onClick={onReset}
+            >
+              <X className="mr-2 h-4 w-4" />
+              Limpar
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   )
