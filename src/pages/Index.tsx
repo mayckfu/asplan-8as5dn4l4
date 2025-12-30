@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useState } from 'react'
+import { useMemo, useEffect, useState, useCallback } from 'react'
 import {
   Line,
   LineChart,
@@ -67,7 +67,7 @@ const Index = () => {
   )
   const [selectedMonth, setSelectedMonth] = useState<string>('all')
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setIsLoading(true)
     setError(null)
     try {
@@ -172,11 +172,11 @@ const Index = () => {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [selectedYear])
 
   useEffect(() => {
     fetchData()
-  }, [selectedYear]) // Trigger new fetch when year changes
+  }, [fetchData])
 
   const filteredData = useMemo(() => {
     const year = parseInt(selectedYear)
