@@ -10,6 +10,7 @@ import {
   PieChart,
   Pie,
   Cell,
+  LabelList,
 } from 'recharts'
 import { format, parseISO, getYear, getMonth } from 'date-fns'
 import {
@@ -177,13 +178,6 @@ const Index = () => {
     const filteredDetailedAmendments = detailedAmendments.filter((a) =>
       filterByDate(a.created_at),
     )
-
-    // Filter Repasses and Despesas by their specific dates for the line chart
-    // But for KPIs related to amendments (Total Value), we use amendment list.
-    // For KPIs related to Execution (Repassed, Spent), we usually filter the transactions within the period
-    // OR filter the transactions of the filtered amendments.
-    // Requirement says: "Temporal Data Filtering: Automatic filtering of all charts (Repasses vs. Despesas), status summaries, and financial totals based on the selected competency."
-    // Usually financial summaries filter the TRANSACTIONS in that period.
 
     const allRepasses = detailedAmendments.flatMap((a) => a.repasses)
     const allDespesas = detailedAmendments.flatMap((a) => a.despesas)
@@ -523,6 +517,9 @@ const Index = () => {
                       innerRadius={60}
                       outerRadius={100}
                       paddingAngle={2}
+                      label={({ name, percent }) =>
+                        `${name} ${(percent * 100).toFixed(0)}%`
+                      }
                     >
                       {dashboardData.gastoPorResponsavelData.map(
                         (entry, index) => (

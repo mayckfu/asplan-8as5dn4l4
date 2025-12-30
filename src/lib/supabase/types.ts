@@ -279,6 +279,8 @@ export type Database = {
           observacoes: string | null
           parlamentar: string
           portaria: string | null
+          segundo_autor: string | null
+          segundo_parlamentar: string | null
           situacao: Database['public']['Enums']['situacao_oficial']
           situacao_recurso: string | null
           status_interno: Database['public']['Enums']['status_interno']
@@ -286,6 +288,7 @@ export type Database = {
           tipo_recurso: Database['public']['Enums']['tipo_recurso']
           updated_at: string | null
           valor_repasse: number | null
+          valor_segundo_responsavel: number | null
           valor_total: number
         }
         Insert: {
@@ -305,6 +308,8 @@ export type Database = {
           observacoes?: string | null
           parlamentar: string
           portaria?: string | null
+          segundo_autor?: string | null
+          segundo_parlamentar?: string | null
           situacao?: Database['public']['Enums']['situacao_oficial']
           situacao_recurso?: string | null
           status_interno?: Database['public']['Enums']['status_interno']
@@ -312,6 +317,7 @@ export type Database = {
           tipo_recurso: Database['public']['Enums']['tipo_recurso']
           updated_at?: string | null
           valor_repasse?: number | null
+          valor_segundo_responsavel?: number | null
           valor_total?: number
         }
         Update: {
@@ -331,6 +337,8 @@ export type Database = {
           observacoes?: string | null
           parlamentar?: string
           portaria?: string | null
+          segundo_autor?: string | null
+          segundo_parlamentar?: string | null
           situacao?: Database['public']['Enums']['situacao_oficial']
           situacao_recurso?: string | null
           status_interno?: Database['public']['Enums']['status_interno']
@@ -338,6 +346,7 @@ export type Database = {
           tipo_recurso?: Database['public']['Enums']['tipo_recurso']
           updated_at?: string | null
           valor_repasse?: number | null
+          valor_segundo_responsavel?: number | null
           valor_total?: number
         }
         Relationships: []
