@@ -10,6 +10,7 @@ import {
   Eye,
   Loader2,
   AlertTriangle,
+  Users,
 } from 'lucide-react'
 import { parse, format } from 'date-fns'
 import {
@@ -437,6 +438,8 @@ const EmendasListPage = () => {
       'Situação Oficial': SituacaoOficial[a.situacao],
       'Status Interno': StatusInterno[a.status_interno],
       Pendências: a.pendencias.join('; '),
+      'Segundo Parlamentar': a.segundo_parlamentar || '',
+      'Valor Segundo Resp.': a.valor_segundo_responsavel || 0,
     }))
     exportToCsv('emendas.csv', dataToExport)
   }
@@ -543,7 +546,7 @@ const EmendasListPage = () => {
                       Tipo
                     </TableHead>
                     <TableHead className="min-w-[150px] font-medium text-neutral-900 dark:text-neutral-200">
-                      Autor
+                      Parlamentar
                     </TableHead>
                     <TableHead className="min-w-[120px] font-medium text-neutral-900 dark:text-neutral-200">
                       Nº Emenda
@@ -586,7 +589,13 @@ const EmendasListPage = () => {
                           {TipoEmenda[amendment.tipo] || amendment.tipo}
                         </TableCell>
                         <TableCell className="align-top font-medium text-neutral-900 dark:text-neutral-200">
-                          {amendment.autor}
+                          <div>{amendment.parlamentar}</div>
+                          {amendment.segundo_parlamentar && (
+                            <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                              <Users className="h-3 w-3" />
+                              {amendment.segundo_parlamentar}
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell className="align-top">
                           {amendment.numero_emenda}

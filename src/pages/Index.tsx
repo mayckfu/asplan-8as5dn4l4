@@ -11,7 +11,7 @@ import {
   Pie,
   Cell,
 } from 'recharts'
-import { format } from 'date-fns'
+import { format, parseISO, getYear, getMonth } from 'date-fns'
 import {
   Banknote,
   Landmark,
@@ -21,6 +21,7 @@ import {
   Activity,
   Loader2,
   AlertTriangle,
+  CalendarDays,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -30,6 +31,13 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { DetailedAmendment, Amendment, Pendencia } from '@/lib/mock-data'
 import { formatCurrencyBRL, formatPercent } from '@/lib/utils'
 import { PendingItemsSidebar } from '@/components/dashboard/PendingItemsSidebar'
@@ -53,18 +61,20 @@ const Index = () => {
     DetailedAmendment[]
   >([])
 
+  // Filters State
+  const [selectedYear, setSelectedYear] = useState<string>('2025')
+  const [selectedMonth, setSelectedMonth] = useState<string>('all')
+
   const fetchData = async () => {
     setIsLoading(true)
     setError(null)
     try {
-      // Fetch basic amendments
       const { data: emendasData, error: emendasError } = await supabase
         .from('emendas')
         .select('*')
 
       if (emendasError) throw emendasError
 
-      // Fetch related data for details
       const { data: repassesData, error: repassesError } = await supabase
         .from('repasses')
         .select('*')
@@ -89,7 +99,6 @@ const Index = () => {
 
       if (pendenciasError) throw pendenciasError
 
-      // Transform data to match DetailedAmendment type
       const detailed: DetailedAmendment[] = (emendasData || []).map(
         (emenda: any) => {
           const emendaRepasses = (repassesData || []).filter(
@@ -113,13 +122,11 @@ const Index = () => {
               targetId: p.target_id,
             }))
 
-          // Map despesas to include profile name
           const mappedDespesas = emendaDespesas.map((d: any) => ({
             ...d,
             registrada_por: d.profiles?.name || 'Desconhecido',
           }))
 
-          // Map anexos to include uploader name
           const mappedAnexos = emendaAnexos.map((a: any) => ({
             ...a,
             uploader: a.profiles?.name || 'Desconhecido',
@@ -150,18 +157,63 @@ const Index = () => {
     fetchData()
   }, [])
 
-  const dashboardData = useMemo(() => {
-    const allDespesas = detailedAmendments.flatMap((a) => a.despesas)
-    const allRepasses = detailedAmendments.flatMap((a) => a.repasses)
+  const filteredData = useMemo(() => {
+    const year = parseInt(selectedYear)
+    const month = selectedMonth === 'all' ? null : parseInt(selectedMonth)
 
-    const totalPropostas = amendments.length
-    const totalValor = amendments.reduce((sum, a) => sum + a.valor_total, 0)
-    const realTotalRepassado = allRepasses.reduce(
+    const filterByDate = (dateString: string) => {
+      if (!dateString) return false
+      const date = parseISO(dateString)
+      const matchesYear = getYear(date) === year
+      if (month !== null) {
+        return matchesYear && getMonth(date) + 1 === month
+      }
+      return matchesYear
+    }
+
+    const filteredAmendmentsList = amendments.filter((a) =>
+      filterByDate(a.created_at),
+    )
+    const filteredDetailedAmendments = detailedAmendments.filter((a) =>
+      filterByDate(a.created_at),
+    )
+
+    // Filter Repasses and Despesas by their specific dates for the line chart
+    // But for KPIs related to amendments (Total Value), we use amendment list.
+    // For KPIs related to Execution (Repassed, Spent), we usually filter the transactions within the period
+    // OR filter the transactions of the filtered amendments.
+    // Requirement says: "Temporal Data Filtering: Automatic filtering of all charts (Repasses vs. Despesas), status summaries, and financial totals based on the selected competency."
+    // Usually financial summaries filter the TRANSACTIONS in that period.
+
+    const allRepasses = detailedAmendments.flatMap((a) => a.repasses)
+    const allDespesas = detailedAmendments.flatMap((a) => a.despesas)
+
+    const filteredRepasses = allRepasses.filter((r) => filterByDate(r.data))
+    const filteredDespesas = allDespesas.filter((d) => filterByDate(d.data))
+
+    return {
+      amendments: filteredAmendmentsList,
+      detailedAmendments: filteredDetailedAmendments,
+      repasses: filteredRepasses,
+      despesas: filteredDespesas,
+    }
+  }, [amendments, detailedAmendments, selectedYear, selectedMonth])
+
+  const dashboardData = useMemo(() => {
+    const {
+      amendments: fAmendments,
+      repasses: fRepasses,
+      despesas: fDespesas,
+    } = filteredData
+
+    const totalPropostas = fAmendments.length
+    const totalValor = fAmendments.reduce((sum, a) => sum + a.valor_total, 0)
+    const realTotalRepassado = fRepasses.reduce(
       (sum, r) => (r.status === 'REPASSADO' ? sum + r.valor : sum),
       0,
     )
 
-    const totalGasto = allDespesas.reduce((sum, d) => sum + d.valor, 0)
+    const totalGasto = fDespesas.reduce((sum, d) => sum + d.valor, 0)
 
     const execucaoMedia =
       realTotalRepassado > 0 ? (totalGasto / realTotalRepassado) * 100 : 0
@@ -212,20 +264,32 @@ const Index = () => {
       },
     ]
 
-    const gastoPorResponsavel = allDespesas.reduce(
-      (acc, { registrada_por, valor }) => {
-        acc[registrada_por] = (acc[registrada_por] || 0) + valor
+    // Chart: Budget Distribution by Parliamentarian (supporting co-authorship)
+    const budgetByParlamentar = fAmendments.reduce(
+      (acc, amendment) => {
+        const primary = amendment.parlamentar || 'Não Informado'
+        const secondary = amendment.segundo_parlamentar
+        const secondaryValue = amendment.valor_segundo_responsavel || 0
+        const primaryValue = amendment.valor_total - secondaryValue
+
+        acc[primary] = (acc[primary] || 0) + primaryValue
+
+        if (secondary && secondaryValue > 0) {
+          acc[secondary] = (acc[secondary] || 0) + secondaryValue
+        }
+
         return acc
       },
       {} as Record<string, number>,
     )
-    const gastoPorResponsavelData = Object.entries(gastoPorResponsavel).map(
-      ([name, value]) => ({ name, value }),
-    )
 
-    const monthlyData = [...allRepasses, ...allDespesas].reduce(
+    const gastoPorResponsavelData = Object.entries(budgetByParlamentar)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+
+    const monthlyData = [...fRepasses, ...fDespesas].reduce(
       (acc, item) => {
-        const month = format(new Date(item.data), 'yyyy-MM')
+        const month = format(parseISO(item.data), 'yyyy-MM')
         if (!acc[month]) acc[month] = { month, repasses: 0, despesas: 0 }
         if ('fonte' in item) {
           if (item.status === 'REPASSADO') acc[month].repasses += item.valor
@@ -245,9 +309,9 @@ const Index = () => {
       kpis,
       gastoPorResponsavelData,
       lineChartData,
-      allDetailedAmendments: detailedAmendments,
+      allDetailedAmendments: filteredData.detailedAmendments,
     }
-  }, [amendments, detailedAmendments])
+  }, [filteredData])
 
   if (isLoading) {
     return (
@@ -271,13 +335,49 @@ const Index = () => {
   return (
     <div className="grid lg:grid-cols-[1fr_340px] gap-8 items-start pb-8">
       <div className="space-y-8">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight text-asplan-deep">
-            Quadro Geral das Emendas — 2025
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Planejamento e acompanhamento financeiro da Secretaria de Saúde
-          </p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight text-asplan-deep">
+              Quadro Geral — {selectedYear}
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              Acompanhamento financeiro da Secretaria de Saúde
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 bg-card p-2 rounded-lg border shadow-sm">
+              <CalendarDays className="h-4 w-4 text-muted-foreground" />
+              <Select value={selectedYear} onValueChange={setSelectedYear}>
+                <SelectTrigger className="w-[100px] h-8">
+                  <SelectValue placeholder="Ano" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="2025">2025</SelectItem>
+                  <SelectItem value="2026">2026</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger className="w-[140px] h-8">
+                  <SelectValue placeholder="Mês" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Meses</SelectItem>
+                  <SelectItem value="1">Janeiro</SelectItem>
+                  <SelectItem value="2">Fevereiro</SelectItem>
+                  <SelectItem value="3">Março</SelectItem>
+                  <SelectItem value="4">Abril</SelectItem>
+                  <SelectItem value="5">Maio</SelectItem>
+                  <SelectItem value="6">Junho</SelectItem>
+                  <SelectItem value="7">Julho</SelectItem>
+                  <SelectItem value="8">Agosto</SelectItem>
+                  <SelectItem value="9">Setembro</SelectItem>
+                  <SelectItem value="10">Outubro</SelectItem>
+                  <SelectItem value="11">Novembro</SelectItem>
+                  <SelectItem value="12">Dezembro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -311,7 +411,7 @@ const Index = () => {
             <Banknote className="h-5 w-5" />
             Resumo Financeiro
           </h2>
-          <FinancialSummary amendments={amendments} />
+          <FinancialSummary amendments={filteredData.amendments} />
         </div>
 
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
@@ -323,59 +423,65 @@ const Index = () => {
             </CardHeader>
             <CardContent className="pl-0">
               <ChartContainer config={{}} className="w-full h-[300px]">
-                <LineChart
-                  data={dashboardData.lineChartData}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis
-                    dataKey="month"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={10}
-                    tickFormatter={(value) => value.slice(5)}
-                  />
-                  <YAxis
-                    tickFormatter={(val) =>
-                      new Intl.NumberFormat('pt-BR', {
-                        notation: 'compact',
-                        compactDisplay: 'short',
-                        style: 'currency',
-                        currency: 'BRL',
-                      }).format(val)
-                    }
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={10}
-                  />
-                  <ChartTooltip
-                    content={
-                      <ChartTooltipContent
-                        formatter={(val) => formatCurrencyBRL(Number(val))}
-                        className="tabular-nums"
-                      />
-                    }
-                  />
-                  <ChartLegend content={<ChartLegendContent />} />
-                  <Line
-                    type="monotone"
-                    dataKey="repasses"
-                    name="Repasses"
-                    stroke="hsl(var(--chart-2))"
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 6 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="despesas"
-                    name="Despesas"
-                    stroke="hsl(var(--chart-1))"
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
+                {dashboardData.lineChartData.length > 0 ? (
+                  <LineChart
+                    data={dashboardData.lineChartData}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis
+                      dataKey="month"
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={10}
+                      tickFormatter={(value) => value.slice(5)}
+                    />
+                    <YAxis
+                      tickFormatter={(val) =>
+                        new Intl.NumberFormat('pt-BR', {
+                          notation: 'compact',
+                          compactDisplay: 'short',
+                          style: 'currency',
+                          currency: 'BRL',
+                        }).format(val)
+                      }
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={10}
+                    />
+                    <ChartTooltip
+                      content={
+                        <ChartTooltipContent
+                          formatter={(val) => formatCurrencyBRL(Number(val))}
+                          className="tabular-nums"
+                        />
+                      }
+                    />
+                    <ChartLegend content={<ChartLegendContent />} />
+                    <Line
+                      type="monotone"
+                      dataKey="repasses"
+                      name="Repasses"
+                      stroke="hsl(var(--chart-2))"
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 6 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="despesas"
+                      name="Despesas"
+                      stroke="hsl(var(--chart-1))"
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                ) : (
+                  <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
+                    Sem dados para o período selecionado
+                  </div>
+                )}
               </ChartContainer>
             </CardContent>
           </Card>
@@ -383,55 +489,61 @@ const Index = () => {
           <Card className="bg-card border-border/50 shadow-sm">
             <CardHeader>
               <CardTitle className="text-lg font-semibold text-asplan-deep">
-                Gasto por Responsável
+                Distribuição por Parlamentar
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ChartContainer config={{}} className="w-full h-[300px]">
-                <PieChart>
-                  <ChartTooltip
-                    content={
-                      <ChartTooltipContent
-                        formatter={(value) => {
-                          const total =
-                            dashboardData.gastoPorResponsavelData.reduce(
-                              (acc, entry) => acc + entry.value,
-                              0,
-                            )
-                          const percent = (Number(value) / total) * 100
-                          return `${formatCurrencyBRL(
-                            Number(value),
-                          )} (${percent.toFixed(1)}%)`
-                        }}
-                        className="tabular-nums"
-                      />
-                    }
-                  />
-                  <Pie
-                    data={dashboardData.gastoPorResponsavelData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={2}
-                  >
-                    {dashboardData.gastoPorResponsavelData.map(
-                      (entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                          strokeWidth={0}
+                {dashboardData.gastoPorResponsavelData.length > 0 ? (
+                  <PieChart>
+                    <ChartTooltip
+                      content={
+                        <ChartTooltipContent
+                          formatter={(value) => {
+                            const total =
+                              dashboardData.gastoPorResponsavelData.reduce(
+                                (acc, entry) => acc + entry.value,
+                                0,
+                              )
+                            const percent = (Number(value) / total) * 100
+                            return `${formatCurrencyBRL(
+                              Number(value),
+                            )} (${percent.toFixed(1)}%)`
+                          }}
+                          className="tabular-nums"
                         />
-                      ),
-                    )}
-                  </Pie>
-                  <ChartLegend
-                    content={<ChartLegendContent />}
-                    className="-translate-y-2 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
-                  />
-                </PieChart>
+                      }
+                    />
+                    <Pie
+                      data={dashboardData.gastoPorResponsavelData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={2}
+                    >
+                      {dashboardData.gastoPorResponsavelData.map(
+                        (entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                            strokeWidth={0}
+                          />
+                        ),
+                      )}
+                    </Pie>
+                    <ChartLegend
+                      content={<ChartLegendContent />}
+                      className="-translate-y-2 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
+                    />
+                  </PieChart>
+                ) : (
+                  <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
+                    Sem emendas para o período selecionado
+                  </div>
+                )}
               </ChartContainer>
             </CardContent>
           </Card>

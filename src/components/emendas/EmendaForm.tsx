@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { MoneyInput } from '@/components/ui/money-input'
+import { Separator } from '@/components/ui/separator'
 import {
   Amendment,
   TipoRecurso,
@@ -33,6 +34,7 @@ import {
   StatusInternoEnum,
   TipoEmendaEnum,
 } from '@/lib/mock-data'
+import { formatCurrencyBRL } from '@/lib/utils'
 
 const emendaSchema = z.object({
   tipo: z.enum(['individual', 'bancada', 'comissao'], {
@@ -51,6 +53,10 @@ const emendaSchema = z.object({
   portaria: z.string().optional().nullable(),
   deliberacao_cie: z.string().optional().nullable(),
   anexos_essenciais: z.boolean().default(false),
+  // Co-authorship fields
+  segundo_autor: z.string().optional().nullable(),
+  segundo_parlamentar: z.string().optional().nullable(),
+  valor_segundo_responsavel: z.coerce.number().optional().nullable(),
 })
 
 type EmendaFormValues = z.infer<typeof emendaSchema>
@@ -81,6 +87,9 @@ export const EmendaForm = ({
       portaria: initialData?.portaria || '',
       deliberacao_cie: initialData?.deliberacao_cie || '',
       anexos_essenciais: initialData?.anexos_essenciais || false,
+      segundo_autor: initialData?.segundo_autor || '',
+      segundo_parlamentar: initialData?.segundo_parlamentar || '',
+      valor_segundo_responsavel: initialData?.valor_segundo_responsavel || 0,
     },
   })
 
@@ -99,6 +108,9 @@ export const EmendaForm = ({
         portaria: initialData.portaria || '',
         deliberacao_cie: initialData.deliberacao_cie || '',
         anexos_essenciais: initialData.anexos_essenciais,
+        segundo_autor: initialData.segundo_autor || '',
+        segundo_parlamentar: initialData.segundo_parlamentar || '',
+        valor_segundo_responsavel: initialData.valor_segundo_responsavel || 0,
       })
     }
   }, [initialData, form])
@@ -112,8 +124,15 @@ export const EmendaForm = ({
       status_interno: values.status_interno as StatusInternoEnum,
       portaria: values.portaria || null,
       deliberacao_cie: values.deliberacao_cie || null,
+      segundo_autor: values.segundo_autor || null,
+      segundo_parlamentar: values.segundo_parlamentar || null,
+      valor_segundo_responsavel: values.valor_segundo_responsavel || 0,
     })
   }
+
+  const valorTotal = form.watch('valor_total')
+  const valorSegundo = form.watch('valor_segundo_responsavel')
+  const primeiroParlamentarShare = (valorTotal || 0) - (valorSegundo || 0)
 
   return (
     <Form {...form}>
@@ -181,7 +200,7 @@ export const EmendaForm = ({
             name="autor"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Autor</FormLabel>
+                <FormLabel>Autor Principal</FormLabel>
                 <FormControl>
                   <Input placeholder="Nome do autor" {...field} />
                 </FormControl>
@@ -194,7 +213,7 @@ export const EmendaForm = ({
             name="parlamentar"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Parlamentar</FormLabel>
+                <FormLabel>Parlamentar Principal</FormLabel>
                 <FormControl>
                   <Input placeholder="Nome do parlamentar" {...field} />
                 </FormControl>
@@ -202,6 +221,73 @@ export const EmendaForm = ({
               </FormItem>
             )}
           />
+        </div>
+
+        <div className="space-y-4 p-4 border rounded-md bg-muted/20">
+          <h3 className="font-semibold text-sm text-muted-foreground">
+            Co-autoria (Opcional)
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="segundo_autor"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Segundo Autor</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Nome do segundo autor"
+                      {...field}
+                      value={field.value || ''}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="segundo_parlamentar"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Segundo Parlamentar</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Nome do segundo parlamentar"
+                      {...field}
+                      value={field.value || ''}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+            <FormField
+              control={form.control}
+              name="valor_segundo_responsavel"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Valor do Segundo Responsável (R$)</FormLabel>
+                  <FormControl>
+                    <MoneyInput
+                      placeholder="0,00"
+                      value={field.value || 0}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="pb-3 text-sm">
+              <span className="text-muted-foreground">Saldo Principal:</span>{' '}
+              <span className="font-bold tabular-nums">
+                {formatCurrencyBRL(primeiroParlamentarShare)}
+              </span>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
