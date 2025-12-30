@@ -73,33 +73,32 @@ export const ReportsFilters = ({
   ].filter(Boolean).length
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Consolidated Toolbar */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 p-4 rounded-xl border border-border/40 bg-background/60 backdrop-blur-md shadow-sm">
+    <div className="flex flex-col gap-4 animate-fade-in-down">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 p-2 rounded-xl border border-border/40 bg-background/60 backdrop-blur-md shadow-sm sticky top-20 z-20">
         <div className="flex items-center gap-2 flex-1 w-full lg:w-auto">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por Autor..."
+              placeholder="Buscar por Parlamentar..."
               name="autor"
               value={filters.autor}
               onChange={handleInputChange}
-              className="pl-9 bg-background/50 border-border/50"
+              className="pl-9 bg-background/50 border-border/50 h-10"
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:flex items-center gap-2 w-full lg:w-auto">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:flex items-center gap-2 w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0">
           <Select
-            value={filters.tipoRecurso}
-            onValueChange={handleSelectChange('tipoRecurso')}
+            value={filters.tipo}
+            onValueChange={handleSelectChange('tipo')}
           >
-            <SelectTrigger className="w-full lg:w-[160px] bg-background/50 border-border/50">
-              <SelectValue placeholder="Tipo Recurso" />
+            <SelectTrigger className="w-full lg:w-[150px] bg-background/50 border-border/50 h-10">
+              <SelectValue placeholder="Tipo Emenda" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos Recursos</SelectItem>
-              {Object.entries(TipoRecurso).map(([key, value]) => (
+              <SelectItem value="all">Todos Tipos</SelectItem>
+              {Object.entries(TipoEmenda).map(([key, value]) => (
                 <SelectItem key={key} value={key}>
                   {value}
                 </SelectItem>
@@ -111,8 +110,8 @@ export const ReportsFilters = ({
             value={filters.situacao}
             onValueChange={handleSelectChange('situacao')}
           >
-            <SelectTrigger className="w-full lg:w-[160px] bg-background/50 border-border/50">
-              <SelectValue placeholder="Situação" />
+            <SelectTrigger className="w-full lg:w-[160px] bg-background/50 border-border/50 h-10">
+              <SelectValue placeholder="Status Oficial" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas Situações</SelectItem>
@@ -128,10 +127,10 @@ export const ReportsFilters = ({
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="w-full lg:w-auto border-dashed border-border/50 bg-transparent hover:bg-muted/50"
+                className="w-full lg:w-auto border-dashed border-border/50 bg-transparent hover:bg-muted/50 h-10"
               >
                 <Filter className="mr-2 h-4 w-4" />
-                Mais Filtros
+                Filtros
                 {activeFiltersCount > 0 && (
                   <Badge
                     variant="secondary"
@@ -154,40 +153,38 @@ export const ReportsFilters = ({
                 </div>
                 <Separator />
                 <div className="grid gap-2">
-                  <div className="grid grid-cols-2 gap-2">
-                    <Select
-                      value={filters.tipo}
-                      onValueChange={handleSelectChange('tipo')}
-                    >
-                      <SelectTrigger className="h-8">
-                        <SelectValue placeholder="Tipo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos Tipos</SelectItem>
-                        {Object.entries(TipoEmenda).map(([key, value]) => (
-                          <SelectItem key={key} value={key}>
-                            {value}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Select
-                      value={filters.statusInterno}
-                      onValueChange={handleSelectChange('statusInterno')}
-                    >
-                      <SelectTrigger className="h-8">
-                        <SelectValue placeholder="Status Int." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos Status</SelectItem>
-                        {Object.entries(StatusInterno).map(([key, value]) => (
-                          <SelectItem key={key} value={key}>
-                            {value}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <Select
+                    value={filters.tipoRecurso}
+                    onValueChange={handleSelectChange('tipoRecurso')}
+                  >
+                    <SelectTrigger className="h-8">
+                      <SelectValue placeholder="Tipo de Recurso" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos Recursos</SelectItem>
+                      {Object.entries(TipoRecurso).map(([key, value]) => (
+                        <SelectItem key={key} value={key}>
+                          {value}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={filters.statusInterno}
+                    onValueChange={handleSelectChange('statusInterno')}
+                  >
+                    <SelectTrigger className="h-8">
+                      <SelectValue placeholder="Status Interno" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos Status</SelectItem>
+                      {Object.entries(StatusInterno).map(([key, value]) => (
+                        <SelectItem key={key} value={key}>
+                          {value}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <Input
                     placeholder="Responsável..."
                     name="responsavel"
@@ -207,7 +204,7 @@ export const ReportsFilters = ({
                     onValueChange={handleSelectChange('statusExecucao')}
                   >
                     <SelectTrigger className="h-8">
-                      <SelectValue placeholder="Execução" />
+                      <SelectValue placeholder="Status Execução" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todas Execuções</SelectItem>
@@ -217,26 +214,6 @@ export const ReportsFilters = ({
                       <SelectItem value="PAGA">Paga</SelectItem>
                     </SelectContent>
                   </Select>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input
-                      placeholder="Min R$"
-                      type="number"
-                      value={filters.valorMin || ''}
-                      onChange={(e) =>
-                        onFilterChange({ valorMin: Number(e.target.value) })
-                      }
-                      className="h-8"
-                    />
-                    <Input
-                      placeholder="Max R$"
-                      type="number"
-                      value={filters.valorMax || ''}
-                      onChange={(e) =>
-                        onFilterChange({ valorMax: Number(e.target.value) })
-                      }
-                      className="h-8"
-                    />
-                  </div>
                 </div>
               </div>
             </PopoverContent>
@@ -247,7 +224,7 @@ export const ReportsFilters = ({
             filters.month !== 'all') && (
             <Button
               variant="ghost"
-              className="w-full lg:w-auto text-muted-foreground hover:text-foreground"
+              className="w-full lg:w-auto text-muted-foreground hover:text-foreground h-10"
               onClick={onReset}
             >
               <X className="mr-2 h-4 w-4" />

@@ -42,12 +42,12 @@ export function ExecutionDetailsTab({
                 >
                   <stop
                     offset="5%"
-                    stopColor="hsl(var(--warning))"
+                    stopColor="hsl(var(--chart-3))"
                     stopOpacity={0.8}
                   />
                   <stop
                     offset="95%"
-                    stopColor="hsl(var(--warning))"
+                    stopColor="hsl(var(--chart-3))"
                     stopOpacity={0.4}
                   />
                 </linearGradient>
@@ -108,12 +108,12 @@ export function ExecutionDetailsTab({
                 <linearGradient id="colorUnidade" x1="0" y1="0" x2="1" y2="0">
                   <stop
                     offset="5%"
-                    stopColor="hsl(var(--asplan-blue-neutral))"
+                    stopColor="hsl(var(--chart-4))"
                     stopOpacity={0.8}
                   />
                   <stop
                     offset="95%"
-                    stopColor="hsl(var(--asplan-blue-neutral))"
+                    stopColor="hsl(var(--chart-4))"
                     stopOpacity={0.4}
                   />
                 </linearGradient>

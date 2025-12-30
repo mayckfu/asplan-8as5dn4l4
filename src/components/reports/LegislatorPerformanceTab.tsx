@@ -46,12 +46,12 @@ export function LegislatorPerformanceTab({
                 <linearGradient id="colorAutor" x1="0" y1="0" x2="1" y2="0">
                   <stop
                     offset="5%"
-                    stopColor="hsl(var(--asplan-primary))"
+                    stopColor="hsl(var(--chart-1))"
                     stopOpacity={0.9}
                   />
                   <stop
                     offset="95%"
-                    stopColor="hsl(var(--asplan-action))"
+                    stopColor="hsl(var(--chart-1))"
                     stopOpacity={0.6}
                   />
                 </linearGradient>
@@ -114,12 +114,12 @@ export function LegislatorPerformanceTab({
                 <linearGradient id="colorExecPar" x1="0" y1="0" x2="1" y2="0">
                   <stop
                     offset="5%"
-                    stopColor="hsl(var(--success))"
+                    stopColor="hsl(var(--chart-2))"
                     stopOpacity={0.8}
                   />
                   <stop
                     offset="95%"
-                    stopColor="hsl(var(--success))"
+                    stopColor="hsl(var(--chart-2))"
                     stopOpacity={0.4}
                   />
                 </linearGradient>

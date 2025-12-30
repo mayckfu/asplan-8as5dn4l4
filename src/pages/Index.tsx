@@ -1,50 +1,33 @@
 import { useMemo, useEffect, useState } from 'react'
 import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  XAxis,
-  YAxis,
   Line,
   LineChart,
   PieChart,
   Pie,
   Cell,
-  LabelList,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
 } from 'recharts'
 import { format, parseISO, getYear, getMonth } from 'date-fns'
-import {
-  Banknote,
-  Landmark,
-  Package,
-  Percent,
-  ShoppingBag,
-  Activity,
-  Loader2,
-  AlertTriangle,
-  CalendarDays,
-} from 'lucide-react'
+import { Banknote, Loader2, AlertTriangle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   ChartContainer,
-  ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { DetailedAmendment, Amendment, Pendencia } from '@/lib/mock-data'
-import { formatCurrencyBRL, formatPercent } from '@/lib/utils'
+import { formatCurrencyBRL } from '@/lib/utils'
 import { PendingItemsSidebar } from '@/components/dashboard/PendingItemsSidebar'
 import { FinancialSummary } from '@/components/dashboard/FinancialSummary'
 import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
+import { PeriodSelector } from '@/components/PeriodSelector'
+import { KPICards } from '@/components/KPICards'
 
 const COLORS = [
   'hsl(var(--chart-1))',
@@ -63,7 +46,9 @@ const Index = () => {
   >([])
 
   // Filters State
-  const [selectedYear, setSelectedYear] = useState<string>('2025')
+  const [selectedYear, setSelectedYear] = useState<string>(
+    new Date().getFullYear().toString(),
+  )
   const [selectedMonth, setSelectedMonth] = useState<string>('all')
 
   const fetchData = async () => {
@@ -200,63 +185,10 @@ const Index = () => {
       despesas: fDespesas,
     } = filteredData
 
-    const totalPropostas = fAmendments.length
     const totalValor = fAmendments.reduce((sum, a) => sum + a.valor_total, 0)
-    const realTotalRepassado = fRepasses.reduce(
-      (sum, r) => (r.status === 'REPASSADO' ? sum + r.valor : sum),
-      0,
-    )
-
     const totalGasto = fDespesas.reduce((sum, d) => sum + d.valor, 0)
-
-    const execucaoMedia =
-      realTotalRepassado > 0 ? (totalGasto / realTotalRepassado) * 100 : 0
-    const coberturaMedia = totalValor > 0 ? (totalGasto / totalValor) * 100 : 0
-
-    const kpis = [
-      {
-        title: 'Total de Propostas',
-        value: totalPropostas,
-        icon: Package,
-        description: 'Propostas cadastradas',
-        trend: 'neutral',
-      },
-      {
-        title: 'Valor Total',
-        value: formatCurrencyBRL(totalValor),
-        icon: Landmark,
-        description: 'Montante global previsto',
-        trend: 'up',
-      },
-      {
-        title: 'Valor Repassado',
-        value: formatCurrencyBRL(realTotalRepassado),
-        icon: Banknote,
-        description: 'Recursos recebidos',
-        trend: 'up',
-      },
-      {
-        title: 'Valor Gasto',
-        value: formatCurrencyBRL(totalGasto),
-        icon: ShoppingBag,
-        description: 'Despesas executadas',
-        trend: 'down',
-      },
-      {
-        title: 'Execução Média',
-        value: formatPercent(execucaoMedia),
-        icon: Activity,
-        description: '% do valor repassado',
-        trend: execucaoMedia > 70 ? 'up' : 'neutral',
-      },
-      {
-        title: 'Cobertura Média',
-        value: formatPercent(coberturaMedia),
-        icon: Percent,
-        description: '% do valor total',
-        trend: coberturaMedia > 50 ? 'up' : 'neutral',
-      },
-    ]
+    const activeLegislators = new Set(fAmendments.map((a) => a.parlamentar))
+      .size
 
     // Chart: Budget Distribution by Parliamentarian (supporting co-authorship)
     const budgetByParlamentar = fAmendments.reduce(
@@ -283,11 +215,13 @@ const Index = () => {
 
     const monthlyData = [...fRepasses, ...fDespesas].reduce(
       (acc, item) => {
-        const month = format(parseISO(item.data), 'yyyy-MM')
-        if (!acc[month]) acc[month] = { month, repasses: 0, despesas: 0 }
+        const date = parseISO(item.data)
+        const monthStr = format(date, 'yyyy-MM')
+        if (!acc[monthStr])
+          acc[monthStr] = { month: monthStr, repasses: 0, despesas: 0 }
         if ('fonte' in item) {
-          if (item.status === 'REPASSADO') acc[month].repasses += item.valor
-        } else acc[month].despesas += item.valor
+          if (item.status === 'REPASSADO') acc[monthStr].repasses += item.valor
+        } else acc[monthStr].despesas += item.valor
         return acc
       },
       {} as Record<
@@ -300,7 +234,11 @@ const Index = () => {
     )
 
     return {
-      kpis,
+      kpiValues: {
+        totalValue: totalValor,
+        executedValue: totalGasto,
+        activeLegislators,
+      },
       gastoPorResponsavelData,
       lineChartData,
       allDetailedAmendments: filteredData.detailedAmendments,
@@ -332,73 +270,25 @@ const Index = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold tracking-tight text-asplan-deep">
-              Quadro Geral — {selectedYear}
+              Dashboard — {selectedYear}
             </h1>
             <p className="text-muted-foreground text-lg">
               Acompanhamento financeiro da Secretaria de Saúde
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 bg-card p-2 rounded-lg border shadow-sm">
-              <CalendarDays className="h-4 w-4 text-muted-foreground" />
-              <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger className="w-[100px] h-8">
-                  <SelectValue placeholder="Ano" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="2025">2025</SelectItem>
-                  <SelectItem value="2026">2026</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                <SelectTrigger className="w-[140px] h-8">
-                  <SelectValue placeholder="Mês" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os Meses</SelectItem>
-                  <SelectItem value="1">Janeiro</SelectItem>
-                  <SelectItem value="2">Fevereiro</SelectItem>
-                  <SelectItem value="3">Março</SelectItem>
-                  <SelectItem value="4">Abril</SelectItem>
-                  <SelectItem value="5">Maio</SelectItem>
-                  <SelectItem value="6">Junho</SelectItem>
-                  <SelectItem value="7">Julho</SelectItem>
-                  <SelectItem value="8">Agosto</SelectItem>
-                  <SelectItem value="9">Setembro</SelectItem>
-                  <SelectItem value="10">Outubro</SelectItem>
-                  <SelectItem value="11">Novembro</SelectItem>
-                  <SelectItem value="12">Dezembro</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <PeriodSelector
+            year={selectedYear}
+            month={selectedMonth}
+            onYearChange={setSelectedYear}
+            onMonthChange={setSelectedMonth}
+          />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-          {dashboardData.kpis.map((kpi) => (
-            <Card
-              key={kpi.title}
-              className="bg-card border-border/50 shadow-sm hover:shadow-md transition-all duration-200 group"
-            >
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">
-                  {kpi.title}
-                </CardTitle>
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                  <kpi.icon className="h-4 w-4" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-asplan-deep tabular-nums">
-                  {kpi.value}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {kpi.description}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <KPICards
+          totalValue={dashboardData.kpiValues.totalValue}
+          executedValue={dashboardData.kpiValues.executedValue}
+          activeLegislators={dashboardData.kpiValues.activeLegislators}
+        />
 
         <div className="space-y-4">
           <h2 className="text-xl font-semibold text-asplan-deep flex items-center gap-2">
@@ -409,7 +299,7 @@ const Index = () => {
         </div>
 
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-          <Card className="bg-card border-border/50 shadow-sm">
+          <Card className="bg-card border-border/50 shadow-sm rounded-xl">
             <CardHeader>
               <CardTitle className="text-lg font-semibold text-asplan-deep">
                 Repasses x Despesas por Mês
@@ -418,59 +308,61 @@ const Index = () => {
             <CardContent className="pl-0">
               <ChartContainer config={{}} className="w-full h-[300px]">
                 {dashboardData.lineChartData.length > 0 ? (
-                  <LineChart
-                    data={dashboardData.lineChartData}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis
-                      dataKey="month"
-                      tickLine={false}
-                      axisLine={false}
-                      tickMargin={10}
-                      tickFormatter={(value) => value.slice(5)}
-                    />
-                    <YAxis
-                      tickFormatter={(val) =>
-                        new Intl.NumberFormat('pt-BR', {
-                          notation: 'compact',
-                          compactDisplay: 'short',
-                          style: 'currency',
-                          currency: 'BRL',
-                        }).format(val)
-                      }
-                      tickLine={false}
-                      axisLine={false}
-                      tickMargin={10}
-                    />
-                    <ChartTooltip
-                      content={
-                        <ChartTooltipContent
-                          formatter={(val) => formatCurrencyBRL(Number(val))}
-                          className="tabular-nums"
-                        />
-                      }
-                    />
-                    <ChartLegend content={<ChartLegendContent />} />
-                    <Line
-                      type="monotone"
-                      dataKey="repasses"
-                      name="Repasses"
-                      stroke="hsl(var(--chart-2))"
-                      strokeWidth={2}
-                      dot={false}
-                      activeDot={{ r: 6 }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="despesas"
-                      name="Despesas"
-                      stroke="hsl(var(--chart-1))"
-                      strokeWidth={2}
-                      dot={false}
-                      activeDot={{ r: 6 }}
-                    />
-                  </LineChart>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={dashboardData.lineChartData}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis
+                        dataKey="month"
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={10}
+                        tickFormatter={(value) => value.slice(5)}
+                      />
+                      <YAxis
+                        tickFormatter={(val) =>
+                          new Intl.NumberFormat('pt-BR', {
+                            notation: 'compact',
+                            compactDisplay: 'short',
+                            style: 'currency',
+                            currency: 'BRL',
+                          }).format(val)
+                        }
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={10}
+                      />
+                      <Tooltip
+                        content={
+                          <ChartTooltipContent
+                            formatter={(val) => formatCurrencyBRL(Number(val))}
+                            className="tabular-nums"
+                          />
+                        }
+                      />
+                      <Legend content={<ChartLegendContent />} />
+                      <Line
+                        type="monotone"
+                        dataKey="repasses"
+                        name="Repasses"
+                        stroke="hsl(var(--chart-2))"
+                        strokeWidth={2}
+                        dot={false}
+                        activeDot={{ r: 6 }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="despesas"
+                        name="Despesas"
+                        stroke="hsl(var(--chart-1))"
+                        strokeWidth={2}
+                        dot={false}
+                        activeDot={{ r: 6 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
                 ) : (
                   <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
                     Sem dados para o período selecionado
@@ -480,7 +372,7 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-card border-border/50 shadow-sm">
+          <Card className="bg-card border-border/50 shadow-sm rounded-xl">
             <CardHeader>
               <CardTitle className="text-lg font-semibold text-asplan-deep">
                 Distribuição por Parlamentar
@@ -489,53 +381,53 @@ const Index = () => {
             <CardContent>
               <ChartContainer config={{}} className="w-full h-[300px]">
                 {dashboardData.gastoPorResponsavelData.length > 0 ? (
-                  <PieChart>
-                    <ChartTooltip
-                      content={
-                        <ChartTooltipContent
-                          formatter={(value) => {
-                            const total =
-                              dashboardData.gastoPorResponsavelData.reduce(
-                                (acc, entry) => acc + entry.value,
-                                0,
-                              )
-                            const percent = (Number(value) / total) * 100
-                            return `${formatCurrencyBRL(
-                              Number(value),
-                            )} (${percent.toFixed(1)}%)`
-                          }}
-                          className="tabular-nums"
-                        />
-                      }
-                    />
-                    <Pie
-                      data={dashboardData.gastoPorResponsavelData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      paddingAngle={2}
-                      label={({ name, percent }) =>
-                        `${name} ${(percent * 100).toFixed(0)}%`
-                      }
-                    >
-                      {dashboardData.gastoPorResponsavelData.map(
-                        (entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={COLORS[index % COLORS.length]}
-                            strokeWidth={0}
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Tooltip
+                        content={
+                          <ChartTooltipContent
+                            formatter={(value) => {
+                              const total =
+                                dashboardData.gastoPorResponsavelData.reduce(
+                                  (acc, entry) => acc + entry.value,
+                                  0,
+                                )
+                              const percent = (Number(value) / total) * 100
+                              return `${formatCurrencyBRL(Number(value))} (${percent.toFixed(1)}%)`
+                            }}
+                            className="tabular-nums"
                           />
-                        ),
-                      )}
-                    </Pie>
-                    <ChartLegend
-                      content={<ChartLegendContent />}
-                      className="-translate-y-2 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
-                    />
-                  </PieChart>
+                        }
+                      />
+                      <Pie
+                        data={dashboardData.gastoPorResponsavelData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={100}
+                        paddingAngle={2}
+                        label={({ percent }) =>
+                          `${(percent * 100).toFixed(0)}%`
+                        }
+                      >
+                        {dashboardData.gastoPorResponsavelData.map(
+                          (entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={COLORS[index % COLORS.length]}
+                              strokeWidth={0}
+                            />
+                          ),
+                        )}
+                      </Pie>
+                      <Legend
+                        content={<ChartLegendContent />}
+                        className="-translate-y-2 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
                 ) : (
                   <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
                     Sem emendas para o período selecionado

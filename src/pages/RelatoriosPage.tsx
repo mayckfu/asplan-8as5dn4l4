@@ -18,8 +18,8 @@ import {
   ReportsFilters,
   ReportFiltersState,
 } from '@/components/reports/ReportsFilters'
-import { ReportsPeriodSelector } from '@/components/reports/ReportsPeriodSelector'
-import { KPICards } from '@/components/reports/KPICards'
+import { PeriodSelector } from '@/components/PeriodSelector'
+import { KPICards } from '@/components/KPICards'
 import { FinancialOverviewTab } from '@/components/reports/FinancialOverviewTab'
 import { LegislatorPerformanceTab } from '@/components/reports/LegislatorPerformanceTab'
 import { ExecutionDetailsTab } from '@/components/reports/ExecutionDetailsTab'
@@ -109,21 +109,18 @@ const RelatoriosPage = () => {
     }
 
     fetchData()
-  }, [filters.year]) // Refresh when year changes to simulate dedicated year fetch if API supported it
+  }, []) // Fetch once, filter locally for responsiveness
 
   const filteredData = useMemo(() => {
     return allData.filter((amendment) => {
       // Filter by Year (created_at)
-      const amendmentYear = new Date(amendment.created_at)
-        .getFullYear()
-        .toString()
+      const amendmentDate = new Date(amendment.created_at)
+      const amendmentYear = amendmentDate.getFullYear().toString()
       if (filters.year && amendmentYear !== filters.year) return false
 
       // Filter by Month
       if (filters.month !== 'all') {
-        const amendmentMonth = new Date(amendment.created_at)
-          .getMonth()
-          .toString()
+        const amendmentMonth = (amendmentDate.getMonth() + 1).toString()
         if (amendmentMonth !== filters.month) return false
       }
 
@@ -218,10 +215,9 @@ const RelatoriosPage = () => {
     const totalExecuted = allDespesas.reduce((acc, item) => acc + item.valor, 0)
     const activeLegislators = new Set(filteredData.map((d) => d.parlamentar))
       .size
-    const executionPercentage =
-      totalValue > 0 ? (totalExecuted / totalValue) * 100 : 0
+    // percentage calculated in component
 
-    return { totalValue, executionPercentage, activeLegislators }
+    return { totalValue, totalExecuted, activeLegislators }
   }, [filteredData, allDespesas])
 
   const consolidatedByAutor = useMemo(() => {
@@ -354,14 +350,14 @@ const RelatoriosPage = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Painel de Controle
+            Painel de Relatórios
           </h1>
           <p className="text-muted-foreground mt-1">
             Visão estratégica e monitoramento financeiro
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <ReportsPeriodSelector
+          <PeriodSelector
             year={filters.year}
             month={filters.month}
             onYearChange={(year) => handleFilterChange({ year })}
@@ -375,7 +371,7 @@ const RelatoriosPage = () => {
 
       <KPICards
         totalValue={kpiData.totalValue}
-        executionPercentage={kpiData.executionPercentage}
+        executedValue={kpiData.totalExecuted}
         activeLegislators={kpiData.activeLegislators}
       />
 
@@ -385,44 +381,73 @@ const RelatoriosPage = () => {
         onReset={handleResetFilters}
       />
 
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 max-w-[600px] mb-6">
-          <TabsTrigger value="overview" className="gap-2">
-            <LayoutDashboard className="h-4 w-4" /> Visão Geral
-          </TabsTrigger>
-          <TabsTrigger value="legislators" className="gap-2">
-            <Users className="h-4 w-4" /> Parlamentares
-          </TabsTrigger>
-          <TabsTrigger value="execution" className="gap-2">
-            <TrendingUp className="h-4 w-4" /> Execução
-          </TabsTrigger>
-        </TabsList>
+      {filteredData.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed rounded-xl">
+          <div className="p-4 rounded-full bg-muted/50 mb-4">
+            <LayoutDashboard className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold">Nenhum dado encontrado</h3>
+          <p className="text-muted-foreground max-w-sm mt-2">
+            Não há registros para o período ou filtros selecionados. Tente
+            ajustar os critérios de busca.
+          </p>
+          <Button
+            variant="outline"
+            className="mt-6"
+            onClick={handleResetFilters}
+          >
+            Limpar Filtros
+          </Button>
+        </div>
+      ) : (
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 max-w-[600px] mb-6">
+            <TabsTrigger value="overview" className="gap-2">
+              <LayoutDashboard className="h-4 w-4" /> Visão Geral
+            </TabsTrigger>
+            <TabsTrigger value="legislators" className="gap-2">
+              <Users className="h-4 w-4" /> Parlamentares
+            </TabsTrigger>
+            <TabsTrigger value="execution" className="gap-2">
+              <TrendingUp className="h-4 w-4" /> Execução
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          <FinancialOverviewTab
-            consolidatedByTipoRecurso={consolidatedByTipoRecurso}
-            consolidatedBySituacao={consolidatedBySituacao}
-            executionStatus={executionStatus}
-            COLORS={COLORS}
-          />
-        </TabsContent>
+          <TabsContent
+            value="overview"
+            className="space-y-6 animate-fade-in-up"
+          >
+            <FinancialOverviewTab
+              consolidatedByTipoRecurso={consolidatedByTipoRecurso}
+              consolidatedBySituacao={consolidatedBySituacao}
+              executionStatus={executionStatus}
+              COLORS={COLORS}
+            />
+          </TabsContent>
 
-        <TabsContent value="legislators" className="space-y-6">
-          <LegislatorPerformanceTab
-            consolidatedByAutor={consolidatedByAutor}
-            executionByParlamentarAndResponsavel={
-              executionByParlamentarAndResponsavel
-            }
-          />
-        </TabsContent>
+          <TabsContent
+            value="legislators"
+            className="space-y-6 animate-fade-in-up"
+          >
+            <LegislatorPerformanceTab
+              consolidatedByAutor={consolidatedByAutor}
+              executionByParlamentarAndResponsavel={
+                executionByParlamentarAndResponsavel
+              }
+            />
+          </TabsContent>
 
-        <TabsContent value="execution" className="space-y-6">
-          <ExecutionDetailsTab
-            executionByResponsavel={executionByResponsavel}
-            executionByUnidade={executionByUnidade}
-          />
-        </TabsContent>
-      </Tabs>
+          <TabsContent
+            value="execution"
+            className="space-y-6 animate-fade-in-up"
+          >
+            <ExecutionDetailsTab
+              executionByResponsavel={executionByResponsavel}
+              executionByUnidade={executionByUnidade}
+            />
+          </TabsContent>
+        </Tabs>
+      )}
     </div>
   )
 }

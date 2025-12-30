@@ -9,7 +9,7 @@ import {
 import { cn } from '@/lib/utils'
 import { CalendarDays } from 'lucide-react'
 
-interface ReportsPeriodSelectorProps {
+interface PeriodSelectorProps {
   year: string
   month: string
   onYearChange: (year: string) => void
@@ -17,13 +17,13 @@ interface ReportsPeriodSelectorProps {
   className?: string
 }
 
-export function ReportsPeriodSelector({
+export function PeriodSelector({
   year,
   month,
   onYearChange,
   onMonthChange,
   className,
-}: ReportsPeriodSelectorProps) {
+}: PeriodSelectorProps) {
   const currentYear = new Date().getFullYear()
   const years = [
     (currentYear - 1).toString(),
@@ -32,39 +32,42 @@ export function ReportsPeriodSelector({
   ]
   const months = [
     { value: 'all', label: 'Todos os Meses' },
-    { value: '0', label: 'Janeiro' },
-    { value: '1', label: 'Fevereiro' },
-    { value: '2', label: 'Março' },
-    { value: '3', label: 'Abril' },
-    { value: '4', label: 'Maio' },
-    { value: '5', label: 'Junho' },
-    { value: '6', label: 'Julho' },
-    { value: '7', label: 'Agosto' },
-    { value: '8', label: 'Setembro' },
-    { value: '9', label: 'Outubro' },
-    { value: '10', label: 'Novembro' },
-    { value: '11', label: 'Dezembro' },
+    { value: '1', label: 'Janeiro' },
+    { value: '2', label: 'Fevereiro' },
+    { value: '3', label: 'Março' },
+    { value: '4', label: 'Abril' },
+    { value: '5', label: 'Maio' },
+    { value: '6', label: 'Junho' },
+    { value: '7', label: 'Julho' },
+    { value: '8', label: 'Agosto' },
+    { value: '9', label: 'Setembro' },
+    { value: '10', label: 'Outubro' },
+    { value: '11', label: 'Novembro' },
+    { value: '12', label: 'Dezembro' },
   ]
 
   return (
     <div
       className={cn(
-        'flex flex-col sm:flex-row gap-3 items-start sm:items-center',
+        'flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-card/50 p-1.5 rounded-xl border border-border/50 shadow-sm backdrop-blur-sm',
         className,
       )}
     >
-      <div className="flex items-center gap-2 bg-muted/40 p-1.5 rounded-lg border border-border/40 shadow-sm">
-        <CalendarDays className="h-4 w-4 text-muted-foreground ml-2 mr-1" />
+      <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary">
+          <CalendarDays className="h-4 w-4" />
+        </div>
         <ToggleGroup
           type="single"
           value={year}
           onValueChange={(val) => val && onYearChange(val)}
+          className="bg-muted/50 p-1 rounded-lg gap-1"
         >
           {years.map((y) => (
             <ToggleGroupItem
               key={y}
               value={y}
-              className="h-7 px-4 text-xs font-medium data-[state=on]:bg-background data-[state=on]:text-primary data-[state=on]:shadow-sm rounded-md transition-all hover:bg-background/50"
+              className="h-7 px-3 text-xs font-medium rounded-md data-[state=on]:bg-background data-[state=on]:text-primary data-[state=on]:shadow-sm transition-all"
             >
               {y}
             </ToggleGroupItem>
@@ -72,8 +75,10 @@ export function ReportsPeriodSelector({
         </ToggleGroup>
       </div>
 
+      <div className="h-6 w-px bg-border/50 hidden sm:block" />
+
       <Select value={month} onValueChange={onMonthChange}>
-        <SelectTrigger className="w-[180px] h-[42px] bg-muted/40 border-border/40 shadow-sm hover:bg-background/50 transition-colors">
+        <SelectTrigger className="w-[160px] h-9 bg-background/50 border-0 shadow-none focus:ring-0 hover:bg-background/80 transition-colors">
           <SelectValue placeholder="Selecione o Mês" />
         </SelectTrigger>
         <SelectContent>
