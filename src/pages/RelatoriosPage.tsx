@@ -63,19 +63,39 @@ const RelatoriosPage = () => {
     const fetchData = async () => {
       setIsLoading(true)
       try {
-        const { data: emendas, error: emendasError } = await supabase
-          .from('emendas')
-          .select('*')
+        let query = supabase.from('emendas').select('*')
+
+        // Apply year filter at DB level if present
+        if (filters.year) {
+          const start = `${filters.year}-01-01`
+          const end = `${filters.year}-12-31 23:59:59`
+          query = query.gte('created_at', start).lte('created_at', end)
+        }
+
+        const { data: emendas, error: emendasError } = await query
         if (emendasError) throw emendasError
 
+        if (!emendas || emendas.length === 0) {
+          setAllData([])
+          setIsLoading(false)
+          return
+        }
+
+        const emendaIds = emendas.map((e: any) => e.id)
+
+        // Fetch related data for the retrieved emendas
         const { data: despesas, error: despesasError } = await supabase
           .from('despesas')
           .select('*, profiles:registrada_por(name)')
+          .in('emenda_id', emendaIds)
+
         if (despesasError) throw despesasError
 
         const { data: repasses, error: repassesError } = await supabase
           .from('repasses')
           .select('*')
+          .in('emenda_id', emendaIds)
+
         if (repassesError) throw repassesError
 
         const detailed: DetailedAmendment[] = (emendas || []).map((e: any) => {
@@ -109,17 +129,13 @@ const RelatoriosPage = () => {
     }
 
     fetchData()
-  }, []) // Fetch once, filter locally for responsiveness
+  }, [filters.year]) // Fetch new data when year changes
 
   const filteredData = useMemo(() => {
     return allData.filter((amendment) => {
-      // Filter by Year (created_at)
-      const amendmentDate = new Date(amendment.created_at)
-      const amendmentYear = amendmentDate.getFullYear().toString()
-      if (filters.year && amendmentYear !== filters.year) return false
-
-      // Filter by Month
+      // Filter by Month (Local filter)
       if (filters.month !== 'all') {
+        const amendmentDate = new Date(amendment.created_at)
         const amendmentMonth = (amendmentDate.getMonth() + 1).toString()
         if (amendmentMonth !== filters.month) return false
       }
@@ -215,7 +231,6 @@ const RelatoriosPage = () => {
     const totalExecuted = allDespesas.reduce((acc, item) => acc + item.valor, 0)
     const activeLegislators = new Set(filteredData.map((d) => d.parlamentar))
       .size
-    // percentage calculated in component
 
     return { totalValue, totalExecuted, activeLegislators }
   }, [filteredData, allDespesas])

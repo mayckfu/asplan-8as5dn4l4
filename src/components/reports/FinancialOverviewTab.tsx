@@ -18,7 +18,11 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card'
-import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart'
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltipContent,
+} from '@/components/ui/chart'
 import { formatCurrencyBRL } from '@/lib/utils'
 
 interface FinancialOverviewTabProps {
@@ -27,6 +31,12 @@ interface FinancialOverviewTabProps {
   executionStatus: { name: string; value: number }[]
   COLORS: string[]
 }
+
+const chartConfig = {
+  value: {
+    label: 'Valor',
+  },
+} satisfies ChartConfig
 
 export function FinancialOverviewTab({
   consolidatedByTipoRecurso,
@@ -42,39 +52,40 @@ export function FinancialOverviewTab({
           <CardDescription>Distribuição do valor total</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={consolidatedByTipoRecurso}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  innerRadius={50}
-                  paddingAngle={2}
-                >
-                  {consolidatedByTipoRecurso.map((_, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                      strokeWidth={0}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  content={
-                    <ChartTooltipContent
-                      formatter={formatCurrencyBRL}
-                      className="tabular-nums"
-                    />
-                  }
-                />
-                <Legend verticalAlign="bottom" height={36} iconType="circle" />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+          <ChartContainer
+            config={chartConfig}
+            className="w-full h-[300px] [&_.recharts-pie-label-text]:fill-foreground"
+          >
+            <PieChart>
+              <Pie
+                data={consolidatedByTipoRecurso}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={80}
+                innerRadius={50}
+                paddingAngle={2}
+              >
+                {consolidatedByTipoRecurso.map((_, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                    strokeWidth={0}
+                  />
+                ))}
+              </Pie>
+              <Tooltip
+                content={
+                  <ChartTooltipContent
+                    formatter={(value) => formatCurrencyBRL(Number(value))}
+                    className="tabular-nums"
+                  />
+                }
+              />
+              <Legend verticalAlign="bottom" height={36} iconType="circle" />
+            </PieChart>
+          </ChartContainer>
         </CardContent>
       </Card>
 
@@ -84,38 +95,39 @@ export function FinancialOverviewTab({
           <CardDescription>Estado atual das despesas</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={executionStatus}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  innerRadius={0}
-                >
-                  {executionStatus.map((_, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[(index + 3) % COLORS.length]}
-                      stroke="transparent"
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  content={
-                    <ChartTooltipContent
-                      formatter={formatCurrencyBRL}
-                      className="tabular-nums"
-                    />
-                  }
-                />
-                <Legend verticalAlign="bottom" height={36} iconType="circle" />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+          <ChartContainer
+            config={chartConfig}
+            className="w-full h-[300px] [&_.recharts-pie-label-text]:fill-foreground"
+          >
+            <PieChart>
+              <Pie
+                data={executionStatus}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={100}
+                innerRadius={0}
+              >
+                {executionStatus.map((_, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[(index + 3) % COLORS.length]}
+                    stroke="transparent"
+                  />
+                ))}
+              </Pie>
+              <Tooltip
+                content={
+                  <ChartTooltipContent
+                    formatter={(value) => formatCurrencyBRL(Number(value))}
+                    className="tabular-nums"
+                  />
+                }
+              />
+              <Legend verticalAlign="bottom" height={36} iconType="circle" />
+            </PieChart>
+          </ChartContainer>
         </CardContent>
       </Card>
 
@@ -127,7 +139,7 @@ export function FinancialOverviewTab({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={{}} className="w-full h-[350px]">
+          <ChartContainer config={chartConfig} className="w-full h-[350px]">
             <BarChart data={consolidatedBySituacao}>
               <defs>
                 <linearGradient id="colorSituacao" x1="0" y1="0" x2="0" y2="1">
@@ -167,7 +179,7 @@ export function FinancialOverviewTab({
               <Tooltip
                 content={
                   <ChartTooltipContent
-                    formatter={formatCurrencyBRL}
+                    formatter={(value) => formatCurrencyBRL(Number(value))}
                     className="tabular-nums"
                   />
                 }

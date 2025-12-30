@@ -14,13 +14,28 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card'
-import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart'
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltipContent,
+} from '@/components/ui/chart'
 import { formatCurrencyBRL } from '@/lib/utils'
 
 interface LegislatorPerformanceTabProps {
   consolidatedByAutor: { name: string; value: number }[]
   executionByParlamentarAndResponsavel: any[]
 }
+
+const chartConfig = {
+  value: {
+    label: 'Valor',
+    color: 'hsl(var(--chart-1))',
+  },
+  totalExecuted: {
+    label: 'Total Executado',
+    color: 'hsl(var(--chart-2))',
+  },
+} satisfies ChartConfig
 
 export function LegislatorPerformanceTab({
   consolidatedByAutor,
@@ -36,7 +51,7 @@ export function LegislatorPerformanceTab({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={{}} className="w-full h-[400px]">
+          <ChartContainer config={chartConfig} className="w-full h-[400px]">
             <BarChart
               data={consolidatedByAutor.slice(0, 10)}
               layout="vertical"
@@ -79,7 +94,7 @@ export function LegislatorPerformanceTab({
               <Tooltip
                 content={
                   <ChartTooltipContent
-                    formatter={formatCurrencyBRL}
+                    formatter={(value) => formatCurrencyBRL(Number(value))}
                     className="tabular-nums"
                   />
                 }
@@ -104,7 +119,7 @@ export function LegislatorPerformanceTab({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={{}} className="w-full h-[500px]">
+          <ChartContainer config={chartConfig} className="w-full h-[500px]">
             <BarChart
               data={executionByParlamentarAndResponsavel}
               layout="vertical"
@@ -147,7 +162,7 @@ export function LegislatorPerformanceTab({
               <Tooltip
                 content={
                   <ChartTooltipContent
-                    formatter={formatCurrencyBRL}
+                    formatter={(value) => formatCurrencyBRL(Number(value))}
                     className="tabular-nums"
                   />
                 }

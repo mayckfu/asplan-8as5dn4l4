@@ -16,6 +16,7 @@ import { format, parseISO, getYear, getMonth } from 'date-fns'
 import { Banknote, Loader2, AlertTriangle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
+  ChartConfig,
   ChartContainer,
   ChartTooltipContent,
   ChartLegendContent,
@@ -37,6 +38,21 @@ const COLORS = [
   'hsl(var(--chart-5))',
 ]
 
+const chartConfig = {
+  repasses: {
+    label: 'Repasses',
+    color: 'hsl(var(--chart-2))',
+  },
+  despesas: {
+    label: 'Despesas',
+    color: 'hsl(var(--chart-1))',
+  },
+  value: {
+    label: 'Valor',
+    color: 'hsl(var(--primary))',
+  },
+} satisfies ChartConfig
+
 const Index = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -55,33 +71,52 @@ const Index = () => {
     setIsLoading(true)
     setError(null)
     try {
-      const { data: emendasData, error: emendasError } = await supabase
-        .from('emendas')
-        .select('*')
+      let query = supabase.from('emendas').select('*')
+
+      if (selectedYear) {
+        const start = `${selectedYear}-01-01`
+        const end = `${selectedYear}-12-31 23:59:59`
+        query = query.gte('created_at', start).lte('created_at', end)
+      }
+
+      const { data: emendasData, error: emendasError } = await query
 
       if (emendasError) throw emendasError
+
+      if (!emendasData || emendasData.length === 0) {
+        setAmendments([])
+        setDetailedAmendments([])
+        setIsLoading(false)
+        return
+      }
+
+      const emendaIds = emendasData.map((e) => e.id)
 
       const { data: repassesData, error: repassesError } = await supabase
         .from('repasses')
         .select('*')
+        .in('emenda_id', emendaIds)
 
       if (repassesError) throw repassesError
 
       const { data: despesasData, error: despesasError } = await supabase
         .from('despesas')
         .select('*, profiles:registrada_por(name)')
+        .in('emenda_id', emendaIds)
 
       if (despesasError) throw despesasError
 
       const { data: anexosData, error: anexosError } = await supabase
         .from('anexos')
         .select('*, profiles:uploader(name)')
+        .in('emenda_id', emendaIds)
 
       if (anexosError) throw anexosError
 
       const { data: pendenciasData, error: pendenciasError } = await supabase
         .from('pendencias')
         .select('*')
+        .in('emenda_id', emendaIds)
 
       if (pendenciasError) throw pendenciasError
 
@@ -141,7 +176,7 @@ const Index = () => {
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [selectedYear]) // Trigger new fetch when year changes
 
   const filteredData = useMemo(() => {
     const year = parseInt(selectedYear)
@@ -157,18 +192,28 @@ const Index = () => {
       return matchesYear
     }
 
+    // Since we already fetched by year, we mostly just filter by month here if selected
+    const filterByMonth = (dateString: string) => {
+      if (!dateString) return false
+      const date = parseISO(dateString)
+      if (month !== null) {
+        return getMonth(date) + 1 === month
+      }
+      return true
+    }
+
     const filteredAmendmentsList = amendments.filter((a) =>
-      filterByDate(a.created_at),
+      filterByMonth(a.created_at),
     )
     const filteredDetailedAmendments = detailedAmendments.filter((a) =>
-      filterByDate(a.created_at),
+      filterByMonth(a.created_at),
     )
 
     const allRepasses = detailedAmendments.flatMap((a) => a.repasses)
     const allDespesas = detailedAmendments.flatMap((a) => a.despesas)
 
-    const filteredRepasses = allRepasses.filter((r) => filterByDate(r.data))
-    const filteredDespesas = allDespesas.filter((d) => filterByDate(d.data))
+    const filteredRepasses = allRepasses.filter((r) => filterByMonth(r.data))
+    const filteredDespesas = allDespesas.filter((d) => filterByMonth(d.data))
 
     return {
       amendments: filteredAmendmentsList,
@@ -306,7 +351,7 @@ const Index = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="pl-0">
-              <ChartContainer config={{}} className="w-full h-[300px]">
+              <ChartContainer config={chartConfig} className="w-full h-[300px]">
                 {dashboardData.lineChartData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart
@@ -347,7 +392,7 @@ const Index = () => {
                         type="monotone"
                         dataKey="repasses"
                         name="Repasses"
-                        stroke="hsl(var(--chart-2))"
+                        stroke="var(--color-repasses)"
                         strokeWidth={2}
                         dot={false}
                         activeDot={{ r: 6 }}
@@ -356,7 +401,7 @@ const Index = () => {
                         type="monotone"
                         dataKey="despesas"
                         name="Despesas"
-                        stroke="hsl(var(--chart-1))"
+                        stroke="var(--color-despesas)"
                         strokeWidth={2}
                         dot={false}
                         activeDot={{ r: 6 }}
@@ -379,7 +424,10 @@ const Index = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={{}} className="w-full h-[300px]">
+              <ChartContainer
+                config={chartConfig}
+                className="w-full h-[300px] [&_.recharts-pie-label-text]:fill-foreground"
+              >
                 {dashboardData.gastoPorResponsavelData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>

@@ -6,13 +6,24 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card'
-import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart'
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltipContent,
+} from '@/components/ui/chart'
 import { formatCurrencyBRL } from '@/lib/utils'
 
 interface ExecutionDetailsTabProps {
   executionByResponsavel: { name: string; value: number }[]
   executionByUnidade: { name: string; value: number }[]
 }
+
+const chartConfig = {
+  value: {
+    label: 'Valor',
+    color: 'hsl(var(--chart-3))',
+  },
+} satisfies ChartConfig
 
 export function ExecutionDetailsTab({
   executionByResponsavel,
@@ -26,7 +37,7 @@ export function ExecutionDetailsTab({
           <CardDescription>Quem está registrando mais despesas</CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={{}} className="w-full h-[400px]">
+          <ChartContainer config={chartConfig} className="w-full h-[400px]">
             <BarChart
               data={executionByResponsavel}
               layout="vertical"
@@ -75,7 +86,7 @@ export function ExecutionDetailsTab({
               <Tooltip
                 content={
                   <ChartTooltipContent
-                    formatter={formatCurrencyBRL}
+                    formatter={(value) => formatCurrencyBRL(Number(value))}
                     className="tabular-nums"
                   />
                 }
@@ -98,7 +109,7 @@ export function ExecutionDetailsTab({
           <CardDescription>Destino dos recursos</CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={{}} className="w-full h-[400px]">
+          <ChartContainer config={chartConfig} className="w-full h-[400px]">
             <BarChart
               data={executionByUnidade}
               layout="vertical"
@@ -141,7 +152,7 @@ export function ExecutionDetailsTab({
               <Tooltip
                 content={
                   <ChartTooltipContent
-                    formatter={formatCurrencyBRL}
+                    formatter={(value) => formatCurrencyBRL(Number(value))}
                     className="tabular-nums"
                   />
                 }
