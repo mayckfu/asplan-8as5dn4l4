@@ -57,13 +57,13 @@ export function ParliamentaryDistributionChart({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
-          {/* Left Column: Chart */}
-          <div className="p-6 flex flex-col items-center justify-center border-b lg:border-b-0 lg:border-r border-neutral-100">
+        <div className="grid grid-cols-1 lg:grid-cols-3 h-full">
+          {/* Left Column: Chart (Takes 2 columns on desktop) */}
+          <div className="p-4 lg:col-span-2 flex flex-col items-center justify-center border-b lg:border-b-0 lg:border-r border-neutral-100 min-h-[300px]">
             <ChartContainer
               key={periodKey}
               config={chartConfig}
-              className="w-full h-[300px] [&_.recharts-pie-label-text]:fill-foreground"
+              className="w-full h-[250px] lg:h-[300px] [&_.recharts-pie-label-text]:fill-foreground"
             >
               {data.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
@@ -101,7 +101,7 @@ export function ParliamentaryDistributionChart({
                       cx="50%"
                       cy="50%"
                       innerRadius={60}
-                      outerRadius={90}
+                      outerRadius={80}
                       paddingAngle={3}
                       cornerRadius={4}
                     >
@@ -123,50 +123,52 @@ export function ParliamentaryDistributionChart({
             </ChartContainer>
           </div>
 
-          {/* Right Column: List */}
-          <ScrollArea className="h-[350px] lg:h-auto">
-            <div className="p-6 space-y-3">
-              <div className="flex justify-between items-center mb-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                <span>Parlamentar</span>
-                <span>Valor Total</span>
-              </div>
-              {data.length > 0 ? (
-                data.map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 rounded-lg bg-neutral-50 hover:bg-neutral-100 transition-colors border border-transparent hover:border-neutral-200"
-                  >
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <span
-                        className="h-3 w-3 shrink-0 rounded-full"
-                        style={{
-                          backgroundColor: COLORS[index % COLORS.length],
-                        }}
-                      />
-                      <span
-                        className="text-sm font-medium text-brand-900 truncate"
-                        title={item.name}
-                      >
-                        {item.name}
-                      </span>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <span className="text-sm font-bold tabular-nums text-brand-700">
-                        {formatCurrencyBRL(item.value)}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground">
-                        {((item.value / totalValue) * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center text-sm text-muted-foreground py-8">
-                  Nenhum dado disponível
-                </div>
-              )}
+          {/* Right Column: Legend List */}
+          <div className="lg:col-span-1 h-[300px] lg:h-auto flex flex-col bg-neutral-50/50">
+            <div className="p-3 border-b border-neutral-100 text-xs font-semibold text-muted-foreground uppercase tracking-wider flex justify-between">
+              <span>Parlamentar</span>
+              <span>%</span>
             </div>
-          </ScrollArea>
+            <ScrollArea className="flex-1">
+              <div className="p-2 space-y-1">
+                {data.length > 0 ? (
+                  data.map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-2 rounded-md hover:bg-white hover:shadow-sm transition-all border border-transparent hover:border-neutral-200 text-xs"
+                    >
+                      <div className="flex items-center gap-2 overflow-hidden flex-1">
+                        <span
+                          className="h-2 w-2 shrink-0 rounded-full"
+                          style={{
+                            backgroundColor: COLORS[index % COLORS.length],
+                          }}
+                        />
+                        <span
+                          className="font-medium text-brand-900 truncate"
+                          title={item.name}
+                        >
+                          {item.name}
+                        </span>
+                      </div>
+                      <div className="flex flex-col items-end shrink-0 ml-2">
+                        <span className="font-bold tabular-nums text-brand-700">
+                          {formatCurrencyBRL(item.value)}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {((item.value / totalValue) * 100).toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center text-xs text-muted-foreground py-8">
+                    Nenhum dado
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
         </div>
       </CardContent>
     </Card>

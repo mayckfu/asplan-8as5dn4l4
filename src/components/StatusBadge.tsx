@@ -44,41 +44,41 @@ const statusDisplayMap: Record<string, string> = {
 // Updated with high-contrast colors (text-white for dark backgrounds)
 const statusColors: Record<string, string> = {
   // Oficial
-  PAGA: 'bg-emerald-600 text-white border-emerald-700',
-  EMPENHADA_AGUARDANDO_FORMALIZACAO: 'bg-blue-600 text-white border-blue-700',
-  FAVORAVEL: 'bg-sky-600 text-white border-sky-700',
-  EM_ANALISE: 'bg-indigo-600 text-white border-indigo-700',
-  LIBERADO_PAGAMENTO_FNS: 'bg-teal-600 text-white border-teal-700',
-  OUTRA: 'bg-neutral-500 text-white border-neutral-600',
+  PAGA: 'bg-emerald-700 text-white border-emerald-800',
+  EMPENHADA_AGUARDANDO_FORMALIZACAO: 'bg-blue-700 text-white border-blue-800',
+  FAVORAVEL: 'bg-sky-700 text-white border-sky-800',
+  EM_ANALISE: 'bg-indigo-700 text-white border-indigo-800',
+  LIBERADO_PAGAMENTO_FNS: 'bg-teal-700 text-white border-teal-800',
+  OUTRA: 'bg-neutral-600 text-white border-neutral-700',
 
   // Interno
-  RASCUNHO: 'bg-neutral-400 text-white border-neutral-500',
-  EM_EXECUCAO: 'bg-blue-600 text-white border-blue-700',
-  PAGA_SEM_DOCUMENTOS: 'bg-amber-600 text-white border-amber-700',
-  PAGA_COM_PENDENCIAS: 'bg-orange-600 text-white border-orange-700',
-  CONCLUIDA: 'bg-emerald-700 text-white border-emerald-800',
-  PROPOSTA_PAGA: 'bg-emerald-600 text-white border-emerald-700',
-  EM_ANALISE_PAGAMENTO: 'bg-indigo-500 text-white border-indigo-600',
-  APROVADA_PAGAMENTO: 'bg-teal-600 text-white border-teal-700',
-  AUTORIZADA_AGUARDANDO_EMPENHO: 'bg-blue-500 text-white border-blue-600',
-  AGUARDANDO_AUTORIZACAO_FNS: 'bg-orange-500 text-white border-orange-600',
+  RASCUNHO: 'bg-neutral-600 text-white border-neutral-700',
+  EM_EXECUCAO: 'bg-blue-700 text-white border-blue-800',
+  PAGA_SEM_DOCUMENTOS: 'bg-amber-700 text-white border-amber-800',
+  PAGA_COM_PENDENCIAS: 'bg-orange-700 text-white border-orange-800',
+  CONCLUIDA: 'bg-emerald-800 text-white border-emerald-900',
+  PROPOSTA_PAGA: 'bg-emerald-700 text-white border-emerald-800',
+  EM_ANALISE_PAGAMENTO: 'bg-indigo-700 text-white border-indigo-800',
+  APROVADA_PAGAMENTO: 'bg-teal-700 text-white border-teal-800',
+  AUTORIZADA_AGUARDANDO_EMPENHO: 'bg-blue-600 text-white border-blue-700',
+  AGUARDANDO_AUTORIZACAO_FNS: 'bg-orange-600 text-white border-orange-700',
   PORTARIA_PUBLICADA_AGUARDANDO_FNS:
-    'bg-purple-600 text-white border-purple-700',
-  ENVIADA_PUBLICACAO_PORTARIA: 'bg-violet-600 text-white border-violet-700',
-  PROPOSTA_APROVADA: 'bg-green-600 text-white border-green-700',
+    'bg-purple-700 text-white border-purple-800',
+  ENVIADA_PUBLICACAO_PORTARIA: 'bg-violet-700 text-white border-violet-800',
+  PROPOSTA_APROVADA: 'bg-green-700 text-white border-green-800',
   CLASSIFICADA_AGUARDANDO_SECRETARIA:
-    'bg-yellow-600 text-white border-yellow-700',
+    'bg-yellow-700 text-white border-yellow-800',
 
   // Others
-  Pendente: 'bg-amber-500 text-white border-amber-600',
-  Aprovado: 'bg-green-600 text-white border-green-700',
-  Rejeitado: 'bg-red-600 text-white border-red-700',
-  'Em Análise': 'bg-indigo-500 text-white border-indigo-600',
-  'Em Revisão': 'bg-blue-500 text-white border-blue-600',
-  'Aguardando Repasse': 'bg-purple-500 text-white border-purple-600',
-  Concluído: 'bg-emerald-600 text-white border-emerald-700',
-  Realizado: 'bg-emerald-600 text-white border-emerald-700',
-  Aprovada: 'bg-green-600 text-white border-green-700',
+  Pendente: 'bg-amber-600 text-white border-amber-700',
+  Aprovado: 'bg-green-700 text-white border-green-800',
+  Rejeitado: 'bg-red-700 text-white border-red-800',
+  'Em Análise': 'bg-indigo-600 text-white border-indigo-700',
+  'Em Revisão': 'bg-blue-600 text-white border-blue-700',
+  'Aguardando Repasse': 'bg-purple-600 text-white border-purple-700',
+  Concluído: 'bg-emerald-700 text-white border-emerald-800',
+  Realizado: 'bg-emerald-700 text-white border-emerald-800',
+  Aprovada: 'bg-green-700 text-white border-green-800',
 }
 
 export const StatusBadge = ({ status, className }: StatusBadgeProps) => {
@@ -87,7 +87,7 @@ export const StatusBadge = ({ status, className }: StatusBadgeProps) => {
     <Badge
       className={cn(
         'whitespace-nowrap px-3 py-1 text-xs font-semibold shadow-sm border',
-        statusColors[status] || 'bg-neutral-500 text-white border-neutral-600',
+        statusColors[status] || 'bg-neutral-600 text-white border-neutral-700',
         className,
       )}
     >

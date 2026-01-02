@@ -293,7 +293,10 @@ const Index = () => {
             <Banknote className="h-5 w-5" />
             Resumo Financeiro
           </h2>
-          <FinancialSummary amendments={filteredData.amendments} />
+          <FinancialSummary
+            amendments={filteredData.amendments}
+            repasses={filteredData.repasses}
+          />
         </div>
 
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
