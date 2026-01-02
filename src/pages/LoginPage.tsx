@@ -34,6 +34,8 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>
 
+const STORAGE_EMAIL_KEY = 'asplan_saved_email'
+
 const LoginPage = () => {
   const { login, isAuthenticated } = useAuth()
   const navigate = useNavigate()
@@ -41,12 +43,6 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false)
 
   const from = location.state?.from?.pathname || '/'
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate(from, { replace: true })
-    }
-  }, [isAuthenticated, navigate, from])
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -57,8 +53,31 @@ const LoginPage = () => {
     },
   })
 
+  // Check for saved email on mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem(STORAGE_EMAIL_KEY)
+    if (savedEmail) {
+      form.setValue('email', savedEmail)
+      form.setValue('rememberMe', true)
+    }
+  }, [form])
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(from, { replace: true })
+    }
+  }, [isAuthenticated, navigate, from])
+
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true)
+
+    // Handle "Remember Me" persistence
+    if (data.rememberMe) {
+      localStorage.setItem(STORAGE_EMAIL_KEY, data.email)
+    } else {
+      localStorage.removeItem(STORAGE_EMAIL_KEY)
+    }
+
     const success = await login(data.email, data.password, data.rememberMe)
 
     if (!success) {

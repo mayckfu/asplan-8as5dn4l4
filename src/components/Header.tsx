@@ -74,9 +74,6 @@ export const Header = () => {
           <span className="font-bold text-lg text-brand-900 hidden md:block leading-tight tracking-tight">
             CONTROLE DE EMENDAS
           </span>
-          <span className="text-[10px] font-semibold text-brand-600 hidden md:block tracking-widest uppercase">
-            FUNDO NACIONAL DE SAÚDE
-          </span>
         </div>
       </div>
 

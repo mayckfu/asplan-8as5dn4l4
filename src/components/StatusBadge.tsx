@@ -41,38 +41,44 @@ const statusDisplayMap: Record<string, string> = {
   Aprovada: 'Aprovada',
 }
 
+// Updated with high-contrast colors (text-white for dark backgrounds)
 const statusColors: Record<string, string> = {
-  PAGA: 'bg-success text-primary-foreground',
-  EMPENHADA_AGUARDANDO_FORMALIZACAO: 'bg-blue-500 text-white',
-  FAVORAVEL: 'bg-sky-500 text-white',
-  EM_ANALISE: 'bg-info text-primary-foreground',
-  LIBERADO_PAGAMENTO_FNS: 'bg-teal-500 text-white',
-  OUTRA: 'bg-muted text-muted-foreground',
-  RASCUNHO: 'bg-muted text-muted-foreground',
-  EM_EXECUCAO: 'bg-primary/80 text-primary-foreground',
-  PAGA_SEM_DOCUMENTOS: 'bg-warning text-primary-foreground',
-  PAGA_COM_PENDENCIAS: 'bg-warning text-primary-foreground',
-  CONCLUIDA: 'bg-success text-primary-foreground',
-  Pendente: 'bg-warning text-primary-foreground',
-  Aprovado: 'bg-success text-primary-foreground',
-  Rejeitado: 'bg-destructive text-destructive-foreground',
-  'Em Análise': 'bg-info text-primary-foreground',
-  'Em Revisão': 'bg-blue-400 text-white',
-  'Aguardando Repasse': 'bg-purple-500 text-white',
-  Concluído: 'bg-success text-primary-foreground',
-  Realizado: 'bg-success text-primary-foreground',
-  Aprovada: 'bg-success text-primary-foreground',
+  // Oficial
+  PAGA: 'bg-emerald-600 text-white border-emerald-700',
+  EMPENHADA_AGUARDANDO_FORMALIZACAO: 'bg-blue-600 text-white border-blue-700',
+  FAVORAVEL: 'bg-sky-600 text-white border-sky-700',
+  EM_ANALISE: 'bg-indigo-600 text-white border-indigo-700',
+  LIBERADO_PAGAMENTO_FNS: 'bg-teal-600 text-white border-teal-700',
+  OUTRA: 'bg-neutral-500 text-white border-neutral-600',
 
-  // New Statuses Colors
-  PROPOSTA_PAGA: 'bg-success text-primary-foreground',
-  EM_ANALISE_PAGAMENTO: 'bg-info text-primary-foreground',
-  APROVADA_PAGAMENTO: 'bg-teal-500 text-white',
-  AUTORIZADA_AGUARDANDO_EMPENHO: 'bg-blue-500 text-white',
-  AGUARDANDO_AUTORIZACAO_FNS: 'bg-orange-500 text-white',
-  PORTARIA_PUBLICADA_AGUARDANDO_FNS: 'bg-purple-500 text-white',
-  ENVIADA_PUBLICACAO_PORTARIA: 'bg-indigo-500 text-white',
-  PROPOSTA_APROVADA: 'bg-green-600 text-white',
-  CLASSIFICADA_AGUARDANDO_SECRETARIA: 'bg-yellow-500 text-white',
+  // Interno
+  RASCUNHO: 'bg-neutral-400 text-white border-neutral-500',
+  EM_EXECUCAO: 'bg-blue-600 text-white border-blue-700',
+  PAGA_SEM_DOCUMENTOS: 'bg-amber-600 text-white border-amber-700',
+  PAGA_COM_PENDENCIAS: 'bg-orange-600 text-white border-orange-700',
+  CONCLUIDA: 'bg-emerald-700 text-white border-emerald-800',
+  PROPOSTA_PAGA: 'bg-emerald-600 text-white border-emerald-700',
+  EM_ANALISE_PAGAMENTO: 'bg-indigo-500 text-white border-indigo-600',
+  APROVADA_PAGAMENTO: 'bg-teal-600 text-white border-teal-700',
+  AUTORIZADA_AGUARDANDO_EMPENHO: 'bg-blue-500 text-white border-blue-600',
+  AGUARDANDO_AUTORIZACAO_FNS: 'bg-orange-500 text-white border-orange-600',
+  PORTARIA_PUBLICADA_AGUARDANDO_FNS:
+    'bg-purple-600 text-white border-purple-700',
+  ENVIADA_PUBLICACAO_PORTARIA: 'bg-violet-600 text-white border-violet-700',
+  PROPOSTA_APROVADA: 'bg-green-600 text-white border-green-700',
+  CLASSIFICADA_AGUARDANDO_SECRETARIA:
+    'bg-yellow-600 text-white border-yellow-700',
+
+  // Others
+  Pendente: 'bg-amber-500 text-white border-amber-600',
+  Aprovado: 'bg-green-600 text-white border-green-700',
+  Rejeitado: 'bg-red-600 text-white border-red-700',
+  'Em Análise': 'bg-indigo-500 text-white border-indigo-600',
+  'Em Revisão': 'bg-blue-500 text-white border-blue-600',
+  'Aguardando Repasse': 'bg-purple-500 text-white border-purple-600',
+  Concluído: 'bg-emerald-600 text-white border-emerald-700',
+  Realizado: 'bg-emerald-600 text-white border-emerald-700',
+  Aprovada: 'bg-green-600 text-white border-green-700',
 }
 
 export const StatusBadge = ({ status, className }: StatusBadgeProps) => {
@@ -80,8 +86,8 @@ export const StatusBadge = ({ status, className }: StatusBadgeProps) => {
   return (
     <Badge
       className={cn(
-        'border-transparent whitespace-nowrap',
-        statusColors[status] || 'bg-secondary text-secondary-foreground',
+        'whitespace-nowrap px-3 py-1 text-xs font-semibold shadow-sm border',
+        statusColors[status] || 'bg-neutral-500 text-white border-neutral-600',
         className,
       )}
     >

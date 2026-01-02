@@ -68,9 +68,6 @@ export const AppSidebar = () => {
               <span className="font-bold text-sm leading-tight">
                 Gestão Emendas
               </span>
-              <span className="text-[10px] text-white/80 font-medium">
-                InvestSUS Gestão
-              </span>
             </div>
           )}
         </div>
