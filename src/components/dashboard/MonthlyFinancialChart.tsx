@@ -7,6 +7,8 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  Area,
+  ComposedChart,
 } from 'recharts'
 import {
   ChartConfig,
@@ -26,11 +28,11 @@ interface MonthlyFinancialChartProps {
 const chartConfig = {
   repasses: {
     label: 'Repasses',
-    color: 'hsl(var(--chart-2))',
+    color: '#0ea5e9', // Sky 500 / Brand 500
   },
   despesas: {
     label: 'Despesas',
-    color: 'hsl(var(--chart-1))',
+    color: '#f43f5e', // Rose 500
   },
 } satisfies ChartConfig
 
@@ -42,35 +44,54 @@ export function MonthlyFinancialChart({
   return (
     <Card
       className={cn(
-        'bg-card border-border/50 shadow-sm rounded-xl animate-fade-in-up opacity-0',
+        'bg-white border-border/50 shadow-card rounded-xl animate-fade-in-up opacity-0 overflow-hidden',
         className,
       )}
       style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}
     >
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-asplan-deep">
-          Repasses x Despesas por Mês
+      <CardHeader className="border-b border-neutral-100 bg-neutral-50/30 pb-4">
+        <CardTitle className="text-lg font-bold text-brand-900">
+          Evolução Financeira (Mensal)
         </CardTitle>
       </CardHeader>
-      <CardContent className="pl-0">
+      <CardContent className="pt-6 pl-0">
         <ChartContainer
           key={periodKey}
           config={chartConfig}
-          className="w-full h-[300px]"
+          className="w-full h-[320px]"
         >
           {data.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart
+              <ComposedChart
                 data={data}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                margin={{ top: 10, right: 30, left: 20, bottom: 10 }}
               >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <defs>
+                  <linearGradient id="fillRepasses" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor="var(--color-repasses)"
+                      stopOpacity={0.2}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--color-repasses)"
+                      stopOpacity={0}
+                    />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="#e5e7eb"
+                />
                 <XAxis
                   dataKey="month"
                   tickLine={false}
                   axisLine={false}
-                  tickMargin={10}
+                  tickMargin={12}
                   tickFormatter={(value) => value.slice(5)}
+                  tick={{ fill: '#6b7280', fontSize: 12 }}
                 />
                 <YAxis
                   tickFormatter={(val) =>
@@ -83,38 +104,52 @@ export function MonthlyFinancialChart({
                   }
                   tickLine={false}
                   axisLine={false}
-                  tickMargin={10}
+                  tickMargin={12}
+                  tick={{ fill: '#6b7280', fontSize: 12 }}
                 />
                 <Tooltip
                   content={
                     <ChartTooltipContent
                       formatter={(val) => formatCurrencyBRL(Number(val))}
-                      className="tabular-nums"
+                      className="tabular-nums shadow-lg border-brand-100"
                     />
                   }
                 />
                 <Legend content={<ChartLegendContent />} />
-                <Line
+                <Area
                   type="monotone"
                   dataKey="repasses"
                   name="Repasses"
+                  fill="url(#fillRepasses)"
                   stroke="var(--color-repasses)"
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{ r: 6 }}
-                  animationDuration={1000}
+                  strokeWidth={3}
+                  activeDot={{
+                    r: 6,
+                    strokeWidth: 0,
+                    fill: 'var(--color-repasses)',
+                  }}
+                  animationDuration={1500}
                 />
                 <Line
                   type="monotone"
                   dataKey="despesas"
                   name="Despesas"
                   stroke="var(--color-despesas)"
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{ r: 6 }}
-                  animationDuration={1000}
+                  strokeWidth={3}
+                  dot={{
+                    r: 3,
+                    fill: '#fff',
+                    strokeWidth: 2,
+                    stroke: 'var(--color-despesas)',
+                  }}
+                  activeDot={{
+                    r: 6,
+                    strokeWidth: 0,
+                    fill: 'var(--color-despesas)',
+                  }}
+                  animationDuration={1500}
                 />
-              </LineChart>
+              </ComposedChart>
             </ResponsiveContainer>
           ) : (
             <div className="flex h-full items-center justify-center text-muted-foreground text-sm">

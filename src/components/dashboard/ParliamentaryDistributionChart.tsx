@@ -22,12 +22,13 @@ interface ParliamentaryDistributionChartProps {
   className?: string
 }
 
+// Specific categorical colors as requested: Blue (#3b82f6), Violet (#8b5cf6), Rose (#f43f5e), and Emerald (#10b981).
 const COLORS = [
-  'hsl(var(--chart-1))',
-  'hsl(var(--chart-2))',
-  'hsl(var(--chart-3))',
-  'hsl(var(--chart-4))',
-  'hsl(var(--chart-5))',
+  '#3b82f6', // Blue
+  '#8b5cf6', // Violet
+  '#f43f5e', // Rose
+  '#10b981', // Emerald
+  '#f59e0b', // Amber (added as 5th backup)
 ]
 
 export function ParliamentaryDistributionChart({
@@ -51,21 +52,21 @@ export function ParliamentaryDistributionChart({
   return (
     <Card
       className={cn(
-        'bg-card border-border/50 shadow-sm rounded-xl animate-fade-in-up opacity-0',
+        'bg-white border-border/50 shadow-card rounded-xl animate-fade-in-up opacity-0 overflow-hidden',
         className,
       )}
       style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}
     >
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-asplan-deep">
+      <CardHeader className="border-b border-neutral-100 bg-neutral-50/30 pb-4">
+        <CardTitle className="text-lg font-bold text-brand-900">
           Distribuição por Parlamentar
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         <ChartContainer
           key={periodKey}
           config={chartConfig}
-          className="w-full h-[300px] [&_.recharts-pie-label-text]:fill-foreground"
+          className="w-full h-[320px] [&_.recharts-pie-label-text]:fill-foreground"
         >
           {data.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
@@ -75,6 +76,7 @@ export function ParliamentaryDistributionChart({
                     <ChartTooltipContent
                       nameKey="name"
                       hideLabel={false}
+                      className="bg-white shadow-lg border-neutral-200"
                       formatter={(value, name) => (
                         <div className="flex min-w-[150px] items-center gap-2 text-xs text-muted-foreground">
                           <span
@@ -101,10 +103,10 @@ export function ParliamentaryDistributionChart({
                   nameKey="name"
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
+                  innerRadius={70} // Doughnut style
                   outerRadius={100}
-                  paddingAngle={2}
-                  label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                  paddingAngle={3}
+                  cornerRadius={4}
                 >
                   {data.map((entry, index) => (
                     <Cell
@@ -116,7 +118,9 @@ export function ParliamentaryDistributionChart({
                 </Pie>
                 <Legend
                   content={<ChartLegendContent nameKey="name" />}
-                  className="-translate-y-2 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
+                  className="-translate-y-2 flex-wrap gap-2 [&>*]:basis-1/2 [&>*]:justify-start"
+                  verticalAlign="bottom"
+                  height={80}
                 />
               </PieChart>
             </ResponsiveContainer>
