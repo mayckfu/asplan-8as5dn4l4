@@ -6,7 +6,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { formatCurrencyBRL, cn } from '@/lib/utils'
+import { formatCurrencyBRL, cn, abbreviateName } from '@/lib/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
 interface ParliamentaryDistributionChartProps {
@@ -21,6 +21,8 @@ const COLORS = [
   '#f43f5e', // Rose
   '#10b981', // Emerald
   '#f59e0b', // Amber
+  '#06b6d4', // Cyan
+  '#6366f1', // Indigo
 ]
 
 export function ParliamentaryDistributionChart({
@@ -28,20 +30,34 @@ export function ParliamentaryDistributionChart({
   periodKey,
   className,
 }: ParliamentaryDistributionChartProps) {
+  // Process data to get top 6 active legislators
+  const processedData = useMemo(() => {
+    // Sort by value descending
+    const sorted = [...data].sort((a, b) => b.value - a.value)
+
+    // Take top 6
+    const top6 = sorted.slice(0, 6)
+
+    // Ensure we have at least some data, otherwise return empty
+    if (top6.length === 0) return []
+
+    return top6
+  }, [data])
+
   const chartConfig = useMemo(() => {
     const config: ChartConfig = {
       value: { label: 'Valor' },
     }
-    data.forEach((item, index) => {
+    processedData.forEach((item, index) => {
       config[item.name] = {
         label: item.name,
         color: COLORS[index % COLORS.length],
       }
     })
     return config
-  }, [data])
+  }, [processedData])
 
-  const totalValue = data.reduce((acc, curr) => acc + curr.value, 0)
+  const totalValue = processedData.reduce((acc, curr) => acc + curr.value, 0)
 
   return (
     <Card
@@ -57,15 +73,15 @@ export function ParliamentaryDistributionChart({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="grid grid-cols-1 lg:grid-cols-3 h-full">
-          {/* Left Column: Chart (Takes 2 columns on desktop) */}
-          <div className="p-4 lg:col-span-2 flex flex-col items-center justify-center border-b lg:border-b-0 lg:border-r border-neutral-100 min-h-[300px]">
+        <div className="grid grid-cols-1 lg:grid-cols-5 h-full">
+          {/* Left Column: Chart (Takes 3 columns on desktop) */}
+          <div className="p-4 lg:col-span-3 flex flex-col items-center justify-center border-b lg:border-b-0 lg:border-r border-neutral-100 min-h-[300px]">
             <ChartContainer
               key={periodKey}
               config={chartConfig}
               className="w-full h-[250px] lg:h-[300px] [&_.recharts-pie-label-text]:fill-foreground"
             >
-              {data.length > 0 ? (
+              {processedData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Tooltip
@@ -95,17 +111,17 @@ export function ParliamentaryDistributionChart({
                       }
                     />
                     <Pie
-                      data={data}
+                      data={processedData}
                       dataKey="value"
                       nameKey="name"
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
+                      innerRadius={70} // Make it a Donut chart
+                      outerRadius={90}
                       paddingAngle={3}
                       cornerRadius={4}
                     >
-                      {data.map((entry, index) => (
+                      {processedData.map((entry, index) => (
                         <Cell
                           key={`cell-${index}`}
                           fill={COLORS[index % COLORS.length]}
@@ -117,27 +133,26 @@ export function ParliamentaryDistributionChart({
                 </ResponsiveContainer>
               ) : (
                 <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
-                  Sem emendas para o período selecionado
+                  Sem dados
                 </div>
               )}
             </ChartContainer>
           </div>
 
-          {/* Right Column: Legend List */}
-          <div className="lg:col-span-1 h-[300px] lg:h-auto flex flex-col bg-neutral-50/50">
-            <div className="p-3 border-b border-neutral-100 text-xs font-semibold text-muted-foreground uppercase tracking-wider flex justify-between">
-              <span>Parlamentar</span>
-              <span>%</span>
+          {/* Right Column: Legend List (Takes 2 columns) */}
+          <div className="lg:col-span-2 h-[300px] lg:h-auto flex flex-col bg-neutral-50/50">
+            <div className="p-3 border-b border-neutral-100 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Top {processedData.length} Parlamentares
             </div>
             <ScrollArea className="flex-1">
               <div className="p-2 space-y-1">
-                {data.length > 0 ? (
-                  data.map((item, index) => (
+                {processedData.length > 0 ? (
+                  processedData.map((item, index) => (
                     <div
                       key={index}
                       className="flex items-center justify-between p-2 rounded-md hover:bg-white hover:shadow-sm transition-all border border-transparent hover:border-neutral-200 text-xs"
                     >
-                      <div className="flex items-center gap-2 overflow-hidden flex-1">
+                      <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
                         <span
                           className="h-2 w-2 shrink-0 rounded-full"
                           style={{
@@ -148,7 +163,7 @@ export function ParliamentaryDistributionChart({
                           className="font-medium text-brand-900 truncate"
                           title={item.name}
                         >
-                          {item.name}
+                          {abbreviateName(item.name)}
                         </span>
                       </div>
                       <div className="flex flex-col items-end shrink-0 ml-2">
@@ -156,7 +171,10 @@ export function ParliamentaryDistributionChart({
                           {formatCurrencyBRL(item.value)}
                         </span>
                         <span className="text-[10px] text-muted-foreground">
-                          {((item.value / totalValue) * 100).toFixed(1)}%
+                          {totalValue > 0
+                            ? ((item.value / totalValue) * 100).toFixed(1)
+                            : 0}
+                          %
                         </span>
                       </div>
                     </div>

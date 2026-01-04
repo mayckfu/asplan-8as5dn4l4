@@ -45,3 +45,12 @@ export function formatBytes(bytes: number, decimals = 2) {
 
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
 }
+
+export function abbreviateName(name: string): string {
+  const parts = name.trim().split(/\s+/)
+  if (parts.length === 1) return name
+  const first = parts[0]
+  const last = parts[parts.length - 1]
+  // Return format: F. Reis
+  return `${first.charAt(0)}. ${last}`
+}
