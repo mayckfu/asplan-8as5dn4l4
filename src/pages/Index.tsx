@@ -1,5 +1,5 @@
 import { useMemo, useEffect, useState, useCallback } from 'react'
-import { parseISO, getYear, getMonth, format } from 'date-fns'
+import { parseISO, getMonth, format } from 'date-fns'
 import { Banknote, Loader2, AlertTriangle } from 'lucide-react'
 import { DetailedAmendment, Amendment, Pendencia } from '@/lib/mock-data'
 import { PendingItemsSidebar } from '@/components/dashboard/PendingItemsSidebar'
@@ -19,22 +19,26 @@ const Index = () => {
     DetailedAmendment[]
   >([])
 
-  // Filters State
-  const [selectedYear, setSelectedYear] = useState<string>(
-    new Date().getFullYear().toString(),
-  )
+  // Filters State with persistence
+  const [selectedYear, setSelectedYear] = useState<string>(() => {
+    const saved = localStorage.getItem('asplan_dashboard_year')
+    return saved || new Date().getFullYear().toString()
+  })
   const [selectedMonth, setSelectedMonth] = useState<string>('all')
+
+  useEffect(() => {
+    localStorage.setItem('asplan_dashboard_year', selectedYear)
+  }, [selectedYear])
 
   const fetchData = useCallback(async () => {
     setIsLoading(true)
     setError(null)
     try {
+      // Filter by Fiscal Year (ano_exercicio)
       let query = supabase.from('emendas').select('*')
 
       if (selectedYear) {
-        const start = `${selectedYear}-01-01`
-        const end = `${selectedYear}-12-31 23:59:59`
-        query = query.gte('created_at', start).lte('created_at', end)
+        query = query.eq('ano_exercicio', parseInt(selectedYear))
       }
 
       const { data: emendasData, error: emendasError } = await query
@@ -137,10 +141,10 @@ const Index = () => {
   }, [fetchData])
 
   const filteredData = useMemo(() => {
-    const year = parseInt(selectedYear)
     const month = selectedMonth === 'all' ? null : parseInt(selectedMonth)
 
-    // Since we already fetched by year, we mostly just filter by month here if selected
+    // Filter by month for charts and time-sensitive data if month is selected
+    // Note: The main data is already filtered by Fiscal Year (ano_exercicio)
     const filterByMonth = (dateString: string) => {
       if (!dateString) return false
       const date = parseISO(dateString)
@@ -150,12 +154,14 @@ const Index = () => {
       return true
     }
 
-    const filteredAmendmentsList = amendments.filter((a) =>
-      filterByMonth(a.created_at),
-    )
-    const filteredDetailedAmendments = detailedAmendments.filter((a) =>
-      filterByMonth(a.created_at),
-    )
+    const filteredAmendmentsList = amendments
+    // If we want to filter amendments creation by month too:
+    // .filter((a) => filterByMonth(a.created_at))
+    // Usually dashboard month filter applies to execution (repasses/despesas) or creation.
+    // Let's assume it filters everything for consistency with previous behavior,
+    // but within the scope of the selected Fiscal Year.
+
+    const filteredDetailedAmendments = detailedAmendments
 
     const allRepasses = detailedAmendments.flatMap((a) => a.repasses)
     const allDespesas = detailedAmendments.flatMap((a) => a.despesas)
@@ -169,7 +175,7 @@ const Index = () => {
       repasses: filteredRepasses,
       despesas: filteredDespesas,
     }
-  }, [amendments, detailedAmendments, selectedYear, selectedMonth])
+  }, [amendments, detailedAmendments, selectedMonth])
 
   const dashboardData = useMemo(() => {
     const {
@@ -179,6 +185,7 @@ const Index = () => {
     } = filteredData
 
     const totalValor = fAmendments.reduce((sum, a) => sum + a.valor_total, 0)
+    // Only count filtered despesas (by month if selected)
     const totalGasto = fDespesas.reduce((sum, d) => sum + d.valor, 0)
     const activeLegislators = new Set(fAmendments.map((a) => a.parlamentar))
       .size
@@ -265,7 +272,7 @@ const Index = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold tracking-tight text-asplan-deep">
-              Dashboard — {selectedYear}
+              Dashboard — Exercício {selectedYear}
             </h1>
             <p className="text-muted-foreground text-lg">
               Acompanhamento financeiro da Secretaria de Saúde

@@ -65,6 +65,7 @@ export type Amendment = {
   total_repassado: number
   total_gasto: number
   anexos_essenciais: boolean
+  ano_exercicio: number
   // Co-authorship fields
   segundo_autor?: string | null
   segundo_parlamentar?: string | null

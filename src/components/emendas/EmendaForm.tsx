@@ -37,6 +37,7 @@ import {
 import { formatCurrencyBRL } from '@/lib/utils'
 
 const emendaSchema = z.object({
+  ano_exercicio: z.coerce.number().int().min(2020).max(2100),
   tipo: z.enum(['individual', 'bancada', 'comissao'], {
     required_error: 'O tipo é obrigatório.',
   }),
@@ -72,9 +73,13 @@ export const EmendaForm = ({
   onSubmit,
   onCancel,
 }: EmendaFormProps) => {
+  const currentYear = new Date().getFullYear()
+  const years = [currentYear - 1, currentYear, currentYear + 1, currentYear + 2]
+
   const form = useForm<EmendaFormValues>({
     resolver: zodResolver(emendaSchema),
     defaultValues: {
+      ano_exercicio: initialData?.ano_exercicio || currentYear,
       tipo: initialData?.tipo || 'individual',
       tipo_recurso: initialData?.tipo_recurso || '',
       autor: initialData?.autor || '',
@@ -96,6 +101,7 @@ export const EmendaForm = ({
   useEffect(() => {
     if (initialData) {
       form.reset({
+        ano_exercicio: initialData.ano_exercicio,
         tipo: initialData.tipo,
         tipo_recurso: initialData.tipo_recurso,
         autor: initialData.autor,
@@ -140,6 +146,33 @@ export const EmendaForm = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
+            name="ano_exercicio"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Ano de Exercício</FormLabel>
+                <Select
+                  onValueChange={(val) => field.onChange(parseInt(val))}
+                  defaultValue={field.value?.toString()}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o ano" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {years.map((year) => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
             name="tipo"
             render={({ field }) => (
               <FormItem>
@@ -165,6 +198,9 @@ export const EmendaForm = ({
               </FormItem>
             )}
           />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="tipo_recurso"
@@ -188,6 +224,23 @@ export const EmendaForm = ({
                     ))}
                   </SelectContent>
                 </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="valor_total"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Valor Total (R$)</FormLabel>
+                <FormControl>
+                  <MoneyInput
+                    placeholder="0,00"
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -290,7 +343,7 @@ export const EmendaForm = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="numero_emenda"
@@ -312,23 +365,6 @@ export const EmendaForm = ({
                 <FormLabel>Nº Proposta</FormLabel>
                 <FormControl>
                   <Input placeholder="Ex: 12345..." {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="valor_total"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Valor Total (R$)</FormLabel>
-                <FormControl>
-                  <MoneyInput
-                    placeholder="0,00"
-                    value={field.value}
-                    onChange={field.onChange}
-                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
