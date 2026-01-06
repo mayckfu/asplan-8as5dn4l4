@@ -26,7 +26,13 @@ import {
   TipoEmenda,
 } from '@/lib/mock-data'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -441,7 +447,11 @@ const EmendasListPage = () => {
           const matchesProposta =
             amendment.numero_proposta?.toLowerCase().includes(searchLower) ||
             false
-          if (!matchesEmenda && !matchesProposta) return false
+          const matchesParlamentar = amendment.parlamentar
+            .toLowerCase()
+            .includes(searchLower)
+          if (!matchesEmenda && !matchesProposta && !matchesParlamentar)
+            return false
         }
 
         // Existing Filters
@@ -589,50 +599,63 @@ const EmendasListPage = () => {
         <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-200">
           Lista de Emendas
         </h1>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <div className="relative max-w-sm w-full sm:w-64">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por número..."
+              placeholder="Buscar..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-8 h-9"
             />
           </div>
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-9 gap-1"
-            onClick={handleExport}
-          >
-            <FileDown className="h-3.5 w-3.5" />
-            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-              Exportar CSV
-            </span>
-          </Button>
-          {!isReadOnly && (
-            <Button size="sm" className="h-9 gap-1" onClick={handleAddNew}>
-              <PlusCircle className="h-3.5 w-3.5" />
-              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                Nova Emenda
-              </span>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-9 gap-1 flex-1 sm:flex-none"
+              onClick={handleExport}
+            >
+              <FileDown className="h-3.5 w-3.5" />
+              <span className="sm:not-sr-only sm:whitespace-nowrap">CSV</span>
             </Button>
-          )}
+            {!isReadOnly && (
+              <Button
+                size="sm"
+                className="h-9 gap-1 flex-1 sm:flex-none"
+                onClick={handleAddNew}
+              >
+                <PlusCircle className="h-3.5 w-3.5" />
+                <span className="sm:not-sr-only sm:whitespace-nowrap">
+                  Nova
+                </span>
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
       <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
-        <CardHeader>
+        <CardHeader className="py-4">
           <Collapsible defaultOpen={false}>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
+              <div className="flex items-center gap-2">
+                <CardTitle className="font-medium text-base text-neutral-900 dark:text-neutral-200">
                   Filtros
                 </CardTitle>
+                <Badge variant="outline" className="text-xs font-normal">
+                  {filteredAmendments.length} encontrados
+                </Badge>
+              </div>
+              <div className="flex items-center gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      Visualizações Salvas
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="hidden sm:flex"
+                    >
+                      Visualizações
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
@@ -648,16 +671,13 @@ const EmendasListPage = () => {
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <Button size="sm" variant="ghost" onClick={savePreset}>
-                  <Save className="mr-2 h-4 w-4" /> Salvar Visualização
-                </Button>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm" className="w-9 p-0">
+                    <ListFilter className="h-4 w-4" />
+                    <span className="sr-only">Filtros</span>
+                  </Button>
+                </CollapsibleTrigger>
               </div>
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="w-9 p-0">
-                  <ListFilter className="h-4 w-4" />
-                  <span className="sr-only">Filtros</span>
-                </Button>
-              </CollapsibleTrigger>
             </div>
             <CollapsibleContent className="mt-4">
               <EmendasFilters
@@ -665,228 +685,298 @@ const EmendasListPage = () => {
                 onFilterChange={handleFilterChange}
                 onReset={handleResetFilters}
               />
+              <div className="flex justify-between items-center mt-4 sm:hidden">
+                <Button size="sm" variant="ghost" onClick={savePreset}>
+                  <Save className="mr-2 h-4 w-4" /> Salvar Visualização
+                </Button>
+              </div>
             </CollapsibleContent>
           </Collapsible>
         </CardHeader>
         <Separator />
-        <CardContent className="pt-6 p-0">
+        <CardContent className="p-0">
           {isLoading ? (
             <div className="flex justify-center py-10">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : (
-            <div className="relative overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="sticky top-0 bg-background/90 backdrop-blur-sm z-10">
-                    <TableHead className="w-[120px] font-medium text-neutral-900 dark:text-neutral-200">
-                      {renderHeader('Tipo', 'tipo')}
-                    </TableHead>
-                    <TableHead className="min-w-[180px] font-medium text-neutral-900 dark:text-neutral-200">
-                      {renderHeader('Parlamentar', 'parlamentar')}
-                    </TableHead>
-                    <TableHead className="min-w-[120px] font-medium text-neutral-900 dark:text-neutral-200">
-                      {renderHeader('Nº Emenda', 'numero_emenda')}
-                    </TableHead>
-                    <TableHead className="min-w-[120px] font-medium text-neutral-900 dark:text-neutral-200">
-                      {renderHeader('Nº Proposta', 'numero_proposta')}
-                    </TableHead>
-                    <TableHead className="min-w-[160px] font-medium text-neutral-900 dark:text-neutral-200">
-                      {renderHeader('Valor Total', 'valor_total')}
-                    </TableHead>
-                    <TableHead className="min-w-[140px] font-medium text-neutral-900 dark:text-neutral-200">
-                      Situação Oficial
-                    </TableHead>
-                    <TableHead className="min-w-[140px] font-medium text-neutral-900 dark:text-neutral-200">
-                      Status Interno
-                    </TableHead>
-                    <TableHead className="w-[120px] text-center font-medium text-neutral-900 dark:text-neutral-200">
-                      Ações
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedData.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8">
-                        Nenhuma emenda encontrada.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    paginatedData.map((amendment) => {
-                      const percentRepassed =
-                        amendment.valor_total > 0
-                          ? ((amendment.total_repassado || 0) /
-                              amendment.valor_total) *
-                            100
-                          : 0
-                      const rowColorClass = getRowStatusColor(
-                        amendment.status_interno,
-                      )
-
-                      return (
-                        <TableRow
-                          key={amendment.id}
-                          className={cn(
-                            'h-auto py-2 cursor-pointer transition-colors border-b last:border-0',
-                            rowColorClass,
-                          )}
-                          onClick={() => navigate(`/emenda/${amendment.id}`)}
-                        >
-                          <TableCell className="align-top">
-                            <Badge
-                              className={cn(
-                                'flex items-center gap-2 w-fit',
-                                getTypeColor(amendment.tipo),
-                              )}
-                            >
-                              {getTypeIcon(amendment.tipo)}
-                              <span className="capitalize text-xs">
-                                {TipoEmenda[amendment.tipo] || amendment.tipo}
-                              </span>
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="align-top">
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-8 w-8 border border-border">
-                                <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
-                                  {amendment.parlamentar
-                                    .split(' ')
-                                    .map((n) => n[0])
-                                    .join('')
-                                    .substring(0, 2)
-                                    .toUpperCase()}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex flex-col">
-                                <span className="font-medium text-neutral-900 dark:text-neutral-200 leading-tight">
-                                  {amendment.parlamentar}
-                                </span>
-                                {amendment.segundo_parlamentar && (
-                                  <div className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
-                                    <Users className="h-3 w-3" />
-                                    {amendment.segundo_parlamentar}
-                                  </div>
-                                )}
-                              </div>
+            <>
+              {/* Mobile View - Cards */}
+              <div className="md:hidden space-y-4 p-4">
+                {paginatedData.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Nenhuma emenda encontrada.
+                  </div>
+                ) : (
+                  paginatedData.map((amendment) => (
+                    <Card
+                      key={amendment.id}
+                      className="overflow-hidden border shadow-sm active:scale-[0.98] transition-transform duration-100"
+                      onClick={() => navigate(`/emenda/${amendment.id}`)}
+                    >
+                      <CardHeader className="p-4 pb-2 bg-neutral-50/50">
+                        <div className="flex justify-between items-start gap-2">
+                          <div>
+                            <div className="font-semibold text-neutral-900 dark:text-neutral-100">
+                              {amendment.parlamentar}
                             </div>
-                          </TableCell>
-                          <TableCell className="align-top text-sm">
+                            <div className="text-xs text-muted-foreground mt-0.5">
+                              Proposta: {amendment.numero_proposta}
+                            </div>
+                          </div>
+                          <StatusBadge
+                            status={amendment.status_interno}
+                            className="text-[10px] px-2 py-0.5 h-auto whitespace-normal text-center max-w-[100px]"
+                          />
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-4 pt-2">
+                        <div className="flex justify-between items-center mt-2">
+                          <span className="text-sm text-muted-foreground">
+                            Valor Total
+                          </span>
+                          <span className="font-bold tabular-nums text-neutral-900 dark:text-neutral-100">
+                            {formatCurrencyBRL(amendment.valor_total)}
+                          </span>
+                        </div>
+                        <div className="mt-3 flex gap-2">
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] font-normal"
+                          >
                             {amendment.numero_emenda}
-                          </TableCell>
-                          <TableCell className="align-top text-sm">
-                            {amendment.numero_proposta}
-                          </TableCell>
-                          <TableCell className="align-top">
-                            <div className="space-y-1.5 w-full max-w-[140px]">
-                              <div className="font-semibold tabular-nums text-neutral-900 dark:text-neutral-200">
-                                {formatCurrencyBRL(amendment.valor_total)}
-                              </div>
-                              <div className="space-y-1">
-                                <Progress
-                                  value={percentRepassed}
-                                  className="h-1.5 bg-neutral-200 dark:bg-neutral-700"
-                                />
-                                <div className="flex justify-between text-[10px] text-muted-foreground">
-                                  <span>
-                                    {formatCurrencyBRL(
-                                      amendment.total_repassado || 0,
-                                    )}
+                          </Badge>
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] font-normal"
+                          >
+                            {TipoEmenda[amendment.tipo]}
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </div>
+
+              {/* Desktop View - Table */}
+              <div className="hidden md:block relative overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="sticky top-0 bg-background/90 backdrop-blur-sm z-10">
+                      <TableHead className="w-[120px] font-medium text-neutral-900 dark:text-neutral-200">
+                        {renderHeader('Tipo', 'tipo')}
+                      </TableHead>
+                      <TableHead className="min-w-[180px] font-medium text-neutral-900 dark:text-neutral-200">
+                        {renderHeader('Parlamentar', 'parlamentar')}
+                      </TableHead>
+                      <TableHead className="min-w-[120px] font-medium text-neutral-900 dark:text-neutral-200">
+                        {renderHeader('Nº Emenda', 'numero_emenda')}
+                      </TableHead>
+                      <TableHead className="min-w-[120px] font-medium text-neutral-900 dark:text-neutral-200">
+                        {renderHeader('Nº Proposta', 'numero_proposta')}
+                      </TableHead>
+                      <TableHead className="min-w-[160px] font-medium text-neutral-900 dark:text-neutral-200">
+                        {renderHeader('Valor Total', 'valor_total')}
+                      </TableHead>
+                      <TableHead className="min-w-[140px] font-medium text-neutral-900 dark:text-neutral-200">
+                        Situação Oficial
+                      </TableHead>
+                      <TableHead className="min-w-[140px] font-medium text-neutral-900 dark:text-neutral-200">
+                        Status Interno
+                      </TableHead>
+                      <TableHead className="w-[120px] text-center font-medium text-neutral-900 dark:text-neutral-200">
+                        Ações
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedData.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={8} className="text-center py-8">
+                          Nenhuma emenda encontrada.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      paginatedData.map((amendment) => {
+                        const percentRepassed =
+                          amendment.valor_total > 0
+                            ? ((amendment.total_repassado || 0) /
+                                amendment.valor_total) *
+                              100
+                            : 0
+                        const rowColorClass = getRowStatusColor(
+                          amendment.status_interno,
+                        )
+
+                        return (
+                          <TableRow
+                            key={amendment.id}
+                            className={cn(
+                              'h-auto py-2 cursor-pointer transition-colors border-b last:border-0',
+                              rowColorClass,
+                            )}
+                            onClick={() => navigate(`/emenda/${amendment.id}`)}
+                          >
+                            <TableCell className="align-top">
+                              <Badge
+                                className={cn(
+                                  'flex items-center gap-2 w-fit',
+                                  getTypeColor(amendment.tipo),
+                                )}
+                              >
+                                {getTypeIcon(amendment.tipo)}
+                                <span className="capitalize text-xs">
+                                  {TipoEmenda[amendment.tipo] || amendment.tipo}
+                                </span>
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="align-top">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8 border border-border">
+                                  <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
+                                    {amendment.parlamentar
+                                      .split(' ')
+                                      .map((n) => n[0])
+                                      .join('')
+                                      .substring(0, 2)
+                                      .toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex flex-col">
+                                  <span className="font-medium text-neutral-900 dark:text-neutral-200 leading-tight">
+                                    {amendment.parlamentar}
                                   </span>
-                                  <span>{percentRepassed.toFixed(0)}%</span>
+                                  {amendment.segundo_parlamentar && (
+                                    <div className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                                      <Users className="h-3 w-3" />
+                                      {amendment.segundo_parlamentar}
+                                    </div>
+                                  )}
                                 </div>
                               </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="align-top">
-                            <StatusBadge
-                              status={amendment.situacao}
-                              className="whitespace-normal text-center w-full h-auto py-1 text-xs"
-                            />
-                          </TableCell>
-                          <TableCell className="align-top">
-                            <StatusBadge
-                              status={amendment.status_interno}
-                              className="whitespace-normal text-center w-full h-auto py-1 text-xs"
-                            />
-                          </TableCell>
-                          <TableCell className="align-top">
-                            <div
-                              className="flex items-center justify-center gap-1"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-8 w-8 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      navigate(`/emenda/${amendment.id}`)
-                                    }}
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                    <span className="sr-only">
-                                      Ver Detalhes
+                            </TableCell>
+                            <TableCell className="align-top text-sm">
+                              {amendment.numero_emenda}
+                            </TableCell>
+                            <TableCell className="align-top text-sm">
+                              {amendment.numero_proposta}
+                            </TableCell>
+                            <TableCell className="align-top">
+                              <div className="space-y-1.5 w-full max-w-[140px]">
+                                <div className="font-semibold tabular-nums text-neutral-900 dark:text-neutral-200">
+                                  {formatCurrencyBRL(amendment.valor_total)}
+                                </div>
+                                <div className="space-y-1">
+                                  <Progress
+                                    value={percentRepassed}
+                                    className="h-1.5 bg-neutral-200 dark:bg-neutral-700"
+                                  />
+                                  <div className="flex justify-between text-[10px] text-muted-foreground">
+                                    <span>
+                                      {formatCurrencyBRL(
+                                        amendment.total_repassado || 0,
+                                      )}
                                     </span>
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Ver Detalhes</TooltipContent>
-                              </Tooltip>
+                                    <span>{percentRepassed.toFixed(0)}%</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="align-top">
+                              <StatusBadge
+                                status={amendment.situacao}
+                                className="whitespace-normal text-center w-full h-auto py-1 text-xs"
+                              />
+                            </TableCell>
+                            <TableCell className="align-top">
+                              <StatusBadge
+                                status={amendment.status_interno}
+                                className="whitespace-normal text-center w-full h-auto py-1 text-xs"
+                              />
+                            </TableCell>
+                            <TableCell className="align-top">
+                              <div
+                                className="flex items-center justify-center gap-1"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-8 w-8 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        navigate(`/emenda/${amendment.id}`)
+                                      }}
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                      <span className="sr-only">
+                                        Ver Detalhes
+                                      </span>
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Ver Detalhes</TooltipContent>
+                                </Tooltip>
 
-                              {!isReadOnly && (
-                                <>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30"
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          handleEdit(amendment)
-                                        }}
-                                      >
-                                        <Edit className="h-4 w-4" />
-                                        <span className="sr-only">Editar</span>
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Editar</TooltipContent>
-                                  </Tooltip>
+                                {!isReadOnly && (
+                                  <>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            handleEdit(amendment)
+                                          }}
+                                        >
+                                          <Edit className="h-4 w-4" />
+                                          <span className="sr-only">
+                                            Editar
+                                          </span>
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>Editar</TooltipContent>
+                                    </Tooltip>
 
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          handleDelete(amendment)
-                                        }}
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                        <span className="sr-only">Excluir</span>
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Excluir</TooltipContent>
-                                  </Tooltip>
-                                </>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            handleDelete(amendment)
+                                          }}
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                          <span className="sr-only">
+                                            Excluir
+                                          </span>
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>Excluir</TooltipContent>
+                                    </Tooltip>
+                                  </>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )
+                      })
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
-      <Pagination>
+      <Pagination className="mt-4">
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious

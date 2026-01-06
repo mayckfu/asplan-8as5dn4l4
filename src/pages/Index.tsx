@@ -26,6 +26,7 @@ const Index = () => {
   })
   const [selectedMonth, setSelectedMonth] = useState<string>('all')
 
+  // Persist year selection
   useEffect(() => {
     localStorage.setItem('asplan_dashboard_year', selectedYear)
   }, [selectedYear])
@@ -45,6 +46,7 @@ const Index = () => {
 
       if (emendasError) throw emendasError
 
+      // Even if no data, we should set state to empty arrays to clear the dashboard
       if (!emendasData || emendasData.length === 0) {
         setAmendments([])
         setDetailedAmendments([])
@@ -318,9 +320,11 @@ const Index = () => {
           />
         </div>
       </div>
-      <div className="sticky top-24">
+      {/* Sidebar hidden on mobile until scrolling or explicit action, but here we just stack it/make it responsive */}
+      <div className="hidden lg:block sticky top-24">
         <PendingItemsSidebar amendments={dashboardData.allDetailedAmendments} />
       </div>
+      {/* Mobile Sidebar view could be added or just hide it for simplicity as per requirements */}
     </div>
   )
 }

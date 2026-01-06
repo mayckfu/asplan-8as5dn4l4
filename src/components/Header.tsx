@@ -43,8 +43,8 @@ export const Header = () => {
   }
 
   return (
-    <header className="sticky top-0 flex h-16 items-center justify-between gap-4 border-b border-border bg-white px-6 z-30 shadow-sm transition-all">
-      <div className="flex items-center gap-4">
+    <header className="sticky top-0 flex h-16 items-center justify-between gap-4 border-b border-border bg-white px-4 md:px-6 z-30 shadow-sm transition-all">
+      <div className="flex items-center gap-3">
         {isMobile ? (
           <Button
             variant="ghost"
@@ -71,13 +71,13 @@ export const Header = () => {
           </Button>
         )}
         <div className="flex flex-col">
-          <span className="font-bold text-lg text-brand-900 hidden md:block leading-tight tracking-tight">
-            CONTROLE DE EMENDAS
+          <span className="font-bold text-lg text-brand-900 leading-tight tracking-tight">
+            {isMobile ? 'ASPLAN' : 'CONTROLE DE EMENDAS'}
           </span>
         </div>
       </div>
 
-      <div className="flex-1 max-w-xl px-8 hidden md:block">
+      <div className="flex-1 max-w-xl px-4 hidden md:block">
         <div className="relative group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-brand-600 transition-colors" />
           <Input
@@ -87,7 +87,9 @@ export const Header = () => {
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 md:gap-3">
+        {/* Mobile Search Trigger could go here if needed, but not specified in requirements */}
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -208,7 +210,7 @@ export const Header = () => {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <div className="h-6 w-px bg-border mx-1" />
+        <div className="h-6 w-px bg-border mx-1 hidden sm:block" />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -226,7 +228,7 @@ export const Header = () => {
                 <p className="text-sm font-semibold leading-none text-brand-900">
                   {user?.name || 'Usuário'}
                 </p>
-                <p className="text-xs leading-none text-muted-foreground">
+                <p className="text-xs leading-none text-muted-foreground truncate">
                   {user?.email || 'email@asplan.gov'}
                 </p>
               </div>

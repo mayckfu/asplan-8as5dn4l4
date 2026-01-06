@@ -264,6 +264,7 @@ export type Database = {
       emendas: {
         Row: {
           anexos_essenciais: boolean | null
+          ano_exercicio: number
           autor: string
           created_at: string | null
           data_repasse: string | null
@@ -293,6 +294,7 @@ export type Database = {
         }
         Insert: {
           anexos_essenciais?: boolean | null
+          ano_exercicio?: number
           autor: string
           created_at?: string | null
           data_repasse?: string | null
@@ -322,6 +324,7 @@ export type Database = {
         }
         Update: {
           anexos_essenciais?: boolean | null
+          ano_exercicio?: number
           autor?: string
           created_at?: string | null
           data_repasse?: string | null

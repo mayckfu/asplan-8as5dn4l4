@@ -55,9 +55,23 @@ const COLORS = [
 ]
 
 const RelatoriosPage = () => {
-  const [filters, setFilters] = useState<ReportFiltersState>(initialFilters)
+  // Initialize filters with year from localStorage or default
+  const [filters, setFilters] = useState<ReportFiltersState>(() => {
+    const savedYear = localStorage.getItem('asplan_dashboard_year')
+    return {
+      ...initialFilters,
+      year: savedYear || currentYear,
+    }
+  })
   const [allData, setAllData] = useState<DetailedAmendment[]>([])
   const [isLoading, setIsLoading] = useState(true)
+
+  // Persist year selection
+  useEffect(() => {
+    if (filters.year) {
+      localStorage.setItem('asplan_dashboard_year', filters.year)
+    }
+  }, [filters.year])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -65,11 +79,9 @@ const RelatoriosPage = () => {
       try {
         let query = supabase.from('emendas').select('*')
 
-        // Apply year filter at DB level if present
+        // Apply year filter using ano_exercicio instead of created_at
         if (filters.year) {
-          const start = `${filters.year}-01-01`
-          const end = `${filters.year}-12-31 23:59:59`
-          query = query.gte('created_at', start).lte('created_at', end)
+          query = query.eq('ano_exercicio', parseInt(filters.year))
         }
 
         const { data: emendas, error: emendasError } = await query
@@ -134,6 +146,8 @@ const RelatoriosPage = () => {
   const filteredData = useMemo(() => {
     return allData.filter((amendment) => {
       // Filter by Month (Local filter)
+      // Note: This relies on created_at for monthly distribution within the fiscal year
+      // Alternatively, we could filter by date of first repasse or despesa
       if (filters.month !== 'all') {
         const amendmentDate = new Date(amendment.created_at)
         const amendmentMonth = (amendmentDate.getMonth() + 1).toString()
@@ -403,8 +417,8 @@ const RelatoriosPage = () => {
           </div>
           <h3 className="text-lg font-semibold">Nenhum dado encontrado</h3>
           <p className="text-muted-foreground max-w-sm mt-2">
-            Não há registros para o período ou filtros selecionados. Tente
-            ajustar os critérios de busca.
+            Não há registros para o período fiscal {filters.year} ou filtros
+            selecionados.
           </p>
           <Button
             variant="outline"
@@ -418,13 +432,16 @@ const RelatoriosPage = () => {
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="grid w-full grid-cols-3 max-w-[600px] mb-6">
             <TabsTrigger value="overview" className="gap-2">
-              <LayoutDashboard className="h-4 w-4" /> Visão Geral
+              <LayoutDashboard className="h-4 w-4" />
+              <span className="hidden sm:inline">Visão Geral</span>
             </TabsTrigger>
             <TabsTrigger value="legislators" className="gap-2">
-              <Users className="h-4 w-4" /> Parlamentares
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Parlamentares</span>
             </TabsTrigger>
             <TabsTrigger value="execution" className="gap-2">
-              <TrendingUp className="h-4 w-4" /> Execução
+              <TrendingUp className="h-4 w-4" />
+              <span className="hidden sm:inline">Execução</span>
             </TabsTrigger>
           </TabsList>
 
