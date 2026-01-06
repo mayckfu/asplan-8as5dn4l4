@@ -898,13 +898,25 @@ const EmendaDetailPage = () => {
         defaultValue="repasses"
         className="w-full"
       >
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
-          <TabsTrigger value="repasses">Repasses</TabsTrigger>
-          <TabsTrigger value="despesas">Despesas</TabsTrigger>
-          <TabsTrigger value="anexos">Anexos</TabsTrigger>
-          <TabsTrigger value="checklist">Checklist</TabsTrigger>
-          <TabsTrigger value="historico">Histórico</TabsTrigger>
-        </TabsList>
+        <div className="w-full overflow-x-auto pb-2 scrollbar-none">
+          <TabsList className="inline-flex w-full min-w-max md:w-full md:grid md:grid-cols-5 p-1 h-auto">
+            <TabsTrigger value="repasses" className="px-4 py-2">
+              Repasses
+            </TabsTrigger>
+            <TabsTrigger value="despesas" className="px-4 py-2">
+              Despesas
+            </TabsTrigger>
+            <TabsTrigger value="anexos" className="px-4 py-2">
+              Anexos
+            </TabsTrigger>
+            <TabsTrigger value="checklist" className="px-4 py-2">
+              Checklist
+            </TabsTrigger>
+            <TabsTrigger value="historico" className="px-4 py-2">
+              Histórico
+            </TabsTrigger>
+          </TabsList>
+        </div>
         <TabsContent value="repasses" className="mt-4">
           <EmendaRepassesTab
             ref={repassesTabRef}

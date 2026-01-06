@@ -8,6 +8,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Historico } from '@/lib/mock-data'
+import { cn } from '@/lib/utils'
 
 interface EmendaHistoricoTabProps {
   historico: Historico[]
@@ -26,7 +27,44 @@ export const EmendaHistoricoTab = ({ historico }: EmendaHistoricoTabProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="relative overflow-x-auto">
+        {/* Mobile Timeline View */}
+        <div className="block md:hidden space-y-4">
+          {sortedHistory.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              Nenhum histórico registrado.
+            </p>
+          ) : (
+            <div className="relative pl-4 border-l-2 border-neutral-100 dark:border-neutral-800 space-y-6">
+              {sortedHistory.map((h) => (
+                <div key={h.id} className="relative">
+                  <div className="absolute -left-[21px] top-1.5 h-3 w-3 rounded-full bg-primary ring-4 ring-background" />
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {new Date(h.criado_em).toLocaleString('pt-BR')}
+                    </span>
+                    <p className="text-sm font-semibold text-neutral-900 dark:text-neutral-200">
+                      {h.evento}
+                    </p>
+                    <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                      {h.detalhe}
+                    </p>
+                    <div className="flex items-center gap-1 mt-1">
+                      <div className="h-5 w-5 rounded-full bg-neutral-100 flex items-center justify-center text-[10px] font-bold text-neutral-600">
+                        {h.feito_por.charAt(0)}
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {h.feito_por}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block relative overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="sticky top-0 bg-background/90 backdrop-blur-sm z-10">

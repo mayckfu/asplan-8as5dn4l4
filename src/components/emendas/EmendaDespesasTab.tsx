@@ -114,7 +114,6 @@ export const EmendaDespesasTab = forwardRef<
     setSelectedExpense(despesa)
     setFormData({
       ...despesa,
-      // data is already stored as YYYY-MM-DD string in Despesa object based on new utility usage
       data: despesa.data,
     })
     setIsFormOpen(true)
@@ -146,7 +145,7 @@ export const EmendaDespesasTab = forwardRef<
 
     const newDespesa: Despesa = {
       id: selectedExpense?.id || `D-${Date.now()}`,
-      data: formData.data!, // Ensure this is YYYY-MM-DD
+      data: formData.data!,
       valor: Number(formData.valor),
       descricao: formData.descricao!,
       status_execucao: formData.status_execucao || 'PLANEJADA',
@@ -192,66 +191,143 @@ export const EmendaDespesasTab = forwardRef<
               Nenhuma despesa registrada.
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Valor</TableHead>
-                  <TableHead>
-                    <span className="sr-only">Ações</span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Mobile Card View */}
+              <div className="block md:hidden space-y-4">
                 {despesas.map((despesa) => (
-                  <TableRow key={despesa.id}>
-                    <TableCell>{formatDisplayDate(despesa.data)}</TableCell>
-                    <TableCell className="font-medium">
-                      {despesa.descricao}
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={despesa.status_execucao as any} />
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {formatCurrencyBRL(despesa.valor)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem
+                  <Card
+                    key={despesa.id}
+                    className="border border-neutral-200 dark:border-neutral-800"
+                  >
+                    <CardContent className="p-4 space-y-3">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="text-sm font-medium text-neutral-500">
+                            Data
+                          </p>
+                          <p className="text-neutral-900 dark:text-neutral-200">
+                            {formatDisplayDate(despesa.data)}
+                          </p>
+                        </div>
+                        <StatusBadge status={despesa.status_execucao as any} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-neutral-500">
+                          Descrição
+                        </p>
+                        <p className="text-neutral-900 dark:text-neutral-200 font-medium">
+                          {despesa.descricao}
+                        </p>
+                      </div>
+                      <div className="flex justify-between items-center pt-2 border-t border-neutral-100 dark:border-neutral-800">
+                        <div>
+                          <p className="text-sm font-medium text-neutral-500">
+                            Valor
+                          </p>
+                          <p className="text-lg font-bold text-neutral-900 dark:text-neutral-200">
+                            {formatCurrencyBRL(despesa.valor)}
+                          </p>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => setDossierExpense(despesa)}
                           >
-                            <FileText className="mr-2 h-4 w-4" /> Dossiê
-                          </DropdownMenuItem>
+                            <FileText className="h-4 w-4" />
+                          </Button>
                           {!isReadOnly && (
                             <>
-                              <DropdownMenuItem
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 onClick={() => handleEdit(despesa)}
                               >
-                                <Edit className="mr-2 h-4 w-4" /> Editar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-destructive"
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-destructive hover:text-destructive"
                                 onClick={() => handleDelete(despesa)}
                               >
-                                <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                              </DropdownMenuItem>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </>
                           )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Descrição</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Valor</TableHead>
+                      <TableHead>
+                        <span className="sr-only">Ações</span>
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {despesas.map((despesa) => (
+                      <TableRow key={despesa.id}>
+                        <TableCell>{formatDisplayDate(despesa.data)}</TableCell>
+                        <TableCell className="font-medium">
+                          {despesa.descricao}
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge
+                            status={despesa.status_execucao as any}
+                          />
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums">
+                          {formatCurrencyBRL(despesa.valor)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem
+                                onClick={() => setDossierExpense(despesa)}
+                              >
+                                <FileText className="mr-2 h-4 w-4" /> Dossiê
+                              </DropdownMenuItem>
+                              {!isReadOnly && (
+                                <>
+                                  <DropdownMenuItem
+                                    onClick={() => handleEdit(despesa)}
+                                  >
+                                    <Edit className="mr-2 h-4 w-4" /> Editar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="text-destructive"
+                                    onClick={() => handleDelete(despesa)}
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
@@ -261,7 +337,7 @@ export const EmendaDespesasTab = forwardRef<
         onOpenChange={(open) => !open && setDossierExpense(null)}
       />
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {selectedExpense ? 'Editar Despesa' : 'Adicionar Despesa'}
@@ -275,7 +351,6 @@ export const EmendaDespesasTab = forwardRef<
               <Label htmlFor="data" className="text-right">
                 Data
               </Label>
-              {/* Using type="date" works well with YYYY-MM-DD strings */}
               <Input
                 id="data"
                 type="date"
@@ -356,7 +431,7 @@ export const EmendaDespesasTab = forwardRef<
         </DialogContent>
       </Dialog>
       <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="sm:max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
             <AlertDialogDescription>

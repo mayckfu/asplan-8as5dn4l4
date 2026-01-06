@@ -137,69 +137,137 @@ export const EmendaRepassesTab = forwardRef<
               Nenhum repasse registrado.
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Fonte</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Valor</TableHead>
-                  {!isReadOnly && (
-                    <TableHead>
-                      <span className="sr-only">Ações</span>
-                    </TableHead>
-                  )}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Mobile Card View */}
+              <div className="block md:hidden space-y-4">
                 {sortedRepasses.map((repasse) => (
-                  <TableRow key={repasse.id}>
-                    <TableCell>
-                      {new Date(repasse.data).toLocaleDateString('pt-BR')}
-                    </TableCell>
-                    <TableCell>{repasse.fonte}</TableCell>
-                    <TableCell>
-                      <Badge className={cn(statusVariant[repasse.status])}>
-                        {repasse.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {formatCurrencyBRL(repasse.valor)}
-                    </TableCell>
-                    {!isReadOnly && (
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <DropdownMenuItem
+                  <Card
+                    key={repasse.id}
+                    className="border border-neutral-200 dark:border-neutral-800"
+                  >
+                    <CardContent className="p-4 space-y-3">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="text-sm font-medium text-neutral-500">
+                            Data
+                          </p>
+                          <p className="text-neutral-900 dark:text-neutral-200">
+                            {new Date(repasse.data).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
+                        <Badge className={cn(statusVariant[repasse.status])}>
+                          {repasse.status}
+                        </Badge>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-neutral-500">
+                          Fonte
+                        </p>
+                        <p className="text-neutral-900 dark:text-neutral-200">
+                          {repasse.fonte}
+                        </p>
+                      </div>
+                      <div className="flex justify-between items-center pt-2 border-t border-neutral-100 dark:border-neutral-800">
+                        <div>
+                          <p className="text-sm font-medium text-neutral-500">
+                            Valor
+                          </p>
+                          <p className="text-lg font-bold text-neutral-900 dark:text-neutral-200">
+                            {formatCurrencyBRL(repasse.valor)}
+                          </p>
+                        </div>
+                        {!isReadOnly && (
+                          <div className="flex gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               onClick={() => handleEdit(repasse)}
                             >
-                              <Edit className="mr-2 h-4 w-4" /> Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-destructive"
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive hover:text-destructive"
                               onClick={() => handleDelete(repasse)}
                             >
-                              <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    )}
-                  </TableRow>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Fonte</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Valor</TableHead>
+                      {!isReadOnly && (
+                        <TableHead>
+                          <span className="sr-only">Ações</span>
+                        </TableHead>
+                      )}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {sortedRepasses.map((repasse) => (
+                      <TableRow key={repasse.id}>
+                        <TableCell>
+                          {new Date(repasse.data).toLocaleDateString('pt-BR')}
+                        </TableCell>
+                        <TableCell>{repasse.fonte}</TableCell>
+                        <TableCell>
+                          <Badge className={cn(statusVariant[repasse.status])}>
+                            {repasse.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums">
+                          {formatCurrencyBRL(repasse.valor)}
+                        </TableCell>
+                        {!isReadOnly && (
+                          <TableCell className="text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent>
+                                <DropdownMenuItem
+                                  onClick={() => handleEdit(repasse)}
+                                >
+                                  <Edit className="mr-2 h-4 w-4" /> Editar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="text-destructive"
+                                  onClick={() => handleDelete(repasse)}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
               {selectedRepasse ? 'Editar Repasse' : 'Adicionar Repasse'}
@@ -217,7 +285,7 @@ export const EmendaRepassesTab = forwardRef<
       </Dialog>
 
       <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="sm:max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
             <AlertDialogDescription>

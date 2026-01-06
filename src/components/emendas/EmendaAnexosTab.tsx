@@ -126,7 +126,7 @@ export const EmendaAnexosTab = ({
                 : 'Nenhum anexo registrado. Clique em "Adicionar Anexo" para começar.'}
             </div>
           ) : (
-            <ul className="space-y-2">
+            <ul className="space-y-3">
               {anexos.map((anexo) => {
                 const Icon = anexoIcons[anexo.tipo] || FileQuestion
                 const displayDate = anexo.data
@@ -136,10 +136,12 @@ export const EmendaAnexosTab = ({
                 return (
                   <li
                     key={anexo.id}
-                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-neutral-50 dark:hover:bg-muted/50 transition-colors"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-lg hover:bg-neutral-50 dark:hover:bg-muted/50 transition-colors gap-3 sm:gap-0"
                   >
                     <div className="flex items-center gap-3 overflow-hidden">
-                      <Icon className="h-6 w-6 text-primary shrink-0" />
+                      <div className="flex-shrink-0 bg-neutral-100 p-2 rounded-lg">
+                        <Icon className="h-6 w-6 text-primary" />
+                      </div>
                       <div className="min-w-0">
                         <a
                           href={anexo.url}
@@ -148,42 +150,43 @@ export const EmendaAnexosTab = ({
                           className="font-medium text-neutral-900 dark:text-neutral-200 hover:underline flex items-center gap-1 truncate"
                         >
                           {anexo.filename}
-                          <ExternalLink className="h-3 w-3 opacity-50" />
+                          <ExternalLink className="h-3 w-3 opacity-50 flex-shrink-0" />
                         </a>
                         <p className="text-xs text-neutral-600 dark:text-neutral-400 truncate">
-                          {anexo.tipo} • {displayDate} • Por {anexo.uploader}
+                          {anexo.tipo} • {displayDate} • {anexo.uploader}
                           {anexo.size && anexo.size > 0 && (
                             <span> • {formatBytes(anexo.size)}</span>
                           )}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex items-center justify-end gap-1 shrink-0 w-full sm:w-auto border-t sm:border-t-0 pt-2 sm:pt-0 border-neutral-100 dark:border-neutral-800">
                       <a
                         href={anexo.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground text-muted-foreground"
                         title="Baixar/Visualizar"
                       >
-                        <Download className="h-4 w-4" />
+                        <Download className="h-5 w-5" />
                       </a>
                       {!isReadOnly && (
                         <>
                           <Button
                             variant="ghost"
                             size="icon"
+                            className="h-10 w-10 text-muted-foreground"
                             onClick={() => handleEdit(anexo)}
                           >
-                            <Edit className="h-4 w-4" />
+                            <Edit className="h-5 w-5" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="text-destructive hover:text-destructive"
+                            className="h-10 w-10 text-destructive hover:text-destructive"
                             onClick={() => handleDeleteClick(anexo)}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-5 w-5" />
                           </Button>
                         </>
                       )}
@@ -197,7 +200,7 @@ export const EmendaAnexosTab = ({
       </Card>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
               {selectedAnexo ? 'Editar Anexo' : 'Adicionar Anexo'}
@@ -218,7 +221,7 @@ export const EmendaAnexosTab = ({
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="sm:max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
             <AlertDialogDescription>

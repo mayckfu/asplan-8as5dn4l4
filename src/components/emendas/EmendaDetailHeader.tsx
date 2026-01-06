@@ -51,21 +51,21 @@ export const EmendaDetailHeader = ({
   return (
     <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
       <CardHeader>
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <CardTitle className="text-2xl text-neutral-900 dark:text-neutral-200">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div className="space-y-1">
+            <CardTitle className="text-xl md:text-2xl text-neutral-900 dark:text-neutral-200">
               {emenda.numero_proposta}
             </CardTitle>
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
               {emenda.autor}
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2 text-xs font-semibold text-neutral-600 dark:text-neutral-400 mr-2">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full md:w-auto">
+            <div className="flex items-center gap-2 text-xs font-semibold text-neutral-600 dark:text-neutral-400 sm:mr-2">
               <Paperclip className="h-4 w-4" />
               {emenda.anexos.length} Anexos
             </div>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1 w-full sm:w-auto">
               <span className="text-xs font-semibold text-neutral-600 dark:text-neutral-400">
                 STATUS OFICIAL
               </span>
@@ -75,7 +75,7 @@ export const EmendaDetailHeader = ({
                   onStatusOficialChange(value as SituacaoOficialEnum)
                 }
               >
-                <SelectTrigger className="h-9 w-[240px] bg-white dark:bg-background">
+                <SelectTrigger className="h-10 md:h-9 w-full sm:w-[240px] bg-white dark:bg-background">
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -87,7 +87,7 @@ export const EmendaDetailHeader = ({
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1 w-full sm:w-auto">
               <span className="text-xs font-semibold text-neutral-600 dark:text-neutral-400">
                 STATUS INTERNO
               </span>
@@ -97,7 +97,7 @@ export const EmendaDetailHeader = ({
                   onStatusInternoChange(value as StatusInternoEnum)
                 }
               >
-                <SelectTrigger className="h-9 w-[320px] bg-white dark:bg-background">
+                <SelectTrigger className="h-10 md:h-9 w-full sm:w-[320px] bg-white dark:bg-background">
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -113,7 +113,7 @@ export const EmendaDetailHeader = ({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-center">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-center">
           {kpis.map((kpi) => (
             <div
               key={kpi.label}
