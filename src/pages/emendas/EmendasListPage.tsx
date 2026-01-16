@@ -26,13 +26,7 @@ import {
   TipoEmenda,
 } from '@/lib/mock-data'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -556,7 +550,7 @@ const EmendasListPage = () => {
       'Nº Proposta': a.numero_proposta,
       'Valor Total': a.valor_total,
       'Situação Oficial': SituacaoOficial[a.situacao],
-      'Status Interno': StatusInterno[a.status_interno],
+      Portaria: a.portaria || '-',
       Pendências: a.pendencias.join('; '),
       'Segundo Parlamentar': a.segundo_parlamentar || '',
       'Valor Segundo Resp.': a.valor_segundo_responsavel || 0,
@@ -724,10 +718,9 @@ const EmendasListPage = () => {
                               Proposta: {amendment.numero_proposta}
                             </div>
                           </div>
-                          <StatusBadge
-                            status={amendment.status_interno}
-                            className="text-[10px] px-2 py-0.5 h-auto whitespace-normal text-center max-w-[100px]"
-                          />
+                          <Badge variant="secondary" className="font-normal">
+                            Portaria: {amendment.portaria || '-'}
+                          </Badge>
                         </div>
                       </CardHeader>
                       <CardContent className="p-4 pt-2">
@@ -783,7 +776,7 @@ const EmendasListPage = () => {
                         Situação Oficial
                       </TableHead>
                       <TableHead className="min-w-[140px] font-medium text-neutral-900 dark:text-neutral-200">
-                        Status Interno
+                        {renderHeader('Portaria', 'portaria')}
                       </TableHead>
                       <TableHead className="w-[120px] text-center font-medium text-neutral-900 dark:text-neutral-200">
                         Ações
@@ -889,11 +882,8 @@ const EmendasListPage = () => {
                                 className="whitespace-normal text-center w-full h-auto py-1 text-xs"
                               />
                             </TableCell>
-                            <TableCell className="align-top">
-                              <StatusBadge
-                                status={amendment.status_interno}
-                                className="whitespace-normal text-center w-full h-auto py-1 text-xs"
-                              />
+                            <TableCell className="align-top font-medium text-center">
+                              {amendment.portaria || '-'}
                             </TableCell>
                             <TableCell className="align-top">
                               <div

@@ -27,45 +27,37 @@ export const EmendaObjetoFinalidade = ({
 
   const isReadOnly = user?.role === 'CONSULTA'
 
-  const handleSave = (e: React.MouseEvent) => {
-    e.stopPropagation()
+  const handleSave = () => {
     onSave(tempDescription)
     setIsEditing(false)
     toast({ title: 'Finalidade atualizada com sucesso!' })
   }
 
-  const handleCancel = (e: React.MouseEvent) => {
-    e.stopPropagation()
+  const handleCancel = () => {
     setTempDescription(description)
     setIsEditing(false)
   }
 
-  const handleEditClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setIsEditing(true)
-  }
-
   return (
     <Accordion type="single" collapsible defaultValue="item-1">
-      <AccordionItem value="item-1" className="border-none">
-        <AccordionTrigger className="text-lg font-semibold text-asplan-primary hover:no-underline group">
-          <div className="flex items-center justify-between w-full pr-4">
-            <span>📄 Objeto e Finalidade</span>
-            {!isEditing && !isReadOnly && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={handleEditClick}
-              >
-                <Edit className="h-4 w-4 mr-2" /> Editar
-              </Button>
-            )}
-          </div>
+      <AccordionItem value="item-1" className="border-none relative">
+        <AccordionTrigger className="text-lg font-semibold text-asplan-primary hover:no-underline group pr-20">
+          <span>📄 Objeto e Finalidade</span>
         </AccordionTrigger>
+        {!isEditing && !isReadOnly && (
+          <div className="absolute right-4 top-3.5 z-10">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsEditing(true)}
+            >
+              <Edit className="h-4 w-4 mr-2" /> Editar
+            </Button>
+          </div>
+        )}
         <AccordionContent className="text-neutral-800 dark:text-neutral-300 leading-relaxed text-justify p-1">
           {isEditing ? (
-            <div className="space-y-4">
+            <div className="space-y-4 pt-2">
               <Textarea
                 value={tempDescription}
                 onChange={(e) => setTempDescription(e.target.value)}

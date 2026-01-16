@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Menu,
@@ -9,7 +10,6 @@ import {
   User as UserIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +29,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { GlobalSearch } from '@/components/GlobalSearch'
 
 export const Header = () => {
   const navigate = useNavigate()
@@ -36,6 +37,7 @@ export const Header = () => {
   const { user, logout } = useAuth()
   const { notifications, unreadCount, markAsRead, markAllAsRead } =
     useNotification()
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
 
   const handleNotificationClick = async (id: string, emendaId: string) => {
     await markAsRead(id)
@@ -78,17 +80,30 @@ export const Header = () => {
       </div>
 
       <div className="flex-1 max-w-xl px-4 hidden md:block">
-        <div className="relative group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-brand-600 transition-colors" />
-          <Input
-            placeholder="Buscar por proposta, emenda ou parlamentar..."
-            className="pl-10 h-10 rounded-full bg-neutral-50 border-transparent focus:bg-white focus:border-brand-300 focus:ring-2 focus:ring-brand-100 transition-all"
-          />
-        </div>
+        <Button
+          variant="outline"
+          className="relative w-full h-10 justify-start text-sm text-muted-foreground bg-neutral-50 border-transparent hover:bg-neutral-100 hover:text-foreground focus-visible:ring-2 focus-visible:ring-brand-100 rounded-full px-4 group"
+          onClick={() => setIsSearchOpen(true)}
+        >
+          <Search className="mr-2 h-4 w-4 shrink-0 opacity-50 group-hover:opacity-100 transition-opacity" />
+          <span className="inline-flex">Buscar...</span>
+          <kbd className="pointer-events-none absolute right-3 top-2.5 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
+            <span className="text-xs">⌘</span>K
+          </kbd>
+        </Button>
       </div>
 
       <div className="flex items-center gap-2 md:gap-3">
-        {/* Mobile Search Trigger could go here if needed, but not specified in requirements */}
+        {/* Mobile Search Trigger */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden text-muted-foreground"
+          onClick={() => setIsSearchOpen(true)}
+        >
+          <Search className="h-5 w-5" />
+          <span className="sr-only">Buscar</span>
+        </Button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -249,6 +264,8 @@ export const Header = () => {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <GlobalSearch open={isSearchOpen} onOpenChange={setIsSearchOpen} />
     </header>
   )
 }
