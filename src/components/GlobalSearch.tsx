@@ -8,7 +8,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
-import { Search, Loader2, FileText, User, Hash } from 'lucide-react'
+import { Search, Loader2, FileText, Hash } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { useDebounce } from '@/hooks/use-debounce'
 import { formatCurrencyBRL } from '@/lib/utils'
@@ -23,6 +23,7 @@ interface SearchResult {
   objeto_emenda: string
   situacao: string
   status_interno: string
+  portaria: string | null
 }
 
 export const GlobalSearch = ({
@@ -67,16 +68,12 @@ export const GlobalSearch = ({
 
     setIsLoading(true)
     try {
-      // Search in multiple fields
+      // Use the RPC function for format-agnostic search
       const { data, error } = await supabase
-        .from('emendas')
+        .rpc('search_emendas_global', { search_term: searchTerm })
         .select(
-          'id, numero_emenda, numero_proposta, parlamentar, autor, valor_total, objeto_emenda, situacao, status_interno',
+          'id, numero_emenda, numero_proposta, parlamentar, autor, valor_total, objeto_emenda, situacao, status_interno, portaria',
         )
-        .or(
-          `parlamentar.ilike.%${searchTerm}%,autor.ilike.%${searchTerm}%,numero_emenda.ilike.%${searchTerm}%,numero_proposta.ilike.%${searchTerm}%,objeto_emenda.ilike.%${searchTerm}%,natureza.ilike.%${searchTerm}%,situacao.ilike.%${searchTerm}%,status_interno.ilike.%${searchTerm}%`,
-        )
-        .limit(10)
 
       if (error) throw error
 
@@ -101,7 +98,7 @@ export const GlobalSearch = ({
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <CommandInput
-        placeholder="Buscar emendas, parlamentares, propostas..."
+        placeholder="Buscar emendas, parlamentares, propostas, portarias..."
         value={query}
         onValueChange={setQuery}
       />
@@ -118,11 +115,11 @@ export const GlobalSearch = ({
           )}
         </CommandEmpty>
         {!isLoading && results.length > 0 && (
-          <CommandGroup heading="Emendas">
+          <CommandGroup heading="Resultados">
             {results.map((result) => (
               <CommandItem
                 key={result.id}
-                value={`${result.parlamentar} ${result.numero_emenda} ${result.numero_proposta} ${result.objeto_emenda}`}
+                value={`${result.parlamentar} ${result.numero_emenda} ${result.numero_proposta} ${result.portaria} ${result.objeto_emenda}`}
                 onSelect={() => handleSelect(result.id)}
                 className="flex items-center gap-3 p-3 cursor-pointer"
               >
@@ -138,15 +135,23 @@ export const GlobalSearch = ({
                       {formatCurrencyBRL(result.valor_total)}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                     <span className="flex items-center gap-1">
                       <Hash className="h-3 w-3" />
                       {result.numero_emenda}
                     </span>
                     <span>•</span>
-                    <span className="truncate max-w-[200px]">
-                      {result.numero_proposta || 'Sem proposta'}
+                    <span className="truncate max-w-[150px]">
+                      Prop: {result.numero_proposta || 'N/A'}
                     </span>
+                    {result.portaria && (
+                      <>
+                        <span>•</span>
+                        <span className="font-medium text-blue-600 dark:text-blue-400">
+                          Port. {result.portaria}
+                        </span>
+                      </>
+                    )}
                   </div>
                   {result.objeto_emenda && (
                     <p className="text-xs text-muted-foreground/80 truncate mt-0.5">

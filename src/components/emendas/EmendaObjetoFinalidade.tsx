@@ -49,7 +49,10 @@ export const EmendaObjetoFinalidade = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsEditing(true)}
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsEditing(true)
+              }}
             >
               <Edit className="h-4 w-4 mr-2" /> Editar
             </Button>

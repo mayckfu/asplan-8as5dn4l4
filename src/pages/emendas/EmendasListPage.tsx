@@ -19,12 +19,7 @@ import {
   ArrowDown,
 } from 'lucide-react'
 import { parse, format } from 'date-fns'
-import {
-  Amendment,
-  SituacaoOficial,
-  StatusInterno,
-  TipoEmenda,
-} from '@/lib/mock-data'
+import { Amendment, SituacaoOficial, TipoEmenda } from '@/lib/mock-data'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -435,6 +430,7 @@ const EmendasListPage = () => {
         // Text Search
         if (searchTerm) {
           const searchLower = searchTerm.toLowerCase()
+          // Basic client-side search approximation (backend logic is in GlobalSearch)
           const matchesEmenda = amendment.numero_emenda
             .toLowerCase()
             .includes(searchLower)
@@ -444,7 +440,15 @@ const EmendasListPage = () => {
           const matchesParlamentar = amendment.parlamentar
             .toLowerCase()
             .includes(searchLower)
-          if (!matchesEmenda && !matchesProposta && !matchesParlamentar)
+          const matchesPortaria =
+            amendment.portaria?.toLowerCase().includes(searchLower) || false
+
+          if (
+            !matchesEmenda &&
+            !matchesProposta &&
+            !matchesParlamentar &&
+            !matchesPortaria
+          )
             return false
         }
 
@@ -775,6 +779,7 @@ const EmendasListPage = () => {
                       <TableHead className="min-w-[140px] font-medium text-neutral-900 dark:text-neutral-200">
                         Situação Oficial
                       </TableHead>
+                      {/* Replaced Status Interno with Portaria - though previously it might have been implied or not present, ensuring it is Portaria now */}
                       <TableHead className="min-w-[140px] font-medium text-neutral-900 dark:text-neutral-200">
                         {renderHeader('Portaria', 'portaria')}
                       </TableHead>
