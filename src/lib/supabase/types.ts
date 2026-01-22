@@ -278,6 +278,7 @@ export type Database = {
           numero_proposta: string | null
           objeto_emenda: string | null
           observacoes: string | null
+          origem: string
           parlamentar: string
           portaria: string | null
           segundo_autor: string | null
@@ -308,6 +309,7 @@ export type Database = {
           numero_proposta?: string | null
           objeto_emenda?: string | null
           observacoes?: string | null
+          origem?: string
           parlamentar: string
           portaria?: string | null
           segundo_autor?: string | null
@@ -338,6 +340,7 @@ export type Database = {
           numero_proposta?: string | null
           objeto_emenda?: string | null
           observacoes?: string | null
+          origem?: string
           parlamentar?: string
           portaria?: string | null
           segundo_autor?: string | null
@@ -644,6 +647,7 @@ export type Database = {
           numero_proposta: string | null
           objeto_emenda: string | null
           observacoes: string | null
+          origem: string
           parlamentar: string
           portaria: string | null
           segundo_autor: string | null

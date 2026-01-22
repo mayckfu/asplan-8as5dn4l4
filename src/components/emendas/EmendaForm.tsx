@@ -21,18 +21,18 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Textarea } from '@/components/ui/textarea'
 import { MoneyInput } from '@/components/ui/money-input'
-import { Separator } from '@/components/ui/separator'
 import {
   Amendment,
   TipoRecurso,
   SituacaoOficial,
   StatusInterno,
   TipoEmenda,
+  TipoEmendaEnum,
   TipoRecursoEnum,
   SituacaoOficialEnum,
   StatusInternoEnum,
-  TipoEmendaEnum,
 } from '@/lib/mock-data'
 import { formatCurrencyBRL } from '@/lib/utils'
 
@@ -53,6 +53,7 @@ const emendaSchema = z.object({
   status_interno: z.string().min(1, 'O status interno é obrigatório.'),
   portaria: z.string().optional().nullable(),
   deliberacao_cie: z.string().optional().nullable(),
+  objeto_emenda: z.string().optional().nullable(),
   anexos_essenciais: z.boolean().default(false),
   // Co-authorship fields
   segundo_autor: z.string().optional().nullable(),
@@ -91,6 +92,7 @@ export const EmendaForm = ({
       status_interno: initialData?.status_interno || 'RASCUNHO',
       portaria: initialData?.portaria || '',
       deliberacao_cie: initialData?.deliberacao_cie || '',
+      objeto_emenda: initialData?.objeto_emenda || '',
       anexos_essenciais: initialData?.anexos_essenciais || false,
       segundo_autor: initialData?.segundo_autor || '',
       segundo_parlamentar: initialData?.segundo_parlamentar || '',
@@ -113,6 +115,7 @@ export const EmendaForm = ({
         status_interno: initialData.status_interno,
         portaria: initialData.portaria || '',
         deliberacao_cie: initialData.deliberacao_cie || '',
+        objeto_emenda: initialData.objeto_emenda || '',
         anexos_essenciais: initialData.anexos_essenciais,
         segundo_autor: initialData.segundo_autor || '',
         segundo_parlamentar: initialData.segundo_parlamentar || '',
@@ -130,6 +133,7 @@ export const EmendaForm = ({
       status_interno: values.status_interno as StatusInternoEnum,
       portaria: values.portaria || null,
       deliberacao_cie: values.deliberacao_cie || null,
+      objeto_emenda: values.objeto_emenda || null,
       segundo_autor: values.segundo_autor || null,
       segundo_parlamentar: values.segundo_parlamentar || null,
       valor_segundo_responsavel: values.valor_segundo_responsavel || 0,
@@ -365,6 +369,26 @@ export const EmendaForm = ({
                 <FormLabel>Nº Proposta</FormLabel>
                 <FormControl>
                   <Input placeholder="Ex: 12345..." {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-4">
+          <FormField
+            control={form.control}
+            name="objeto_emenda"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Objeto da Emenda</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Descreva o objeto..."
+                    {...field}
+                    value={field.value || ''}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

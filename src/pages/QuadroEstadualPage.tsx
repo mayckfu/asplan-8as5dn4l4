@@ -7,15 +7,11 @@ import {
   Search,
   Loader2,
   Wallet,
+  Plus,
+  FileText,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Select,
   SelectContent,
@@ -31,38 +27,55 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import { formatCurrencyBRL } from '@/lib/utils'
 import { supabase } from '@/lib/supabase/client'
 import { Amendment, TipoRecurso, TipoEmenda } from '@/lib/mock-data'
+import { EmendaForm } from '@/components/emendas/EmendaForm'
+import { useToast } from '@/components/ui/use-toast'
+import { Link } from 'react-router-dom'
 
 const QuadroEstadualPage = () => {
+  const { toast } = useToast()
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState<Amendment[]>([])
   const [selectedYear, setSelectedYear] = useState<string>(
     new Date().getFullYear().toString(),
   )
   const [selectedAuthor, setSelectedAuthor] = useState<string>('all')
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
+
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const { data: emendas, error } = await supabase
+        .from('emendas')
+        .select('*')
+        .eq('origem', 'ESTADUAL')
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+
+      setData((emendas as Amendment[]) || [])
+    } catch (error) {
+      console.error('Error fetching state amendments:', error)
+      toast({
+        title: 'Erro ao carregar dados',
+        description: 'Não foi possível carregar o quadro estadual.',
+        variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true)
-      try {
-        const { data: emendas, error } = await supabase
-          .from('emendas')
-          .select('*')
-          .eq('origem', 'ESTADUAL')
-          .order('created_at', { ascending: false })
-
-        if (error) throw error
-
-        setData((emendas as Amendment[]) || [])
-      } catch (error) {
-        console.error('Error fetching state amendments:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchData()
   }, [])
 
@@ -93,9 +106,32 @@ const QuadroEstadualPage = () => {
   }
 
   const handleExportPDF = () => {
-    // Using browser native print-to-pdf functionality which is standard for modern web apps
-    // unless a specific complex PDF generation is required.
     window.print()
+  }
+
+  const handleCreate = async (formData: Partial<Amendment>) => {
+    try {
+      const { error } = await supabase.from('emendas').insert({
+        ...formData,
+        origem: 'ESTADUAL',
+      })
+
+      if (error) throw error
+
+      toast({
+        title: 'Registro criado com sucesso',
+        description: 'A nova emenda estadual foi adicionada.',
+      })
+      setIsCreateOpen(false)
+      fetchData()
+    } catch (error: any) {
+      console.error('Error creating amendment:', error)
+      toast({
+        title: 'Erro ao criar registro',
+        description: error.message || 'Ocorreu um erro ao salvar a emenda.',
+        variant: 'destructive',
+      })
+    }
   }
 
   return (
@@ -110,12 +146,19 @@ const QuadroEstadualPage = () => {
             Quadro Demonstrativo dos Recursos - Emendas Estaduais
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <Button
+            onClick={() => setIsCreateOpen(true)}
+            className="bg-asplan-primary hover:bg-asplan-primary/90"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Registro
+          </Button>
           <Button variant="outline" onClick={handlePrint}>
             <Printer className="mr-2 h-4 w-4" />
             Imprimir
           </Button>
-          <Button onClick={handleExportPDF}>
+          <Button variant="outline" onClick={handleExportPDF}>
             <FileDown className="mr-2 h-4 w-4" />
             Exportar PDF
           </Button>
@@ -186,25 +229,40 @@ const QuadroEstadualPage = () => {
         </Card>
 
         <div className="space-y-6">
-          {/* Summary Card */}
-          <Card className="bg-gradient-to-br from-brand-50 to-white border-brand-100 shadow-sm print:shadow-none print:border-black print:mb-4">
-            <CardContent className="p-6 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-brand-600 uppercase tracking-wide">
-                  Sub Total (Valor Total)
-                </p>
-                <h2 className="text-3xl font-bold text-brand-900 mt-1 tabular-nums">
-                  {formatCurrencyBRL(totalValue)}
-                </h2>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {filteredData.length} registros encontrados
-                </p>
-              </div>
-              <div className="h-12 w-12 rounded-full bg-brand-100 flex items-center justify-center print:hidden">
-                <Wallet className="h-6 w-6 text-brand-600" />
-              </div>
-            </CardContent>
-          </Card>
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="bg-gradient-to-br from-brand-50 to-white border-brand-100 shadow-sm print:shadow-none print:border-black">
+              <CardContent className="p-6 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-brand-600 uppercase tracking-wide">
+                    Valor Total Acumulado
+                  </p>
+                  <h2 className="text-3xl font-bold text-brand-900 mt-1 tabular-nums">
+                    {formatCurrencyBRL(totalValue)}
+                  </h2>
+                </div>
+                <div className="h-12 w-12 rounded-full bg-brand-100 flex items-center justify-center print:hidden">
+                  <Wallet className="h-6 w-6 text-brand-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white border-neutral-200 shadow-sm print:shadow-none print:border-black">
+              <CardContent className="p-6 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-neutral-600 uppercase tracking-wide">
+                    Quantidade de Propostas
+                  </p>
+                  <h2 className="text-3xl font-bold text-neutral-900 mt-1 tabular-nums">
+                    {filteredData.length}
+                  </h2>
+                </div>
+                <div className="h-12 w-12 rounded-full bg-neutral-100 flex items-center justify-center print:hidden">
+                  <FileText className="h-6 w-6 text-neutral-600" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Table */}
           <Card className="print:shadow-none print:border-none">
@@ -263,7 +321,12 @@ const QuadroEstadualPage = () => {
                           className="print:border-b-black"
                         >
                           <TableCell className="font-medium">
-                            {item.autor}
+                            <Link
+                              to={`/emenda/${item.id}`}
+                              className="hover:underline text-primary"
+                            >
+                              {item.autor}
+                            </Link>
                           </TableCell>
                           <TableCell>{item.numero_proposta || '—'}</TableCell>
                           <TableCell>
@@ -296,6 +359,22 @@ const QuadroEstadualPage = () => {
           </Card>
         </div>
       </div>
+
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Novo Registro Estadual</DialogTitle>
+            <DialogDescription>
+              Preencha os dados da nova emenda estadual. O registro será
+              classificado automaticamente como Estadual.
+            </DialogDescription>
+          </DialogHeader>
+          <EmendaForm
+            onSubmit={handleCreate}
+            onCancel={() => setIsCreateOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
