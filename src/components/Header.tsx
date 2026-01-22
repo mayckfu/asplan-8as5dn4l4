@@ -45,7 +45,7 @@ export const Header = () => {
   }
 
   return (
-    <header className="sticky top-0 flex h-16 items-center justify-between gap-4 border-b border-border bg-white px-4 md:px-6 z-30 shadow-sm transition-all">
+    <header className="sticky top-0 flex h-16 items-center justify-between gap-4 border-b border-border bg-white px-4 md:px-6 z-30 shadow-sm transition-all print:hidden">
       <div className="flex items-center gap-3">
         {isMobile ? (
           <Button

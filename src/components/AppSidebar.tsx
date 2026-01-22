@@ -6,7 +6,7 @@ import {
   Settings,
   Building2,
   LogOut,
-  User as UserIcon,
+  Map,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -33,6 +33,12 @@ export const AppSidebar = () => {
     { href: '/', label: 'Dashboard', icon: Home, visible: true },
     { href: '/emendas', label: 'Emendas', icon: FileText, visible: true },
     {
+      href: '/quadro-estadual',
+      label: 'Quadro Estadual',
+      icon: Map,
+      visible: true,
+    },
+    {
       href: '/relatorios',
       label: 'Relatórios',
       icon: BarChart2,
@@ -56,7 +62,7 @@ export const AppSidebar = () => {
     : 'US'
 
   return (
-    <Sidebar className="border-r border-border bg-white shadow-soft z-40">
+    <Sidebar className="border-r border-border bg-white shadow-soft z-40 print:hidden">
       {/* Header with Brand Color */}
       <SidebarHeader className="h-20 flex items-center justify-start border-b border-white/10 bg-brand-700 px-4 shrink-0 transition-all duration-300">
         <div className="flex items-center gap-3 overflow-hidden w-full">

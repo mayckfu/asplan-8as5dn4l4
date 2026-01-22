@@ -70,6 +70,8 @@ export type Amendment = {
   segundo_autor?: string | null
   segundo_parlamentar?: string | null
   valor_segundo_responsavel?: number | null
+  // Origin field
+  origem?: 'FEDERAL' | 'ESTADUAL'
 }
 
 export type Repasse = {

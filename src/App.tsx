@@ -14,6 +14,7 @@ import RelatoriosPage from './pages/RelatoriosPage'
 import AdminPage from './pages/AdminPage'
 import PropostasMacPage from './pages/propostas/PropostasMacPage'
 import PropostasPapPage from './pages/propostas/PropostasPapPage'
+import QuadroEstadualPage from './pages/QuadroEstadualPage'
 import LoginPage from './pages/LoginPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
@@ -43,6 +44,10 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/emendas" element={<EmendasListPage />} />
                 <Route path="/emenda/:id" element={<EmendaDetailPage />} />
+                <Route
+                  path="/quadro-estadual"
+                  element={<QuadroEstadualPage />}
+                />
                 <Route path="/relatorios" element={<RelatoriosPage />} />
                 <Route path="/admin" element={<AdminPage />} />
                 <Route path="/propostas/mac" element={<PropostasMacPage />} />
