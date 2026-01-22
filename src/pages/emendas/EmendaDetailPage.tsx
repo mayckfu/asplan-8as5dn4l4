@@ -30,6 +30,7 @@ import {
 import { EmendaAnexosTab } from '@/components/emendas/EmendaAnexosTab'
 import { EmendaChecklistTab } from '@/components/emendas/EmendaChecklistTab'
 import { EmendaHistoricoTab } from '@/components/emendas/EmendaHistoricoTab'
+import { EmendaQuadroDemonstrativoTab } from '@/components/emendas/EmendaQuadroDemonstrativoTab'
 import { useToast } from '@/components/ui/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase/client'
@@ -899,7 +900,10 @@ const EmendaDetailPage = () => {
         className="w-full"
       >
         <div className="w-full overflow-x-auto pb-2 scrollbar-none">
-          <TabsList className="inline-flex w-full min-w-max md:w-full md:grid md:grid-cols-5 p-1 h-auto">
+          <TabsList className="inline-flex w-full min-w-max md:w-full md:grid md:grid-cols-6 p-1 h-auto">
+            <TabsTrigger value="demonstrativo" className="px-4 py-2">
+              Quadro Demonstrativo
+            </TabsTrigger>
             <TabsTrigger value="repasses" className="px-4 py-2">
               Repasses
             </TabsTrigger>
@@ -917,6 +921,9 @@ const EmendaDetailPage = () => {
             </TabsTrigger>
           </TabsList>
         </div>
+        <TabsContent value="demonstrativo" className="mt-4">
+          <EmendaQuadroDemonstrativoTab emenda={emendaData} />
+        </TabsContent>
         <TabsContent value="repasses" className="mt-4">
           <EmendaRepassesTab
             ref={repassesTabRef}

@@ -626,6 +626,45 @@ export type Database = {
         }
         Returns: undefined
       }
+      search_emendas_global: {
+        Args: { search_term: string }
+        Returns: {
+          anexos_essenciais: boolean | null
+          ano_exercicio: number
+          autor: string
+          created_at: string | null
+          data_repasse: string | null
+          deliberacao_cie: string | null
+          descricao_completa: string | null
+          destino_recurso: string | null
+          id: string
+          meta_operacional: string | null
+          natureza: string | null
+          numero_emenda: string
+          numero_proposta: string | null
+          objeto_emenda: string | null
+          observacoes: string | null
+          parlamentar: string
+          portaria: string | null
+          segundo_autor: string | null
+          segundo_parlamentar: string | null
+          situacao: Database['public']['Enums']['situacao_oficial']
+          situacao_recurso: string | null
+          status_interno: Database['public']['Enums']['status_interno']
+          tipo: Database['public']['Enums']['tipo_emenda_enum']
+          tipo_recurso: Database['public']['Enums']['tipo_recurso']
+          updated_at: string | null
+          valor_repasse: number | null
+          valor_segundo_responsavel: number | null
+          valor_total: number
+        }[]
+        SetofOptions: {
+          from: '*'
+          to: 'emendas'
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
     }
     Enums: {
       situacao_oficial:
