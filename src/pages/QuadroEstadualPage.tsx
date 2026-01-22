@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import {
   Printer,
   FileDown,
@@ -51,7 +51,7 @@ const QuadroEstadualPage = () => {
   const [selectedAuthor, setSelectedAuthor] = useState<string>('all')
   const [isCreateOpen, setIsCreateOpen] = useState(false)
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true)
     try {
       const { data: emendas, error } = await supabase
@@ -63,7 +63,7 @@ const QuadroEstadualPage = () => {
       if (error) throw error
 
       setData((emendas as Amendment[]) || [])
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching state amendments:', error)
       toast({
         title: 'Erro ao carregar dados',
@@ -73,11 +73,11 @@ const QuadroEstadualPage = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [toast])
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [fetchData])
 
   const filteredData = useMemo(() => {
     return data.filter((item) => {
