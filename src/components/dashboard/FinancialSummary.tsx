@@ -22,19 +22,6 @@ export const FinancialSummary = ({
         .reduce((sum, r) => sum + r.valor, 0)
     }
 
-    // Helper to get despesas for a list of amendments (For Equipment)
-    // "Liquidado" includes statuses 'LIQUIDADA' and 'PAGA'
-    const getDespesasValue = (targetAmendments: Amendment[]) => {
-      const amendmentIds = new Set(targetAmendments.map((a) => a.id))
-      return despesas
-        .filter(
-          (d) =>
-            amendmentIds.has(d.emenda_id) &&
-            (d.status_execucao === 'LIQUIDADA' || d.status_execucao === 'PAGA'),
-        )
-        .reduce((sum, d) => sum + d.valor, 0)
-    }
-
     // MAC Data
     const macAmendments = amendments.filter(
       (a) =>
@@ -61,8 +48,11 @@ export const FinancialSummary = ({
       (sum, a) => sum + a.valor_total,
       0,
     )
-    // For equipment, "Liquidado" is based on Despesas
-    const paidEquip = getDespesasValue(equipAmendments)
+
+    // UPDATED LOGIC: Calculate Liquidado for Equipments based on Repasses table.
+    // This ensures synchronization with repasses and accounts for 'PAGA' status
+    // correctly, even if expense details (despesas) are missing.
+    const paidEquip = getRepassesValue(equipAmendments)
     const pendingEquip = totalEquip - paidEquip
 
     return {

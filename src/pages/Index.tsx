@@ -32,7 +32,8 @@ const Index = () => {
   }, [selectedYear])
 
   const fetchData = useCallback(async () => {
-    setIsLoading(true)
+    // Only set loading on initial load to prevent flashing on realtime updates
+    if (amendments.length === 0) setIsLoading(true)
     setError(null)
     try {
       // Filter by Fiscal Year (ano_exercicio)
@@ -136,10 +137,34 @@ const Index = () => {
     } finally {
       setIsLoading(false)
     }
-  }, [selectedYear])
+  }, [selectedYear]) // Keep dependencies minimal
 
+  // Initial fetch and Realtime Subscriptions
   useEffect(() => {
     fetchData()
+
+    const channel = supabase
+      .channel('dashboard-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'emendas' },
+        () => fetchData(),
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'repasses' },
+        () => fetchData(),
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'despesas' },
+        () => fetchData(),
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [fetchData])
 
   const { periodFilteredData } = useMemo(() => {

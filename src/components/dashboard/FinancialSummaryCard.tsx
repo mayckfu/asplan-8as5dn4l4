@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn, formatCurrencyBRL, formatPercent } from '@/lib/utils'
-import { ArrowRight, Wallet, PieChart, Package, Box } from 'lucide-react'
+import { ArrowRight, Wallet, PieChart, Box } from 'lucide-react'
 
 interface FinancialSummaryCardProps {
   title: string
@@ -36,7 +36,7 @@ const SummaryItem = ({
     </p>
     <p
       className={cn(
-        'text-sm font-bold tabular-nums truncate',
+        'text-sm font-bold tabular-nums break-words leading-tight',
         colorClass || 'text-neutral-900',
       )}
       title={value}
@@ -52,7 +52,7 @@ export const FinancialSummaryCard = ({
   paidValue,
   pendingValue,
   type,
-  progressLabel = 'Execução Financeira',
+  progressLabel = 'Execução',
   to,
 }: FinancialSummaryCardProps) => {
   const navigate = useNavigate()
@@ -106,7 +106,7 @@ export const FinancialSummaryCard = ({
         'h-full bg-white shadow-card hover:shadow-float transition-all duration-300 border border-border/60 hover:-translate-y-1 rounded-xl overflow-hidden flex flex-col cursor-pointer group',
       )}
     >
-      <CardHeader className="pb-4 border-b border-neutral-100 bg-neutral-50/30 w-full">
+      <CardHeader className="pb-4 border-b border-neutral-100 bg-neutral-50/30 w-full px-4 sm:px-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 overflow-hidden">
             <div
@@ -118,7 +118,7 @@ export const FinancialSummaryCard = ({
               <theme.Icon className="h-5 w-5" />
             </div>
             <div className="flex flex-col min-w-0">
-              <CardTitle className="text-lg font-bold text-brand-900 truncate pr-2">
+              <CardTitle className="text-base sm:text-lg font-bold text-brand-900 truncate pr-2">
                 {title}
               </CardTitle>
               <span className="text-xs text-muted-foreground font-medium truncate">
@@ -138,7 +138,7 @@ export const FinancialSummaryCard = ({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6 pt-6 flex-1 flex flex-col justify-between w-full">
+      <CardContent className="space-y-6 pt-6 px-4 sm:px-6 flex-1 flex flex-col justify-between w-full">
         <div className="space-y-2">
           <div className="flex justify-between text-xs font-semibold uppercase tracking-wide">
             <span className="text-muted-foreground truncate mr-2">

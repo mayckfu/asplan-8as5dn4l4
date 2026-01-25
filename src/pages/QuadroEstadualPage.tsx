@@ -40,6 +40,7 @@ import { Amendment, TipoRecurso, TipoEmenda } from '@/lib/mock-data'
 import { EmendaForm } from '@/components/emendas/EmendaForm'
 import { useToast } from '@/components/ui/use-toast'
 import { Link } from 'react-router-dom'
+import { StatusBadge } from '@/components/StatusBadge'
 
 const QuadroEstadualPage = () => {
   const { toast } = useToast()
@@ -135,7 +136,7 @@ const QuadroEstadualPage = () => {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in pb-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 print:hidden">
         <div>
@@ -146,21 +147,29 @@ const QuadroEstadualPage = () => {
             Quadro Demonstrativo dos Recursos - Emendas Estaduais
           </p>
         </div>
-        <div className="flex gap-2 items-center">
+        <div className="flex flex-wrap gap-2 items-center w-full md:w-auto">
           <Button
             onClick={() => setIsCreateOpen(true)}
-            className="bg-asplan-primary hover:bg-asplan-primary/90"
+            className="bg-asplan-primary hover:bg-asplan-primary/90 flex-1 md:flex-none"
           >
             <Plus className="mr-2 h-4 w-4" />
             Novo Registro
           </Button>
-          <Button variant="outline" onClick={handlePrint}>
+          <Button
+            variant="outline"
+            onClick={handlePrint}
+            className="flex-1 md:flex-none"
+          >
             <Printer className="mr-2 h-4 w-4" />
             Imprimir
           </Button>
-          <Button variant="outline" onClick={handleExportPDF}>
+          <Button
+            variant="outline"
+            onClick={handleExportPDF}
+            className="flex-1 md:flex-none"
+          >
             <FileDown className="mr-2 h-4 w-4" />
-            Exportar PDF
+            PDF
           </Button>
         </div>
       </div>
@@ -237,11 +246,11 @@ const QuadroEstadualPage = () => {
                   <p className="text-sm font-medium text-brand-600 uppercase tracking-wide">
                     Valor Total Acumulado
                   </p>
-                  <h2 className="text-3xl font-bold text-brand-900 mt-1 tabular-nums">
+                  <h2 className="text-3xl font-bold text-brand-900 mt-1 tabular-nums break-words">
                     {formatCurrencyBRL(totalValue)}
                   </h2>
                 </div>
-                <div className="h-12 w-12 rounded-full bg-brand-100 flex items-center justify-center print:hidden">
+                <div className="h-12 w-12 rounded-full bg-brand-100 flex items-center justify-center print:hidden shrink-0 ml-4">
                   <Wallet className="h-6 w-6 text-brand-600" />
                 </div>
               </CardContent>
@@ -257,15 +266,15 @@ const QuadroEstadualPage = () => {
                     {filteredData.length}
                   </h2>
                 </div>
-                <div className="h-12 w-12 rounded-full bg-neutral-100 flex items-center justify-center print:hidden">
+                <div className="h-12 w-12 rounded-full bg-neutral-100 flex items-center justify-center print:hidden shrink-0 ml-4">
                   <FileText className="h-6 w-6 text-neutral-600" />
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Table */}
-          <Card className="print:shadow-none print:border-none">
+          {/* Table (Desktop) */}
+          <Card className="print:shadow-none print:border-none hidden md:block">
             <CardContent className="p-0">
               <div className="rounded-md border print:border-black">
                 <Table>
@@ -357,6 +366,77 @@ const QuadroEstadualPage = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Cards (Mobile) */}
+          <div className="grid grid-cols-1 gap-4 md:hidden">
+            {loading ? (
+              <div className="flex justify-center items-center p-8">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : filteredData.length === 0 ? (
+              <div className="text-center p-8 text-muted-foreground bg-white rounded-lg border">
+                Nenhum registro encontrado.
+              </div>
+            ) : (
+              filteredData.map((item) => (
+                <Card key={item.id} className="overflow-hidden">
+                  <CardHeader className="p-4 bg-muted/20 border-b">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="space-y-1">
+                        <CardTitle className="text-base font-bold text-brand-900 line-clamp-1">
+                          {item.autor}
+                        </CardTitle>
+                        <div className="text-xs text-muted-foreground">
+                          {TipoRecurso[item.tipo_recurso] || item.tipo_recurso}
+                        </div>
+                      </div>
+                      <StatusBadge
+                        status={item.situacao}
+                        className="shrink-0"
+                      />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-4 space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <span className="text-[10px] uppercase font-bold text-muted-foreground">
+                          Nº Proposta
+                        </span>
+                        <p className="text-sm font-medium">
+                          {item.numero_proposta || '—'}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[10px] uppercase font-bold text-muted-foreground">
+                          Valor Total
+                        </span>
+                        <p className="text-sm font-bold text-brand-700 tabular-nums">
+                          {formatCurrencyBRL(item.valor_total)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground">
+                        Objeto / Descrição
+                      </span>
+                      <p className="text-sm text-neutral-600 line-clamp-2">
+                        {item.objeto_emenda ||
+                          item.meta_operacional ||
+                          item.descricao_completa ||
+                          item.observacoes ||
+                          'Sem descrição'}
+                      </p>
+                    </div>
+
+                    <Button variant="outline" className="w-full" asChild>
+                      <Link to={`/emenda/${item.id}`}>Ver Detalhes</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
         </div>
       </div>
 
