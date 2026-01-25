@@ -19,7 +19,6 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { DateRangePicker } from '@/components/ui/date-range-picker'
 import { MoneyInput } from '@/components/ui/money-input'
-import { parseCurrencyBRL } from '@/lib/utils'
 
 export type FiltersState = {
   autor: string
@@ -101,6 +100,8 @@ export const EmendasFilters = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="MAC">MAC (Todos)</SelectItem>
+            <SelectItem value="PAP">PAP (Todos)</SelectItem>
             {Object.entries(TipoRecurso).map(([key, value]) => (
               <SelectItem key={key} value={key}>
                 {value}

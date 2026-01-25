@@ -1,6 +1,6 @@
 import { useMemo, useEffect, useState, useCallback } from 'react'
 import { parseISO, getMonth, format } from 'date-fns'
-import { Banknote, Loader2, AlertTriangle, FilterX } from 'lucide-react'
+import { Banknote, Loader2, AlertTriangle } from 'lucide-react'
 import { DetailedAmendment, Amendment, Pendencia } from '@/lib/mock-data'
 import { PendingItemsSidebar } from '@/components/dashboard/PendingItemsSidebar'
 import { FinancialSummary } from '@/components/dashboard/FinancialSummary'
@@ -25,9 +25,6 @@ const Index = () => {
     return saved || new Date().getFullYear().toString()
   })
   const [selectedMonth, setSelectedMonth] = useState<string>('all')
-
-  // Resource Type Filter
-  const [selectedResource, setSelectedResource] = useState<string | null>(null)
 
   // Persist year selection
   useEffect(() => {
@@ -145,7 +142,7 @@ const Index = () => {
     fetchData()
   }, [fetchData])
 
-  const { periodFilteredData, fullyFilteredData } = useMemo(() => {
+  const { periodFilteredData } = useMemo(() => {
     const month = selectedMonth === 'all' ? null : parseInt(selectedMonth)
 
     // Helper: Filter by month
@@ -158,8 +155,8 @@ const Index = () => {
       return true
     }
 
-    // 1. Apply Period Filters (Year is already applied by API, this applies Month)
-    // We use this dataset for the FinancialSummary cards so they show totals for all categories
+    // Apply Period Filters (Year is already applied by API, this applies Month)
+    // We use this dataset for all charts and summary cards
     const periodFilteredAmendments = amendments
 
     // For detailed view, we need repasses and despesas filtered by month
@@ -177,64 +174,20 @@ const Index = () => {
       amendments: periodFilteredAmendments,
       repasses: periodFilteredRepasses,
       despesas: periodFilteredDespesas,
-    }
-
-    // 2. Apply Resource Filter
-    // We use this dataset for Charts, KPIs and Tables
-    let resourceFilteredAmendments = [...periodFilteredAmendments]
-
-    if (selectedResource === 'MAC') {
-      resourceFilteredAmendments = resourceFilteredAmendments.filter(
-        (a) =>
-          a.tipo_recurso === 'INCREMENTO_MAC' ||
-          a.tipo_recurso === 'CUSTEIO_MAC',
-      )
-    } else if (selectedResource === 'PAP') {
-      resourceFilteredAmendments = resourceFilteredAmendments.filter(
-        (a) =>
-          a.tipo_recurso === 'INCREMENTO_PAP' ||
-          a.tipo_recurso === 'CUSTEIO_PAP',
-      )
-    } else if (selectedResource === 'EQUIPAMENTO') {
-      resourceFilteredAmendments = resourceFilteredAmendments.filter(
-        (a) => a.tipo_recurso === 'EQUIPAMENTO',
-      )
-    }
-
-    // Now filter repasses/despesas to only include those from the filtered amendments
-    const filteredAmendmentIds = new Set(
-      resourceFilteredAmendments.map((a) => a.id),
-    )
-
-    const fullyFilteredRepasses = periodFilteredRepasses.filter((r) =>
-      filteredAmendmentIds.has(r.emenda_id),
-    )
-    const fullyFilteredDespesas = periodFilteredDespesas.filter((d) =>
-      filteredAmendmentIds.has(d.emenda_id),
-    )
-    const fullyFilteredDetailed = detailedAmendments.filter((a) =>
-      filteredAmendmentIds.has(a.id),
-    )
-
-    const fullData = {
-      amendments: resourceFilteredAmendments,
-      detailedAmendments: fullyFilteredDetailed,
-      repasses: fullyFilteredRepasses,
-      despesas: fullyFilteredDespesas,
+      detailedAmendments: detailedAmendments,
     }
 
     return {
       periodFilteredData: periodData,
-      fullyFilteredData: fullData,
     }
-  }, [amendments, detailedAmendments, selectedMonth, selectedResource])
+  }, [amendments, detailedAmendments, selectedMonth])
 
   const dashboardData = useMemo(() => {
     const {
       amendments: fAmendments,
       repasses: fRepasses,
       despesas: fDespesas,
-    } = fullyFilteredData
+    } = periodFilteredData
 
     const totalValor = fAmendments.reduce((sum, a) => sum + a.valor_total, 0)
     // Only count filtered despesas (by month if selected)
@@ -293,9 +246,9 @@ const Index = () => {
       },
       gastoPorResponsavelData,
       lineChartData,
-      allDetailedAmendments: fullyFilteredData.detailedAmendments,
+      allDetailedAmendments: periodFilteredData.detailedAmendments,
     }
-  }, [fullyFilteredData])
+  }, [periodFilteredData])
 
   if (isLoading) {
     return (
@@ -316,7 +269,7 @@ const Index = () => {
     )
   }
 
-  const periodKey = `${selectedYear}-${selectedMonth}-${selectedResource}`
+  const periodKey = `${selectedYear}-${selectedMonth}`
 
   return (
     <div className="grid lg:grid-cols-[1fr_340px] gap-8 items-start pb-8">
@@ -353,24 +306,11 @@ const Index = () => {
               <Banknote className="h-5 w-5" />
               Resumo Financeiro
             </h2>
-            {selectedResource && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedResource(null)}
-                className="text-muted-foreground hover:text-destructive animate-fade-in"
-              >
-                <FilterX className="h-4 w-4 mr-2" />
-                Limpar Filtro
-              </Button>
-            )}
           </div>
           <FinancialSummary
             amendments={periodFilteredData.amendments}
             repasses={periodFilteredData.repasses}
             despesas={periodFilteredData.despesas}
-            selectedResource={selectedResource}
-            onFilterChange={setSelectedResource}
           />
         </div>
 

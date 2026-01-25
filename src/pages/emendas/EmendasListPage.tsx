@@ -460,11 +460,28 @@ const EmendasListPage = () => {
           return false
         if (filters.tipo !== 'all' && amendment.tipo !== filters.tipo)
           return false
-        if (
-          filters.tipoRecurso !== 'all' &&
-          amendment.tipo_recurso !== filters.tipoRecurso
-        )
-          return false
+
+        // Resource Type Filter with Group logic (MAC, PAP)
+        if (filters.tipoRecurso !== 'all') {
+          if (filters.tipoRecurso === 'MAC') {
+            if (
+              amendment.tipo_recurso !== 'INCREMENTO_MAC' &&
+              amendment.tipo_recurso !== 'CUSTEIO_MAC'
+            ) {
+              return false
+            }
+          } else if (filters.tipoRecurso === 'PAP') {
+            if (
+              amendment.tipo_recurso !== 'INCREMENTO_PAP' &&
+              amendment.tipo_recurso !== 'CUSTEIO_PAP'
+            ) {
+              return false
+            }
+          } else if (amendment.tipo_recurso !== filters.tipoRecurso) {
+            return false
+          }
+        }
+
         if (
           filters.situacaoOficial !== 'all' &&
           amendment.situacao !== filters.situacaoOficial

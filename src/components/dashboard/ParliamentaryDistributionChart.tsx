@@ -150,17 +150,17 @@ export function ParliamentaryDistributionChart({
                   processedData.map((item, index) => (
                     <div
                       key={index}
-                      className="group grid grid-cols-[auto_1fr_auto] items-center gap-3 p-2.5 rounded-lg hover:bg-neutral-50 border border-transparent hover:border-neutral-100 transition-all text-sm"
+                      className="group grid grid-cols-[auto_1fr_100px_50px] items-center gap-3 p-2.5 rounded-lg hover:bg-neutral-50 border border-transparent hover:border-neutral-100 transition-all text-sm"
                     >
                       {/* Color Indicator */}
                       <div
-                        className="h-3 w-3 rounded-full shadow-sm ring-2 ring-white"
+                        className="h-3 w-3 rounded-full shadow-sm ring-2 ring-white shrink-0"
                         style={{
                           backgroundColor: COLORS[index % COLORS.length],
                         }}
                       />
 
-                      {/* Name */}
+                      {/* Name with Bar */}
                       <div className="min-w-0 flex flex-col">
                         <span
                           className="font-medium text-neutral-900 truncate"
@@ -168,7 +168,7 @@ export function ParliamentaryDistributionChart({
                         >
                           {abbreviateName(item.name)}
                         </span>
-                        <div className="h-1 w-full bg-neutral-100 rounded-full mt-1.5 overflow-hidden">
+                        <div className="h-1 w-full bg-neutral-100 rounded-full mt-1 overflow-hidden">
                           <div
                             className="h-full rounded-full transition-all duration-500"
                             style={{
@@ -180,12 +180,16 @@ export function ParliamentaryDistributionChart({
                         </div>
                       </div>
 
-                      {/* Values */}
-                      <div className="flex flex-col items-end shrink-0 ml-2">
-                        <span className="font-bold tabular-nums text-neutral-900">
+                      {/* Currency Value (Fixed Width) */}
+                      <div className="text-right shrink-0">
+                        <span className="font-bold tabular-nums text-neutral-900 block">
                           {formatCurrencyBRL(item.value)}
                         </span>
-                        <span className="text-[10px] font-medium text-muted-foreground bg-neutral-100 px-1.5 py-0.5 rounded-md mt-0.5">
+                      </div>
+
+                      {/* Percentage (Fixed Width) */}
+                      <div className="text-right shrink-0">
+                        <span className="text-[10px] font-medium text-muted-foreground bg-neutral-100 px-1.5 py-0.5 rounded-md">
                           {totalValue > 0
                             ? ((item.value / totalValue) * 100).toFixed(1)
                             : 0}

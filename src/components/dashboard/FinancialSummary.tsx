@@ -6,16 +6,12 @@ interface FinancialSummaryProps {
   amendments: Amendment[]
   repasses: Repasse[]
   despesas: Despesa[]
-  selectedResource?: string | null
-  onFilterChange?: (resource: string | null) => void
 }
 
 export const FinancialSummary = ({
   amendments,
   repasses,
   despesas,
-  selectedResource,
-  onFilterChange,
 }: FinancialSummaryProps) => {
   const summaryData = useMemo(() => {
     // Helper to get repasses for a list of amendments
@@ -27,10 +23,15 @@ export const FinancialSummary = ({
     }
 
     // Helper to get despesas for a list of amendments (For Equipment)
+    // "Liquidado" includes statuses 'LIQUIDADA' and 'PAGA'
     const getDespesasValue = (targetAmendments: Amendment[]) => {
       const amendmentIds = new Set(targetAmendments.map((a) => a.id))
       return despesas
-        .filter((d) => amendmentIds.has(d.emenda_id))
+        .filter(
+          (d) =>
+            amendmentIds.has(d.emenda_id) &&
+            (d.status_execucao === 'LIQUIDADA' || d.status_execucao === 'PAGA'),
+        )
         .reduce((sum, d) => sum + d.valor, 0)
     }
 
@@ -60,7 +61,7 @@ export const FinancialSummary = ({
       (sum, a) => sum + a.valor_total,
       0,
     )
-    // For equipment, "Liquidado" is based on Despesas, not Repasses
+    // For equipment, "Liquidado" is based on Despesas
     const paidEquip = getDespesasValue(equipAmendments)
     const pendingEquip = totalEquip - paidEquip
 
@@ -70,16 +71,6 @@ export const FinancialSummary = ({
       equip: { total: totalEquip, paid: paidEquip, pending: pendingEquip },
     }
   }, [amendments, repasses, despesas])
-
-  const handleCardClick = (type: string) => {
-    if (onFilterChange) {
-      if (selectedResource === type) {
-        onFilterChange(null) // Toggle off
-      } else {
-        onFilterChange(type)
-      }
-    }
-  }
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -93,8 +84,7 @@ export const FinancialSummary = ({
           paidValue={summaryData.mac.paid}
           pendingValue={summaryData.mac.pending}
           type="MAC"
-          isActive={selectedResource === 'MAC'}
-          onClick={() => handleCardClick('MAC')}
+          to="/emendas?tipoRecurso=MAC"
         />
       </div>
       <div
@@ -107,8 +97,7 @@ export const FinancialSummary = ({
           paidValue={summaryData.pap.paid}
           pendingValue={summaryData.pap.pending}
           type="PAP"
-          isActive={selectedResource === 'PAP'}
-          onClick={() => handleCardClick('PAP')}
+          to="/emendas?tipoRecurso=PAP"
         />
       </div>
       <div
@@ -121,8 +110,7 @@ export const FinancialSummary = ({
           paidValue={summaryData.equip.paid}
           pendingValue={summaryData.equip.pending}
           type="EQUIPAMENTO"
-          isActive={selectedResource === 'EQUIPAMENTO'}
-          onClick={() => handleCardClick('EQUIPAMENTO')}
+          to="/emendas?tipoRecurso=EQUIPAMENTO"
         />
       </div>
     </div>
