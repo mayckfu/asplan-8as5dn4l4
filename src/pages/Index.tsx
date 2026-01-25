@@ -31,117 +31,119 @@ const Index = () => {
     localStorage.setItem('asplan_dashboard_year', selectedYear)
   }, [selectedYear])
 
-  const fetchData = useCallback(async () => {
-    // Only set loading on initial load to prevent flashing on realtime updates
-    if (amendments.length === 0) setIsLoading(true)
-    setError(null)
-    try {
-      // Filter by Fiscal Year (ano_exercicio)
-      let query = supabase.from('emendas').select('*')
+  const fetchData = useCallback(
+    async (forceLoading = false) => {
+      if (forceLoading) setIsLoading(true)
+      setError(null)
+      try {
+        // Filter by Fiscal Year (ano_exercicio)
+        let query = supabase.from('emendas').select('*')
 
-      if (selectedYear) {
-        query = query.eq('ano_exercicio', parseInt(selectedYear))
-      }
+        if (selectedYear) {
+          query = query.eq('ano_exercicio', parseInt(selectedYear))
+        }
 
-      const { data: emendasData, error: emendasError } = await query
+        const { data: emendasData, error: emendasError } = await query
 
-      if (emendasError) throw emendasError
+        if (emendasError) throw emendasError
 
-      // Even if no data, we should set state to empty arrays to clear the dashboard
-      if (!emendasData || emendasData.length === 0) {
-        setAmendments([])
-        setDetailedAmendments([])
-        setIsLoading(false)
-        return
-      }
+        // Even if no data, we should set state to empty arrays to clear the dashboard
+        if (!emendasData || emendasData.length === 0) {
+          setAmendments([])
+          setDetailedAmendments([])
+          setIsLoading(false)
+          return
+        }
 
-      const emendaIds = emendasData.map((e) => e.id)
+        const emendaIds = emendasData.map((e) => e.id)
 
-      const { data: repassesData, error: repassesError } = await supabase
-        .from('repasses')
-        .select('*')
-        .in('emenda_id', emendaIds)
+        const { data: repassesData, error: repassesError } = await supabase
+          .from('repasses')
+          .select('*')
+          .in('emenda_id', emendaIds)
 
-      if (repassesError) throw repassesError
+        if (repassesError) throw repassesError
 
-      const { data: despesasData, error: despesasError } = await supabase
-        .from('despesas')
-        .select('*, profiles:registrada_por(name)')
-        .in('emenda_id', emendaIds)
+        const { data: despesasData, error: despesasError } = await supabase
+          .from('despesas')
+          .select('*, profiles:registrada_por(name)')
+          .in('emenda_id', emendaIds)
 
-      if (despesasError) throw despesasError
+        if (despesasError) throw despesasError
 
-      const { data: anexosData, error: anexosError } = await supabase
-        .from('anexos')
-        .select('*, profiles:uploader(name)')
-        .in('emenda_id', emendaIds)
+        const { data: anexosData, error: anexosError } = await supabase
+          .from('anexos')
+          .select('*, profiles:uploader(name)')
+          .in('emenda_id', emendaIds)
 
-      if (anexosError) throw anexosError
+        if (anexosError) throw anexosError
 
-      const { data: pendenciasData, error: pendenciasError } = await supabase
-        .from('pendencias')
-        .select('*')
-        .in('emenda_id', emendaIds)
+        const { data: pendenciasData, error: pendenciasError } = await supabase
+          .from('pendencias')
+          .select('*')
+          .in('emenda_id', emendaIds)
 
-      if (pendenciasError) throw pendenciasError
+        if (pendenciasError) throw pendenciasError
 
-      const detailed: DetailedAmendment[] = (emendasData || []).map(
-        (emenda: any) => {
-          const emendaRepasses = (repassesData || []).filter(
-            (r: any) => r.emenda_id === emenda.id,
-          )
-          const emendaDespesas = (despesasData || []).filter(
-            (d: any) => d.emenda_id === emenda.id,
-          )
-          const emendaAnexos = (anexosData || []).filter(
-            (a: any) => a.emenda_id === emenda.id,
-          )
-          const emendaPendencias = (pendenciasData || [])
-            .filter((p: any) => p.emenda_id === emenda.id)
-            .map((p: any) => ({
-              id: p.id,
-              descricao: p.descricao,
-              dispensada: p.dispensada,
-              resolvida: p.resolvida,
-              justificativa: p.justificativa,
-              targetType: p.target_type,
-              targetId: p.target_id,
+        const detailed: DetailedAmendment[] = (emendasData || []).map(
+          (emenda: any) => {
+            const emendaRepasses = (repassesData || []).filter(
+              (r: any) => r.emenda_id === emenda.id,
+            )
+            const emendaDespesas = (despesasData || []).filter(
+              (d: any) => d.emenda_id === emenda.id,
+            )
+            const emendaAnexos = (anexosData || []).filter(
+              (a: any) => a.emenda_id === emenda.id,
+            )
+            const emendaPendencias = (pendenciasData || [])
+              .filter((p: any) => p.emenda_id === emenda.id)
+              .map((p: any) => ({
+                id: p.id,
+                descricao: p.descricao,
+                dispensada: p.dispensada,
+                resolvida: p.resolvida,
+                justificativa: p.justificativa,
+                targetType: p.target_type,
+                targetId: p.target_id,
+              }))
+
+            const mappedDespesas = emendaDespesas.map((d: any) => ({
+              ...d,
+              registrada_por: d.profiles?.name || 'Desconhecido',
             }))
 
-          const mappedDespesas = emendaDespesas.map((d: any) => ({
-            ...d,
-            registrada_por: d.profiles?.name || 'Desconhecido',
-          }))
+            const mappedAnexos = emendaAnexos.map((a: any) => ({
+              ...a,
+              uploader: a.profiles?.name || 'Desconhecido',
+            }))
 
-          const mappedAnexos = emendaAnexos.map((a: any) => ({
-            ...a,
-            uploader: a.profiles?.name || 'Desconhecido',
-          }))
+            return {
+              ...emenda,
+              repasses: emendaRepasses,
+              despesas: mappedDespesas,
+              anexos: mappedAnexos,
+              historico: [],
+              pendencias: emendaPendencias as Pendencia[],
+            }
+          },
+        )
 
-          return {
-            ...emenda,
-            repasses: emendaRepasses,
-            despesas: mappedDespesas,
-            anexos: mappedAnexos,
-            historico: [],
-            pendencias: emendaPendencias as Pendencia[],
-          }
-        },
-      )
-
-      setAmendments(emendasData as Amendment[])
-      setDetailedAmendments(detailed)
-    } catch (error: any) {
-      console.error('Error fetching dashboard data:', error)
-      setError(error.message || 'Erro ao carregar dados.')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [selectedYear]) // Keep dependencies minimal
+        setAmendments(emendasData as Amendment[])
+        setDetailedAmendments(detailed)
+      } catch (error: any) {
+        console.error('Error fetching dashboard data:', error)
+        setError(error.message || 'Erro ao carregar dados.')
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [selectedYear],
+  )
 
   // Initial fetch and Realtime Subscriptions
   useEffect(() => {
-    fetchData()
+    fetchData(true)
 
     const channel = supabase
       .channel('dashboard-changes')
@@ -289,7 +291,7 @@ const Index = () => {
         <AlertTriangle className="h-12 w-12 text-destructive" />
         <h2 className="text-xl font-semibold">Erro ao carregar dados</h2>
         <p className="text-muted-foreground">{error}</p>
-        <Button onClick={fetchData}>Tentar Novamente</Button>
+        <Button onClick={() => fetchData(true)}>Tentar Novamente</Button>
       </div>
     )
   }
@@ -358,5 +360,3 @@ const Index = () => {
     </div>
   )
 }
-
-export default Index

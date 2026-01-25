@@ -11,6 +11,7 @@ interface FinancialSummaryProps {
 export const FinancialSummary = ({
   amendments,
   repasses,
+  // despesas is available in props but not used in calculation
   despesas,
 }: FinancialSummaryProps) => {
   const summaryData = useMemo(() => {
@@ -60,7 +61,7 @@ export const FinancialSummary = ({
       pap: { total: totalPap, paid: paidPap, pending: pendingPap },
       equip: { total: totalEquip, paid: paidEquip, pending: pendingEquip },
     }
-  }, [amendments, repasses, despesas])
+  }, [amendments, repasses])
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
