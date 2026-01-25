@@ -30,18 +30,17 @@ export function ParliamentaryDistributionChart({
   periodKey,
   className,
 }: ParliamentaryDistributionChartProps) {
-  // Process data to get top 6 active legislators
+  // Process data to get top active legislators
   const processedData = useMemo(() => {
     // Sort by value descending
     const sorted = [...data].sort((a, b) => b.value - a.value)
 
-    // Take top 6
-    const top6 = sorted.slice(0, 6)
+    // Take top 8 for a better list view
+    const top = sorted.slice(0, 8)
 
-    // Ensure we have at least some data, otherwise return empty
-    if (top6.length === 0) return []
+    if (top.length === 0) return []
 
-    return top6
+    return top
   }, [data])
 
   const chartConfig = useMemo(() => {
@@ -73,13 +72,13 @@ export function ParliamentaryDistributionChart({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="grid grid-cols-1 lg:grid-cols-5 h-full">
-          {/* Left Column: Chart (Takes 3 columns on desktop) */}
-          <div className="p-4 lg:col-span-3 flex flex-col items-center justify-center border-b lg:border-b-0 lg:border-r border-neutral-100 min-h-[300px]">
+        <div className="grid grid-cols-1 lg:grid-cols-5 h-full min-h-[350px]">
+          {/* Left Column: Chart (Takes 2 columns on desktop for better balance) */}
+          <div className="p-4 lg:col-span-2 flex flex-col items-center justify-center border-b lg:border-b-0 lg:border-r border-neutral-100 min-h-[300px]">
             <ChartContainer
               key={periodKey}
               config={chartConfig}
-              className="w-full h-[250px] lg:h-[300px] [&_.recharts-pie-label-text]:fill-foreground"
+              className="w-full h-[220px] lg:h-[260px] [&_.recharts-pie-label-text]:fill-foreground"
             >
               {processedData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
@@ -116,8 +115,8 @@ export function ParliamentaryDistributionChart({
                       nameKey="name"
                       cx="50%"
                       cy="50%"
-                      innerRadius={70} // Make it a Donut chart
-                      outerRadius={90}
+                      innerRadius={60}
+                      outerRadius={80}
                       paddingAngle={3}
                       cornerRadius={4}
                     >
@@ -139,38 +138,54 @@ export function ParliamentaryDistributionChart({
             </ChartContainer>
           </div>
 
-          {/* Right Column: Legend List (Takes 2 columns) */}
-          <div className="lg:col-span-2 h-[300px] lg:h-auto flex flex-col bg-neutral-50/50">
-            <div className="p-3 border-b border-neutral-100 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Top {processedData.length} Parlamentares
+          {/* Right Column: Legend List (Takes 3 columns) */}
+          <div className="lg:col-span-3 flex flex-col bg-white">
+            <div className="p-3 border-b border-neutral-100 bg-neutral-50/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider flex justify-between items-center">
+              <span>Top {processedData.length} Parlamentares</span>
+              <span>Total: {formatCurrencyBRL(totalValue)}</span>
             </div>
-            <ScrollArea className="flex-1">
+            <ScrollArea className="flex-1 max-h-[400px]">
               <div className="p-2 space-y-1">
                 {processedData.length > 0 ? (
                   processedData.map((item, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-2 rounded-md hover:bg-white hover:shadow-sm transition-all border border-transparent hover:border-neutral-200 text-xs"
+                      className="group grid grid-cols-[auto_1fr_auto] items-center gap-3 p-2.5 rounded-lg hover:bg-neutral-50 border border-transparent hover:border-neutral-100 transition-all text-sm"
                     >
-                      <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
+                      {/* Color Indicator */}
+                      <div
+                        className="h-3 w-3 rounded-full shadow-sm ring-2 ring-white"
+                        style={{
+                          backgroundColor: COLORS[index % COLORS.length],
+                        }}
+                      />
+
+                      {/* Name */}
+                      <div className="min-w-0 flex flex-col">
                         <span
-                          className="h-2 w-2 shrink-0 rounded-full"
-                          style={{
-                            backgroundColor: COLORS[index % COLORS.length],
-                          }}
-                        />
-                        <span
-                          className="font-medium text-brand-900 truncate"
+                          className="font-medium text-neutral-900 truncate"
                           title={item.name}
                         >
                           {abbreviateName(item.name)}
                         </span>
+                        <div className="h-1 w-full bg-neutral-100 rounded-full mt-1.5 overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${(item.value / processedData[0].value) * 100}%`,
+                              backgroundColor: COLORS[index % COLORS.length],
+                              opacity: 0.7,
+                            }}
+                          />
+                        </div>
                       </div>
+
+                      {/* Values */}
                       <div className="flex flex-col items-end shrink-0 ml-2">
-                        <span className="font-bold tabular-nums text-brand-700">
+                        <span className="font-bold tabular-nums text-neutral-900">
                           {formatCurrencyBRL(item.value)}
                         </span>
-                        <span className="text-[10px] text-muted-foreground">
+                        <span className="text-[10px] font-medium text-muted-foreground bg-neutral-100 px-1.5 py-0.5 rounded-md mt-0.5">
                           {totalValue > 0
                             ? ((item.value / totalValue) * 100).toFixed(1)
                             : 0}
@@ -180,8 +195,8 @@ export function ParliamentaryDistributionChart({
                     </div>
                   ))
                 ) : (
-                  <div className="text-center text-xs text-muted-foreground py-8">
-                    Nenhum dado
+                  <div className="text-center text-xs text-muted-foreground py-12">
+                    Nenhum dado disponível
                   </div>
                 )}
               </div>
