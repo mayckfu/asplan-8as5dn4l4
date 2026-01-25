@@ -1,6 +1,6 @@
 import { useMemo, useEffect, useState, useCallback } from 'react'
 import { parseISO, getMonth, format } from 'date-fns'
-import { Banknote, Loader2, AlertTriangle } from 'lucide-react'
+import { Banknote, Loader2, AlertTriangle, RefreshCw } from 'lucide-react'
 import { DetailedAmendment, Amendment, Pendencia } from '@/lib/mock-data'
 import { PendingItemsSidebar } from '@/components/dashboard/PendingItemsSidebar'
 import { FinancialSummary } from '@/components/dashboard/FinancialSummary'
@@ -10,9 +10,17 @@ import { PeriodSelector } from '@/components/PeriodSelector'
 import { KPICards } from '@/components/KPICards'
 import { MonthlyFinancialChart } from '@/components/dashboard/MonthlyFinancialChart'
 import { ParliamentaryDistributionChart } from '@/components/dashboard/ParliamentaryDistributionChart'
+import { useToast } from '@/components/ui/use-toast'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@/contexts/AuthContext'
 
 const Index = () => {
+  const { toast } = useToast()
+  const navigate = useNavigate()
+  const { session, isAuthenticated } = useAuth()
+
   const [isLoading, setIsLoading] = useState(true)
+  const [isRefetching, setIsRefetching] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [amendments, setAmendments] = useState<Amendment[]>([])
   const [detailedAmendments, setDetailedAmendments] = useState<
@@ -33,8 +41,13 @@ const Index = () => {
 
   const fetchData = useCallback(
     async (forceLoading = false) => {
+      if (!session && !isAuthenticated) return // Protected route handles redirect, but guard here
+
       if (forceLoading) setIsLoading(true)
+      else setIsRefetching(true)
+
       setError(null)
+
       try {
         // Filter by Fiscal Year (ano_exercicio)
         let query = supabase.from('emendas').select('*')
@@ -45,58 +58,66 @@ const Index = () => {
 
         const { data: emendasData, error: emendasError } = await query
 
-        if (emendasError) throw emendasError
+        if (emendasError) {
+          if (
+            emendasError.code === '42501' ||
+            emendasError.message.includes('policy')
+          ) {
+            throw new Error(
+              'Acesso negado. Você não tem permissão para visualizar estes dados.',
+            )
+          }
+          throw emendasError
+        }
 
         // Even if no data, we should set state to empty arrays to clear the dashboard
         if (!emendasData || emendasData.length === 0) {
           setAmendments([])
           setDetailedAmendments([])
           setIsLoading(false)
+          setIsRefetching(false)
           return
         }
 
         const emendaIds = emendasData.map((e) => e.id)
 
-        const { data: repassesData, error: repassesError } = await supabase
-          .from('repasses')
-          .select('*')
-          .in('emenda_id', emendaIds)
+        // Parallel fetching for performance
+        const [repassesRes, despesasRes, anexosRes, pendenciasRes] =
+          await Promise.all([
+            supabase.from('repasses').select('*').in('emenda_id', emendaIds),
+            supabase
+              .from('despesas')
+              .select('*, profiles:registrada_por(name)')
+              .in('emenda_id', emendaIds),
+            supabase
+              .from('anexos')
+              .select('*, profiles:uploader(name)')
+              .in('emenda_id', emendaIds),
+            supabase.from('pendencias').select('*').in('emenda_id', emendaIds),
+          ])
 
-        if (repassesError) throw repassesError
+        if (repassesRes.error) throw repassesRes.error
+        if (despesasRes.error) throw despesasRes.error
+        if (anexosRes.error) throw anexosRes.error
+        if (pendenciasRes.error) throw pendenciasRes.error
 
-        const { data: despesasData, error: despesasError } = await supabase
-          .from('despesas')
-          .select('*, profiles:registrada_por(name)')
-          .in('emenda_id', emendaIds)
-
-        if (despesasError) throw despesasError
-
-        const { data: anexosData, error: anexosError } = await supabase
-          .from('anexos')
-          .select('*, profiles:uploader(name)')
-          .in('emenda_id', emendaIds)
-
-        if (anexosError) throw anexosError
-
-        const { data: pendenciasData, error: pendenciasError } = await supabase
-          .from('pendencias')
-          .select('*')
-          .in('emenda_id', emendaIds)
-
-        if (pendenciasError) throw pendenciasError
+        const repassesData = repassesRes.data || []
+        const despesasData = despesasRes.data || []
+        const anexosData = anexosRes.data || []
+        const pendenciasData = pendenciasRes.data || []
 
         const detailed: DetailedAmendment[] = (emendasData || []).map(
           (emenda: any) => {
-            const emendaRepasses = (repassesData || []).filter(
+            const emendaRepasses = repassesData.filter(
               (r: any) => r.emenda_id === emenda.id,
             )
-            const emendaDespesas = (despesasData || []).filter(
+            const emendaDespesas = despesasData.filter(
               (d: any) => d.emenda_id === emenda.id,
             )
-            const emendaAnexos = (anexosData || []).filter(
+            const emendaAnexos = anexosData.filter(
               (a: any) => a.emenda_id === emenda.id,
             )
-            const emendaPendencias = (pendenciasData || [])
+            const emendaPendencias = pendenciasData
               .filter((p: any) => p.emenda_id === emenda.id)
               .map((p: any) => ({
                 id: p.id,
@@ -134,40 +155,49 @@ const Index = () => {
       } catch (error: any) {
         console.error('Error fetching dashboard data:', error)
         setError(error.message || 'Erro ao carregar dados.')
+        toast({
+          title: 'Erro de conexão',
+          description:
+            error.message || 'Não foi possível carregar os dados do painel.',
+          variant: 'destructive',
+        })
       } finally {
         setIsLoading(false)
+        setIsRefetching(false)
       }
     },
-    [selectedYear],
+    [selectedYear, session, isAuthenticated, toast],
   )
 
   // Initial fetch and Realtime Subscriptions
   useEffect(() => {
-    fetchData(true)
+    if (isAuthenticated) {
+      fetchData(true)
 
-    const channel = supabase
-      .channel('dashboard-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'emendas' },
-        () => fetchData(),
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'repasses' },
-        () => fetchData(),
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'despesas' },
-        () => fetchData(),
-      )
-      .subscribe()
+      const channel = supabase
+        .channel('dashboard-changes')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'emendas' },
+          () => fetchData(),
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'repasses' },
+          () => fetchData(),
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'despesas' },
+          () => fetchData(),
+        )
+        .subscribe()
 
-    return () => {
-      supabase.removeChannel(channel)
+      return () => {
+        supabase.removeChannel(channel)
+      }
     }
-  }, [fetchData])
+  }, [fetchData, isAuthenticated])
 
   const { periodFilteredData } = useMemo(() => {
     const month = selectedMonth === 'all' ? null : parseInt(selectedMonth)
@@ -279,19 +309,31 @@ const Index = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-100px)]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-100px)] gap-4">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <p className="text-muted-foreground animate-pulse">
+          Carregando painel...
+        </p>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-[calc(100vh-100px)] gap-4">
-        <AlertTriangle className="h-12 w-12 text-destructive" />
-        <h2 className="text-xl font-semibold">Erro ao carregar dados</h2>
-        <p className="text-muted-foreground">{error}</p>
-        <Button onClick={() => fetchData(true)}>Tentar Novamente</Button>
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-100px)] gap-6 p-6 text-center">
+        <div className="bg-destructive/10 p-4 rounded-full">
+          <AlertTriangle className="h-12 w-12 text-destructive" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold text-gray-900">
+            Erro ao carregar dados
+          </h2>
+          <p className="text-muted-foreground max-w-md">{error}</p>
+        </div>
+        <Button onClick={() => fetchData(true)} size="lg" className="gap-2">
+          <RefreshCw className="h-4 w-4" />
+          Tentar Novamente
+        </Button>
       </div>
     )
   }
@@ -303,8 +345,11 @@ const Index = () => {
       <div className="space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in">
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight text-asplan-deep">
+            <h1 className="text-3xl font-bold tracking-tight text-asplan-deep flex items-center gap-3">
               Dashboard — Exercício {selectedYear}
+              {isRefetching && (
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              )}
             </h1>
             <p className="text-muted-foreground text-lg">
               Acompanhamento financeiro da Secretaria de Saúde
@@ -360,3 +405,5 @@ const Index = () => {
     </div>
   )
 }
+
+export default Index

@@ -27,7 +27,7 @@ const SummaryItem = ({
 }) => (
   <div
     className={cn(
-      'flex flex-col p-3 rounded-lg bg-neutral-50 border border-neutral-100/50 min-w-0',
+      'flex flex-col p-3 rounded-lg bg-neutral-50 border border-neutral-100/50 min-w-0 overflow-hidden',
       className,
     )}
   >
@@ -36,7 +36,7 @@ const SummaryItem = ({
     </p>
     <p
       className={cn(
-        'text-sm font-bold tabular-nums break-words leading-tight',
+        'text-sm font-bold tabular-nums break-words leading-tight truncate',
         colorClass || 'text-neutral-900',
       )}
       title={value}
@@ -159,7 +159,8 @@ export const FinancialSummaryCard = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {/* Refined Grid for Values - Prevents Clipping */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
           <SummaryItem label="Previsto" value={formatCurrencyBRL(totalValue)} />
           <SummaryItem
             label="Liquidado"

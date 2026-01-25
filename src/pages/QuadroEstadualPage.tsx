@@ -9,6 +9,7 @@ import {
   Wallet,
   Plus,
   FileText,
+  Hash,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -68,7 +69,9 @@ const QuadroEstadualPage = () => {
       console.error('Error fetching state amendments:', error)
       toast({
         title: 'Erro ao carregar dados',
-        description: 'Não foi possível carregar o quadro estadual.',
+        description:
+          'Não foi possível carregar o quadro estadual. ' +
+          (error.message || ''),
         variant: 'destructive',
       })
     } finally {
@@ -367,7 +370,7 @@ const QuadroEstadualPage = () => {
             </CardContent>
           </Card>
 
-          {/* Cards (Mobile) */}
+          {/* Cards (Mobile) - Redesigned for clarity */}
           <div className="grid grid-cols-1 gap-4 md:hidden">
             {loading ? (
               <div className="flex justify-center items-center p-8">
@@ -379,58 +382,66 @@ const QuadroEstadualPage = () => {
               </div>
             ) : (
               filteredData.map((item) => (
-                <Card key={item.id} className="overflow-hidden">
-                  <CardHeader className="p-4 bg-muted/20 border-b">
-                    <div className="flex justify-between items-start gap-2">
-                      <div className="space-y-1">
-                        <CardTitle className="text-base font-bold text-brand-900 line-clamp-1">
-                          {item.autor}
-                        </CardTitle>
-                        <div className="text-xs text-muted-foreground">
-                          {TipoRecurso[item.tipo_recurso] || item.tipo_recurso}
-                        </div>
-                      </div>
-                      <StatusBadge
-                        status={item.situacao}
-                        className="shrink-0"
-                      />
+                <Card
+                  key={item.id}
+                  className="overflow-hidden shadow-sm border-neutral-200"
+                >
+                  <div className="bg-muted/30 p-4 border-b border-neutral-100 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Hash className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-mono text-sm font-semibold text-neutral-700">
+                        {item.numero_emenda}
+                      </span>
                     </div>
-                  </CardHeader>
+                    <StatusBadge status={item.situacao} />
+                  </div>
                   <CardContent className="p-4 space-y-4">
+                    {/* Author Section */}
+                    <div className="flex items-start gap-3">
+                      <div className="h-10 w-10 rounded-full bg-brand-50 flex items-center justify-center shrink-0 border border-brand-100">
+                        <UserIcon className="h-5 w-5 text-brand-600" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold uppercase text-muted-foreground">
+                          Autor
+                        </span>
+                        <span className="font-semibold text-brand-900 text-base leading-tight">
+                          {item.autor}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="h-px bg-neutral-100 w-full my-2" />
+
+                    {/* Proposal & Value Grid */}
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1">
-                        <span className="text-[10px] uppercase font-bold text-muted-foreground">
+                        <span className="text-xs font-bold uppercase text-muted-foreground block">
                           Nº Proposta
                         </span>
-                        <p className="text-sm font-medium">
+                        <span className="text-sm font-medium text-neutral-800 bg-neutral-50 px-2 py-1 rounded inline-block">
                           {item.numero_proposta || '—'}
-                        </p>
+                        </span>
                       </div>
-                      <div className="space-y-1">
-                        <span className="text-[10px] uppercase font-bold text-muted-foreground">
+                      <div className="space-y-1 text-right">
+                        <span className="text-xs font-bold uppercase text-muted-foreground block">
                           Valor Total
                         </span>
-                        <p className="text-sm font-bold text-brand-700 tabular-nums">
+                        <span className="text-lg font-bold text-brand-700 tabular-nums">
                           {formatCurrencyBRL(item.valor_total)}
-                        </p>
+                        </span>
                       </div>
                     </div>
 
-                    <div className="space-y-1">
-                      <span className="text-[10px] uppercase font-bold text-muted-foreground">
-                        Objeto / Descrição
-                      </span>
-                      <p className="text-sm text-neutral-600 line-clamp-2">
-                        {item.objeto_emenda ||
-                          item.meta_operacional ||
-                          item.descricao_completa ||
-                          item.observacoes ||
-                          'Sem descrição'}
-                      </p>
-                    </div>
-
-                    <Button variant="outline" className="w-full" asChild>
-                      <Link to={`/emenda/${item.id}`}>Ver Detalhes</Link>
+                    {/* Footer Action */}
+                    <Button
+                      variant="secondary"
+                      className="w-full mt-2 font-medium bg-neutral-100 hover:bg-neutral-200 text-neutral-700"
+                      asChild
+                    >
+                      <Link to={`/emenda/${item.id}`}>
+                        Ver Detalhes Completos
+                      </Link>
                     </Button>
                   </CardContent>
                 </Card>

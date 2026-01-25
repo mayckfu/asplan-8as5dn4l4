@@ -150,15 +150,22 @@ export function ParliamentaryDistributionChart({
                   processedData.map((item, index) => (
                     <div
                       key={index}
-                      className="group grid grid-cols-[auto_1fr_100px_50px] items-center gap-3 p-2.5 rounded-lg hover:bg-neutral-50 border border-transparent hover:border-neutral-100 transition-all text-sm"
+                      // Use explicit grid columns for perfect alignment
+                      // 1. Color (auto/fixed)
+                      // 2. Name (1fr)
+                      // 3. Value (fixed width right aligned)
+                      // 4. Percentage (fixed width right aligned)
+                      className="group grid grid-cols-[20px_1fr_110px_60px] items-center gap-3 p-2.5 rounded-lg hover:bg-neutral-50 border border-transparent hover:border-neutral-100 transition-all text-sm"
                     >
                       {/* Color Indicator */}
-                      <div
-                        className="h-3 w-3 rounded-full shadow-sm ring-2 ring-white shrink-0"
-                        style={{
-                          backgroundColor: COLORS[index % COLORS.length],
-                        }}
-                      />
+                      <div className="flex items-center justify-center">
+                        <div
+                          className="h-3 w-3 rounded-full shadow-sm ring-2 ring-white shrink-0"
+                          style={{
+                            backgroundColor: COLORS[index % COLORS.length],
+                          }}
+                        />
+                      </div>
 
                       {/* Name with Bar */}
                       <div className="min-w-0 flex flex-col">
@@ -180,16 +187,16 @@ export function ParliamentaryDistributionChart({
                         </div>
                       </div>
 
-                      {/* Currency Value (Fixed Width) */}
+                      {/* Currency Value (Fixed Width & Aligned) */}
                       <div className="text-right shrink-0">
                         <span className="font-bold tabular-nums text-neutral-900 block">
                           {formatCurrencyBRL(item.value)}
                         </span>
                       </div>
 
-                      {/* Percentage (Fixed Width) */}
+                      {/* Percentage (Fixed Width & Aligned) */}
                       <div className="text-right shrink-0">
-                        <span className="text-[10px] font-medium text-muted-foreground bg-neutral-100 px-1.5 py-0.5 rounded-md">
+                        <span className="text-[10px] font-medium text-muted-foreground bg-neutral-100 px-1.5 py-0.5 rounded-md inline-block min-w-[36px] text-center">
                           {totalValue > 0
                             ? ((item.value / totalValue) * 100).toFixed(1)
                             : 0}

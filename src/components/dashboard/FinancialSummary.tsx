@@ -11,7 +11,6 @@ interface FinancialSummaryProps {
 export const FinancialSummary = ({
   amendments,
   repasses,
-  // despesas is available in props but not used in calculation
   despesas,
 }: FinancialSummaryProps) => {
   const summaryData = useMemo(() => {
@@ -19,8 +18,22 @@ export const FinancialSummary = ({
     const getRepassesValue = (targetAmendments: Amendment[]) => {
       const amendmentIds = new Set(targetAmendments.map((a) => a.id))
       return repasses
-        .filter((r) => amendmentIds.has(r.emenda_id))
+        .filter(
+          (r) => amendmentIds.has(r.emenda_id) && r.status === 'REPASSADO',
+        )
         .reduce((sum, r) => sum + r.valor, 0)
+    }
+
+    // Helper to get liquidated expenses for a list of amendments
+    const getLiquidatedExpensesValue = (targetAmendments: Amendment[]) => {
+      const amendmentIds = new Set(targetAmendments.map((a) => a.id))
+      return despesas
+        .filter(
+          (d) =>
+            amendmentIds.has(d.emenda_id) &&
+            (d.status_execucao === 'LIQUIDADA' || d.status_execucao === 'PAGA'),
+        )
+        .reduce((sum, d) => sum + d.valor, 0)
     }
 
     // MAC Data
@@ -50,10 +63,17 @@ export const FinancialSummary = ({
       0,
     )
 
-    // UPDATED LOGIC: Calculate Liquidado for Equipments based on Repasses table.
-    // This ensures synchronization with repasses and accounts for 'PAGA' status
-    // correctly, even if expense details (despesas) are missing.
-    const paidEquip = getRepassesValue(equipAmendments)
+    // UPDATED LOGIC: Calculate Liquidado for Equipments based on Repasses table AND Liquidated/Paid Expenses.
+    // This ensures synchronization with both transfer mechanisms (repasses) and direct execution (despesas).
+    const repassesEquip = getRepassesValue(equipAmendments)
+    const despesasEquip = getLiquidatedExpensesValue(equipAmendments)
+
+    // Sum both values to get the total execution/transfer value.
+    // Assumption: Repasses and Direct Expenses are recorded separately and do not overlap in value for the same item
+    // in a way that causes double counting of the SAME money (e.g. repasse -> despesa).
+    // If they do, this logic prioritizes showing the total financial movement.
+    const paidEquip = repassesEquip + despesasEquip
+
     const pendingEquip = totalEquip - paidEquip
 
     return {
@@ -61,7 +81,7 @@ export const FinancialSummary = ({
       pap: { total: totalPap, paid: paidPap, pending: pendingPap },
       equip: { total: totalEquip, paid: paidEquip, pending: pendingEquip },
     }
-  }, [amendments, repasses])
+  }, [amendments, repasses, despesas])
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -75,7 +95,7 @@ export const FinancialSummary = ({
           paidValue={summaryData.mac.paid}
           pendingValue={summaryData.mac.pending}
           type="MAC"
-          to="/emendas?tipoRecurso=MAC"
+          to="/propostas/mac"
         />
       </div>
       <div
@@ -88,7 +108,7 @@ export const FinancialSummary = ({
           paidValue={summaryData.pap.paid}
           pendingValue={summaryData.pap.pending}
           type="PAP"
-          to="/emendas?tipoRecurso=PAP"
+          to="/propostas/pap"
         />
       </div>
       <div
