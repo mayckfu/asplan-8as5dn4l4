@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import {
   Table,
   TableBody,
@@ -39,6 +40,7 @@ import {
   Receipt,
   Target,
   FileText,
+  CheckCircle2,
 } from 'lucide-react'
 
 interface AuditReportTabProps {
@@ -240,9 +242,9 @@ export const AuditReportTab = ({ data }: AuditReportTabProps) => {
               </TableHeader>
               <TableBody>
                 {data.map((emenda) => (
-                  <>
+                  <Fragment key={emenda.id}>
                     {/* Emenda Row */}
-                    <TableRow key={`emenda-${emenda.id}`} className="bg-muted">
+                    <TableRow className="bg-muted">
                       <TableCell colSpan={5} className="py-4">
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-2 font-bold text-base">
@@ -298,12 +300,9 @@ export const AuditReportTab = ({ data }: AuditReportTabProps) => {
                           actionExecuted > actionPlanned && actionPlanned > 0
 
                         return (
-                          <>
+                          <Fragment key={acao.id}>
                             {/* Action Row */}
-                            <TableRow
-                              key={`acao-${acao.id}`}
-                              className="bg-muted/10"
-                            >
+                            <TableRow className="bg-muted/10">
                               <TableCell className="font-medium pl-6">
                                 <div className="flex items-center gap-2">
                                   <CornerDownRight className="h-4 w-4 text-muted-foreground" />
@@ -356,8 +355,8 @@ export const AuditReportTab = ({ data }: AuditReportTabProps) => {
                                 dest.valor_destinado > 0
 
                               return (
-                                <>
-                                  <TableRow key={`dest-${dest.id}`}>
+                                <Fragment key={dest.id}>
+                                  <TableRow>
                                     <TableCell className="pl-12 py-2">
                                       <div className="flex items-center gap-2 text-sm">
                                         <div className="h-1.5 w-1.5 rounded-full bg-neutral-300" />
@@ -412,7 +411,7 @@ export const AuditReportTab = ({ data }: AuditReportTabProps) => {
                                   {destExpenses.length > 0 &&
                                     destExpenses.map((exp) => (
                                       <TableRow
-                                        key={`exp-${exp.id}`}
+                                        key={exp.id}
                                         className="hover:bg-transparent"
                                       >
                                         <TableCell
@@ -440,14 +439,14 @@ export const AuditReportTab = ({ data }: AuditReportTabProps) => {
                                         <TableCell className="py-1 border-0"></TableCell>
                                       </TableRow>
                                     ))}
-                                </>
+                                </Fragment>
                               )
                             })}
-                          </>
+                          </Fragment>
                         )
                       })
                     )}
-                  </>
+                  </Fragment>
                 ))}
               </TableBody>
             </Table>
