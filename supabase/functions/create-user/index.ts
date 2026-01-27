@@ -9,13 +9,54 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    // Initialize Supabase Admin Client
+    // 1. Initialize Supabase Admin Client
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
-    // Parse request body
+    // 2. Security Check: Verify if requester is ADMIN
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      throw new Error('Missing Authorization header')
+    }
+
+    const token = authHeader.replace('Bearer ', '')
+    const {
+      data: { user: requestUser },
+      error: userError,
+    } = await supabaseAdmin.auth.getUser(token)
+
+    if (userError || !requestUser) {
+      throw new Error('Invalid token')
+    }
+
+    const { data: requestUserProfile, error: profileError } =
+      await supabaseAdmin
+        .from('profiles')
+        .select('role')
+        .eq('id', requestUser.id)
+        .single()
+
+    if (profileError || requestUserProfile?.role !== 'ADMIN') {
+      // Log unauthorized attempt
+      await supabaseAdmin.rpc('log_security_notification', {
+        p_type: 'UNAUTHORIZED_ACCESS',
+        p_message: `Usuário ${requestUser.email} tentou criar um novo usuário sem permissão de ADMIN.`,
+        p_severity: 'WARNING',
+        p_user_id: requestUser.id,
+      })
+
+      return new Response(
+        JSON.stringify({ error: 'Forbidden: Requires ADMIN role' }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 403,
+        },
+      )
+    }
+
+    // 3. Parse request body
     const { email, password, name, role, status, cargo_id, cpf, unidade } =
       await req.json()
 
@@ -23,14 +64,13 @@ Deno.serve(async (req: Request) => {
       throw new Error('Email and password are required')
     }
 
-    // 1. Create the user in Supabase Auth
-    // This triggers the 'on_auth_user_created' trigger in Postgres which creates the initial profile in 'public.profiles'
+    // 4. Create the user in Supabase Auth
     const { data: authData, error: authError } =
       await supabaseAdmin.auth.admin.createUser({
         email,
         password,
-        email_confirm: true, // Auto-confirm email for admin-created users
-        user_metadata: { name }, // Pass name so trigger can use it
+        email_confirm: true,
+        user_metadata: { name },
       })
 
     if (authError) throw authError
@@ -38,9 +78,8 @@ Deno.serve(async (req: Request) => {
 
     const userId = authData.user.id
 
-    // 2. Update the profile with additional details
-    // We use 'update' because the trigger should have already inserted the row.
-    const { data: profileData, error: profileError } = await supabaseAdmin
+    // 5. Update the profile with additional details
+    const { data: profileData, error: updateError } = await supabaseAdmin
       .from('profiles')
       .update({
         role: role || 'CONSULTA',
@@ -48,18 +87,14 @@ Deno.serve(async (req: Request) => {
         cargo_id,
         cpf,
         unidade,
-        // We update name again just in case, or to ensure consistency if metadata wasn't used correctly
         name: name || authData.user.user_metadata.name,
       })
       .eq('id', userId)
       .select()
       .single()
 
-    if (profileError) {
-      // In the rare race condition where trigger hasn't fired yet (unlikely in same region),
-      // or if trigger failed silently, we might get no row updated.
-      // However, for this implementation we rely on the trigger.
-      throw new Error(`Profile update failed: ${profileError.message}`)
+    if (updateError) {
+      throw new Error(`Profile update failed: ${updateError.message}`)
     }
 
     return new Response(JSON.stringify(profileData), {

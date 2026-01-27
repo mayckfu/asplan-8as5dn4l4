@@ -202,7 +202,7 @@ const getTypeColor = (type: string) => {
 const EmendasListPage = () => {
   const navigate = useNavigate()
   const { toast } = useToast()
-  const { user } = useAuth()
+  const { checkPermission } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
   const [presets, setPresets] = useState<Record<string, string>>(() =>
     JSON.parse(localStorage.getItem('emendas_presets') || '{}'),
@@ -222,7 +222,10 @@ const EmendasListPage = () => {
     direction: 'asc',
   })
 
-  const isReadOnly = user?.role === 'CONSULTA'
+  // Security: Check Roles
+  const canEdit = checkPermission(['ADMIN', 'GESTOR', 'ANALISTA'])
+  const canDelete = checkPermission(['ADMIN', 'GESTOR'])
+  const canCreate = checkPermission(['ADMIN', 'GESTOR', 'ANALISTA'])
 
   const fetchAmendments = useCallback(async () => {
     setIsLoading(true)
@@ -634,7 +637,7 @@ const EmendasListPage = () => {
               <FileDown className="h-3.5 w-3.5" />
               <span className="sm:not-sr-only sm:whitespace-nowrap">CSV</span>
             </Button>
-            {!isReadOnly && (
+            {canCreate && (
               <Button
                 size="sm"
                 className="h-9 gap-1 flex-1 sm:flex-none"
@@ -932,48 +935,44 @@ const EmendasListPage = () => {
                                   <TooltipContent>Ver Detalhes</TooltipContent>
                                 </Tooltip>
 
-                                {!isReadOnly && (
-                                  <>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          size="icon"
-                                          variant="ghost"
-                                          className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30"
-                                          onClick={(e) => {
-                                            e.stopPropagation()
-                                            handleEdit(amendment)
-                                          }}
-                                        >
-                                          <Edit className="h-4 w-4" />
-                                          <span className="sr-only">
-                                            Editar
-                                          </span>
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>Editar</TooltipContent>
-                                    </Tooltip>
+                                {canEdit && (
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          handleEdit(amendment)
+                                        }}
+                                      >
+                                        <Edit className="h-4 w-4" />
+                                        <span className="sr-only">Editar</span>
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Editar</TooltipContent>
+                                  </Tooltip>
+                                )}
 
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          size="icon"
-                                          variant="ghost"
-                                          className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
-                                          onClick={(e) => {
-                                            e.stopPropagation()
-                                            handleDelete(amendment)
-                                          }}
-                                        >
-                                          <Trash2 className="h-4 w-4" />
-                                          <span className="sr-only">
-                                            Excluir
-                                          </span>
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>Excluir</TooltipContent>
-                                    </Tooltip>
-                                  </>
+                                {canDelete && (
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          handleDelete(amendment)
+                                        }}
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                        <span className="sr-only">Excluir</span>
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Excluir</TooltipContent>
+                                  </Tooltip>
                                 )}
                               </div>
                             </TableCell>

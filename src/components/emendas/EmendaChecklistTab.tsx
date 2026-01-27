@@ -1,16 +1,33 @@
-import { useState } from 'react'
-import { CheckCircle, ShieldAlert, AlertCircle } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Check, X, AlertTriangle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Pendencia } from '@/lib/mock-data'
-import { cn } from '@/lib/utils'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { DismissPendencyDialog } from './DismissPendencyDialog'
 
 interface EmendaChecklistTabProps {
   pendencias: Pendencia[]
   onPendencyClick: (pendencia: Pendencia) => void
-  onDismiss: (pendencyId: string, justification: string) => void
+  onDismiss: (id: string, justificativa: string) => void
 }
 
 export const EmendaChecklistTab = ({
@@ -18,22 +35,27 @@ export const EmendaChecklistTab = ({
   onPendencyClick,
   onDismiss,
 }: EmendaChecklistTabProps) => {
-  const { user } = useAuth()
+  const { checkPermission } = useAuth()
   const [selectedPendency, setSelectedPendency] = useState<Pendencia | null>(
     null,
   )
-  const [isDismissDialogOpen, setIsDismissDialogOpen] = useState(false)
+  const [justificativa, setJustificativa] = useState('')
+  const [isDismissOpen, setIsDismissOpen] = useState(false)
 
-  const isReadOnly = user?.role === 'CONSULTA'
-  const canDismiss = ['ADMIN', 'GESTOR', 'ANALISTA'].includes(user?.role || '')
+  const canEdit = checkPermission(['ADMIN', 'GESTOR', 'ANALISTA'])
 
-  const pendingItems = pendencias.filter((p) => !p.resolvida && !p.dispensada)
-  const resolvedItems = pendencias.filter((p) => p.resolvida || p.dispensada)
+  const handleOpenDismiss = (pendencia: Pendencia) => {
+    setSelectedPendency(pendencia)
+    setJustificativa('')
+    setIsDismissOpen(true)
+  }
 
-  const handleDismissClick = (e: React.MouseEvent, pendency: Pendencia) => {
-    e.stopPropagation()
-    setSelectedPendency(pendency)
-    setIsDismissDialogOpen(true)
+  const handleConfirmDismiss = () => {
+    if (selectedPendency && justificativa) {
+      onDismiss(selectedPendency.id, justificativa)
+      setIsDismissOpen(false)
+      setSelectedPendency(null)
+    }
   }
 
   return (
@@ -41,120 +63,101 @@ export const EmendaChecklistTab = ({
       <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
         <CardHeader>
           <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
-            Checklist & Pendências
+            Pendências e Requisitos
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-6">
-            {pendingItems.length === 0 && resolvedItems.length > 0 && (
-              <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <CheckCircle className="h-5 w-5 text-success" />
-                <span className="text-green-800 font-medium">
-                  Todas as etapas do checklist foram concluídas!
-                </span>
-              </div>
-            )}
-
-            {pendingItems.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="text-sm font-semibold text-destructive flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4" /> Pendentes
-                </h4>
-                <ul className="space-y-2">
-                  {pendingItems.map((item) => (
-                    <li
-                      key={item.id}
-                      className="flex items-center justify-between p-3 border border-destructive/20 bg-destructive/5 rounded-lg"
-                    >
-                      <div
-                        className="flex items-center gap-3 cursor-pointer flex-grow hover:text-destructive transition-colors"
-                        onClick={() => onPendencyClick(item)}
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Descrição</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Justificativa</TableHead>
+                <TableHead className="text-right">Ação</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pendencias.map((pendencia) => (
+                <TableRow key={pendencia.id}>
+                  <TableCell className="font-medium">
+                    {pendencia.descricao}
+                  </TableCell>
+                  <TableCell>
+                    {pendencia.resolvida ? (
+                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200">
+                        <Check className="h-3 w-3 mr-1" /> Resolvida
+                      </Badge>
+                    ) : pendencia.dispensada ? (
+                      <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-200">
+                        <AlertTriangle className="h-3 w-3 mr-1" /> Dispensada
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-red-100 text-red-800 hover:bg-red-100 border-red-200">
+                        <X className="h-3 w-3 mr-1" /> Pendente
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {pendencia.justificativa || '-'}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onPendencyClick(pendencia)}
                       >
-                        <ShieldAlert className="h-5 w-5 text-destructive" />
-                        <div className="flex flex-col">
-                          <span className="text-neutral-800 dark:text-neutral-200 font-medium">
-                            {item.descricao}
-                          </span>
-                          {item.justificativa && (
-                            <span className="text-xs text-muted-foreground italic">
-                              Justificativa: {item.justificativa}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      {!isReadOnly && canDismiss && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="ml-4"
-                          onClick={(e) => handleDismissClick(e, item)}
-                        >
-                          Dispensar
-                        </Button>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {resolvedItems.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="text-sm font-semibold text-success flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4" /> Concluídos
-                </h4>
-                <ul className="space-y-2">
-                  {resolvedItems.map((item) => (
-                    <li
-                      key={item.id}
-                      className="flex items-center justify-between p-3 border border-success/20 bg-success/5 rounded-lg"
-                    >
-                      <div className="flex items-center gap-3 flex-grow">
-                        <CheckCircle className="h-5 w-5 text-success" />
-                        <div className="flex flex-col">
-                          <span
-                            className={cn(
-                              'text-neutral-600 dark:text-neutral-400',
-                              {
-                                'line-through text-muted-foreground':
-                                  item.dispensada && !item.resolvida,
-                              },
-                            )}
+                        Verificar
+                      </Button>
+                      {!pendencia.resolvida &&
+                        !pendencia.dispensada &&
+                        canEdit && (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleOpenDismiss(pendencia)}
                           >
-                            {item.descricao}
-                          </span>
-                          {item.dispensada && !item.resolvida && (
-                            <div className="flex flex-col">
-                              <span className="text-xs text-muted-foreground italic">
-                                Dispensada
-                              </span>
-                              {item.justificativa && (
-                                <span className="text-xs text-muted-foreground italic">
-                                  Motivo: {item.justificativa}
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
+                            Dispensar
+                          </Button>
+                        )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
-      <DismissPendencyDialog
-        isOpen={isDismissDialogOpen}
-        onOpenChange={setIsDismissDialogOpen}
-        pendency={selectedPendency}
-        onConfirm={(justification) => {
-          if (selectedPendency) {
-            onDismiss(selectedPendency.id, justification)
-          }
-        }}
-      />
+
+      <Dialog open={isDismissOpen} onOpenChange={setIsDismissOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Dispensar Pendência</DialogTitle>
+            <DialogDescription>
+              Informe o motivo para dispensar esta pendência.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="justificativa">Justificativa</Label>
+              <Input
+                id="justificativa"
+                value={justificativa}
+                onChange={(e) => setJustificativa(e.target.value)}
+                placeholder="Ex: Documento entregue fisicamente..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDismissOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleConfirmDismiss} disabled={!justificativa}>
+              Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

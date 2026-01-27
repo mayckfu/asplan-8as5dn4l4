@@ -76,7 +76,7 @@ export const EmendaDespesasTab = forwardRef<
   EmendaDespesasTabProps
 >(({ despesas, onDespesasChange }, ref) => {
   const { toast } = useToast()
-  const { user } = useAuth()
+  const { user, checkPermission } = useAuth()
   const [dossierExpense, setDossierExpense] = useState<Despesa | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
@@ -85,11 +85,12 @@ export const EmendaDespesasTab = forwardRef<
   // Form state
   const [formData, setFormData] = useState<Partial<Despesa>>({})
 
-  const isReadOnly = user?.role === 'CONSULTA'
+  // Security
+  const canEdit = checkPermission(['ADMIN', 'GESTOR', 'ANALISTA'])
 
   useImperativeHandle(ref, () => ({
     triggerAdd: () => {
-      if (isReadOnly) return
+      if (!canEdit) return
       setSelectedExpense(null)
       setFormData({
         data: formatDateToDB(new Date()),
@@ -177,7 +178,7 @@ export const EmendaDespesasTab = forwardRef<
             <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
               Despesas
             </CardTitle>
-            {!isReadOnly && (
+            {canEdit && (
               <Button size="sm" onClick={handleAddNew}>
                 <PlusCircle className="h-4 w-4 mr-2" />
                 Adicionar Despesa
@@ -236,7 +237,7 @@ export const EmendaDespesasTab = forwardRef<
                           >
                             <FileText className="h-4 w-4" />
                           </Button>
-                          {!isReadOnly && (
+                          {canEdit && (
                             <>
                               <Button
                                 variant="ghost"
@@ -304,7 +305,7 @@ export const EmendaDespesasTab = forwardRef<
                               >
                                 <FileText className="mr-2 h-4 w-4" /> Dossiê
                               </DropdownMenuItem>
-                              {!isReadOnly && (
+                              {canEdit && (
                                 <>
                                   <DropdownMenuItem
                                     onClick={() => handleEdit(despesa)}

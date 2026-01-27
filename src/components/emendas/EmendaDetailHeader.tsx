@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface EmendaDetailHeaderProps {
   emenda: DetailedAmendment
@@ -27,6 +28,9 @@ export const EmendaDetailHeader = ({
   onStatusOficialChange,
   onStatusInternoChange,
 }: EmendaDetailHeaderProps) => {
+  const { checkPermission } = useAuth()
+  const canEdit = checkPermission(['ADMIN', 'GESTOR', 'ANALISTA'])
+
   const totalRepassado = emenda.repasses.reduce((acc, r) => acc + r.valor, 0)
   const totalGasto = emenda.despesas.reduce((acc, d) => acc + d.valor, 0)
   const execucaoPercent =
@@ -74,6 +78,7 @@ export const EmendaDetailHeader = ({
                 onValueChange={(value) =>
                   onStatusOficialChange(value as SituacaoOficialEnum)
                 }
+                disabled={!canEdit}
               >
                 <SelectTrigger className="h-10 md:h-9 w-full sm:w-[240px] bg-white dark:bg-background">
                   <SelectValue placeholder="Selecione..." />
@@ -96,6 +101,7 @@ export const EmendaDetailHeader = ({
                 onValueChange={(value) =>
                   onStatusInternoChange(value as StatusInternoEnum)
                 }
+                disabled={!canEdit}
               >
                 <SelectTrigger className="h-10 md:h-9 w-full sm:w-[320px] bg-white dark:bg-background">
                   <SelectValue placeholder="Selecione..." />

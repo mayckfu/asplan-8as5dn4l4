@@ -5,7 +5,7 @@ import {
   useEffect,
   ReactNode,
 } from 'react'
-import { User } from '@/lib/mock-data'
+import { User, UserRole } from '@/lib/mock-data'
 import { useToast } from '@/components/ui/use-toast'
 import { supabase } from '@/lib/supabase/client'
 import { Session } from '@supabase/supabase-js'
@@ -22,6 +22,7 @@ interface AuthContextType {
   isAdmin: boolean
   isLoading: boolean
   session: Session | null
+  checkPermission: (requiredRoles: UserRole[]) => boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -68,8 +69,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) {
         console.error('Error fetching profile:', error.message)
-        // If profile doesn't exist but auth does, we might want to handle it.
-        // For now, we'll just log it.
       }
 
       if (data) {
@@ -101,11 +100,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) {
         throw error
       }
-
-      // Session persistence is handled by Supabase client config (autoRefreshToken, persistSession)
-      // 'rememberMe' logic in Supabase is usually about session duration, but standard login persists by default in local storage.
-      // We can ignore explicit 'rememberMe' handling for basic JWT flow or configure client storage if needed.
-      // For this implementation, we rely on default Supabase behavior which persists session.
 
       toast({
         title: 'Login realizado',
@@ -142,6 +136,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
+  const checkPermission = (requiredRoles: UserRole[]): boolean => {
+    if (!user) return false
+    return requiredRoles.includes(user.role)
+  }
+
   const value = {
     user,
     session,
@@ -150,6 +149,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isAuthenticated: !!session && !!user,
     isAdmin: user?.role === 'ADMIN',
     isLoading,
+    checkPermission,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

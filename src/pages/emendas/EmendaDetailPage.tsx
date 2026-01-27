@@ -69,7 +69,7 @@ const EmendaDetailPage = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const { toast } = useToast()
-  const { user } = useAuth()
+  const { user, checkPermission } = useAuth()
   const [activeTab, setActiveTab] = useState('repasses')
   const [emendaData, setEmendaData] = useState<DetailedAmendment | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -80,7 +80,8 @@ const EmendaDetailPage = () => {
   const despesasTabRef = useRef<EmendaDespesasTabHandles>(null)
   const anexosTabRef = useRef<HTMLDivElement>(null)
 
-  const isReadOnly = user?.role === 'CONSULTA'
+  // Security: Check Permissions
+  const canEdit = checkPermission(['ADMIN', 'GESTOR', 'ANALISTA'])
 
   const syncPendenciesWithDb = useCallback(async (emendaId: string) => {
     const { data: existingPendencies, error: fetchError } = await supabase
@@ -347,7 +348,7 @@ const EmendaDetailPage = () => {
   }
 
   const handleEmendaDataChange = async (updatedEmenda: DetailedAmendment) => {
-    if (isReadOnly || !emendaData) return
+    if (!canEdit || !emendaData) return
 
     try {
       const { error } = await supabase
@@ -387,7 +388,7 @@ const EmendaDetailPage = () => {
   }
 
   const handleFinalidadeChange = (newDescription: string) => {
-    if (isReadOnly || !emendaData) return
+    if (!canEdit || !emendaData) return
     handleEmendaDataChange({
       ...emendaData,
       descricao_completa: newDescription,
@@ -734,7 +735,7 @@ const EmendaDetailPage = () => {
   }
 
   const handleStatusInternoChange = (newStatus: StatusInternoEnum) => {
-    if (isReadOnly || !emendaData) return
+    if (!canEdit || !emendaData) return
     handleEmendaDataChange({
       ...emendaData,
       status_interno: newStatus,
@@ -742,7 +743,7 @@ const EmendaDetailPage = () => {
   }
 
   const handleStatusOficialChange = (newStatus: SituacaoOficialEnum) => {
-    if (isReadOnly || !emendaData) return
+    if (!canEdit || !emendaData) return
     handleEmendaDataChange({
       ...emendaData,
       situacao: newStatus,
@@ -753,7 +754,7 @@ const EmendaDetailPage = () => {
     pendencyId: string,
     justification: string,
   ) => {
-    if (isReadOnly || !emendaData) return
+    if (!canEdit || !emendaData) return
 
     try {
       const { error } = await supabase

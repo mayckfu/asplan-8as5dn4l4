@@ -84,9 +84,23 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
 ${prefix} [data-chart="${id}"] {
 ${colorConfig
   .map(([key, itemConfig]) => {
+    // SECURITY: Validate key to only allow alphanumeric, dashes and underscores
+    if (!/^[a-zA-Z0-9-_]+$/.test(key)) {
+      console.warn(`Invalid chart config key: ${key}`)
+      return null
+    }
+
     const color =
       itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
       itemConfig.color
+
+    // SECURITY: Validate color to prevent CSS injection
+    // Allows hex, rgb, rgba, hsl, hsla, var(), and standard color names
+    if (color && !/^[#a-zA-Z0-9-(),.\s%]+$/.test(color)) {
+      console.warn(`Invalid chart color value: ${color}`)
+      return null
+    }
+
     return color ? `  --color-${key}: ${color};` : null
   })
   .filter(Boolean)
