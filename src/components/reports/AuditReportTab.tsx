@@ -18,6 +18,7 @@ import {
   ChartContainer,
   ChartTooltipContent,
 } from '@/components/ui/chart'
+import { Badge } from '@/components/ui/badge'
 import {
   Bar,
   BarChart,
@@ -31,7 +32,14 @@ import {
   Legend,
 } from 'recharts'
 import { DetailedAmendment } from '@/lib/mock-data'
-import { formatCurrencyBRL } from '@/lib/utils'
+import { formatCurrencyBRL, cn } from '@/lib/utils'
+import {
+  AlertCircle,
+  CornerDownRight,
+  Receipt,
+  Target,
+  FileText,
+} from 'lucide-react'
 
 interface AuditReportTabProps {
   data: DetailedAmendment[]
@@ -103,7 +111,7 @@ export const AuditReportTab = ({ data }: AuditReportTabProps) => {
   return (
     <div className="space-y-8">
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+        <Card className="border border-neutral-200 dark:border-neutral-800">
           <CardHeader>
             <CardTitle>Resumo por Destinação (Planejado)</CardTitle>
             <CardDescription>
@@ -144,7 +152,7 @@ export const AuditReportTab = ({ data }: AuditReportTabProps) => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border border-neutral-200 dark:border-neutral-800">
           <CardHeader>
             <CardTitle>Execução por Ação (Top 10)</CardTitle>
             <CardDescription>
@@ -204,103 +212,243 @@ export const AuditReportTab = ({ data }: AuditReportTabProps) => {
         </Card>
       </div>
 
-      <Card>
+      <Card className="border border-neutral-200 dark:border-neutral-800">
         <CardHeader>
           <CardTitle>Visão de Auditoria Detalhada</CardTitle>
           <CardDescription>
-            Hierarquia completa: Emenda {'>'} Ação {'>'} Destinação {'>'}{' '}
+            Acompanhamento hierárquico: Emenda &gt; Ação &gt; Destinação &gt;
             Despesas
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
+          <div className="rounded-md border bg-white dark:bg-neutral-950 overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[30%]">Emenda / Ação</TableHead>
-                  <TableHead className="w-[20%]">Destinação</TableHead>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="w-[35%]">
+                    Hierarquia / Detalhe
+                  </TableHead>
+                  <TableHead className="w-[20%]">Natureza / Tipo</TableHead>
                   <TableHead className="w-[15%] text-right">
-                    Valor Planejado
+                    Planejado (R$)
                   </TableHead>
                   <TableHead className="w-[15%] text-right">
-                    Valor Executado
+                    Executado (R$)
                   </TableHead>
-                  <TableHead className="w-[20%]">Detalhe Despesas</TableHead>
+                  <TableHead className="w-[15%]">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.map((emenda) =>
-                  emenda.acoes.map((acao) =>
-                    acao.destinacoes.map((dest, destIndex) => {
-                      const expenses = emenda.despesas.filter(
-                        (d) => d.destinacao_id === dest.id,
-                      )
-                      const executedVal = expenses.reduce(
-                        (acc, d) => acc + d.valor,
-                        0,
-                      )
-                      return (
-                        <TableRow key={dest.id}>
-                          <TableCell className="align-top">
-                            {destIndex === 0 && (
-                              <div>
-                                <div className="font-bold">
-                                  {emenda.numero_emenda} - {emenda.autor}
-                                </div>
-                                <div className="pl-4 text-sm text-muted-foreground">
-                                  ↳ {acao.nome_acao}
-                                </div>
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell className="align-top">
-                            <div className="text-sm font-medium">
-                              {dest.tipo_destinacao}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {dest.portaria_vinculada}
-                            </div>
-                          </TableCell>
-                          <TableCell className="align-top text-right">
-                            {formatCurrencyBRL(dest.valor_destinado)}
-                          </TableCell>
-                          <TableCell className="align-top text-right">
-                            <span
-                              className={
-                                executedVal > dest.valor_destinado
-                                  ? 'text-red-500 font-bold'
-                                  : ''
-                              }
-                            >
-                              {formatCurrencyBRL(executedVal)}
+                {data.map((emenda) => (
+                  <>
+                    {/* Emenda Row */}
+                    <TableRow key={`emenda-${emenda.id}`} className="bg-muted">
+                      <TableCell colSpan={5} className="py-4">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2 font-bold text-base">
+                            <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-sm border border-primary/20">
+                              {emenda.numero_emenda}
                             </span>
-                          </TableCell>
-                          <TableCell className="align-top">
-                            {expenses.length > 0 ? (
-                              <div className="space-y-1">
-                                {expenses.map((exp) => (
-                                  <div
-                                    key={exp.id}
-                                    className="text-xs border-l-2 pl-2 border-muted"
+                            <span>{emenda.autor}</span>
+                          </div>
+                          {emenda.objeto_emenda && (
+                            <div className="flex items-start gap-2 text-sm text-muted-foreground pl-1">
+                              <FileText className="h-4 w-4 mt-0.5 shrink-0" />
+                              <span className="font-medium">Objeto:</span>
+                              {emenda.objeto_emenda}
+                            </div>
+                          )}
+                          {emenda.meta_operacional && (
+                            <div className="flex items-start gap-2 text-sm text-muted-foreground pl-1">
+                              <Target className="h-4 w-4 mt-0.5 shrink-0" />
+                              <span className="font-medium">Meta:</span>
+                              {emenda.meta_operacional}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+
+                    {/* Actions Loop */}
+                    {emenda.acoes.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-4">
+                          <span className="text-muted-foreground italic">
+                            Nenhuma ação planejada.
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      emenda.acoes.map((acao) => {
+                        const actionPlanned = acao.destinacoes.reduce(
+                          (sum, d) => sum + d.valor_destinado,
+                          0,
+                        )
+                        const destinationIds = acao.destinacoes.map((d) => d.id)
+                        const actionExpenses = emenda.despesas.filter(
+                          (d) =>
+                            d.destinacao_id &&
+                            destinationIds.includes(d.destinacao_id),
+                        )
+                        const actionExecuted = actionExpenses.reduce(
+                          (sum, d) => sum + d.valor,
+                          0,
+                        )
+                        const isActionOverBudget =
+                          actionExecuted > actionPlanned && actionPlanned > 0
+
+                        return (
+                          <>
+                            {/* Action Row */}
+                            <TableRow
+                              key={`acao-${acao.id}`}
+                              className="bg-muted/10"
+                            >
+                              <TableCell className="font-medium pl-6">
+                                <div className="flex items-center gap-2">
+                                  <CornerDownRight className="h-4 w-4 text-muted-foreground" />
+                                  <span className="text-primary font-semibold">
+                                    Ação:
+                                  </span>
+                                  {acao.nome_acao}
+                                </div>
+                                <div className="pl-6 text-xs text-muted-foreground">
+                                  Área: {acao.area}
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-muted-foreground italic">
+                                Total da Ação
+                              </TableCell>
+                              <TableCell className="text-right font-medium">
+                                {formatCurrencyBRL(actionPlanned)}
+                              </TableCell>
+                              <TableCell
+                                className={cn(
+                                  'text-right font-medium',
+                                  isActionOverBudget ? 'text-red-600' : '',
+                                )}
+                              >
+                                {formatCurrencyBRL(actionExecuted)}
+                              </TableCell>
+                              <TableCell>
+                                {isActionOverBudget && (
+                                  <Badge
+                                    variant="destructive"
+                                    className="text-[10px]"
                                   >
-                                    <div>{formatCurrencyBRL(exp.valor)}</div>
-                                    <div className="text-muted-foreground">
-                                      {exp.fornecedor_nome}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <span className="text-xs text-muted-foreground">
-                                -
-                              </span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      )
-                    }),
-                  ),
-                )}
+                                    Acima do Planejado
+                                  </Badge>
+                                )}
+                              </TableCell>
+                            </TableRow>
+
+                            {/* Destinations Loop */}
+                            {acao.destinacoes.map((dest) => {
+                              const destExpenses = emenda.despesas.filter(
+                                (d) => d.destinacao_id === dest.id,
+                              )
+                              const destExecuted = destExpenses.reduce(
+                                (sum, d) => sum + d.valor,
+                                0,
+                              )
+                              const isDestOverBudget =
+                                destExecuted > dest.valor_destinado &&
+                                dest.valor_destinado > 0
+
+                              return (
+                                <>
+                                  <TableRow key={`dest-${dest.id}`}>
+                                    <TableCell className="pl-12 py-2">
+                                      <div className="flex items-center gap-2 text-sm">
+                                        <div className="h-1.5 w-1.5 rounded-full bg-neutral-300" />
+                                        Destinação Planejada
+                                      </div>
+                                    </TableCell>
+                                    <TableCell className="py-2">
+                                      <div className="flex flex-col">
+                                        <span className="font-medium text-sm">
+                                          {dest.tipo_destinacao}
+                                        </span>
+                                        {dest.subtipo && (
+                                          <span className="text-xs text-muted-foreground">
+                                            {dest.subtipo}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </TableCell>
+                                    <TableCell className="text-right py-2">
+                                      {formatCurrencyBRL(dest.valor_destinado)}
+                                    </TableCell>
+                                    <TableCell
+                                      className={cn(
+                                        'text-right py-2',
+                                        isDestOverBudget
+                                          ? 'text-red-600 font-bold'
+                                          : '',
+                                      )}
+                                    >
+                                      {formatCurrencyBRL(destExecuted)}
+                                    </TableCell>
+                                    <TableCell className="py-2">
+                                      {isDestOverBudget ? (
+                                        <div className="flex items-center gap-1 text-red-600 text-xs font-medium">
+                                          <AlertCircle className="h-3 w-3" />
+                                          Excedido
+                                        </div>
+                                      ) : destExecuted > 0 ? (
+                                        <div className="flex items-center gap-1 text-emerald-600 text-xs font-medium">
+                                          <CheckCircle2 className="h-3 w-3" />
+                                          Executando
+                                        </div>
+                                      ) : (
+                                        <span className="text-xs text-muted-foreground">
+                                          Pendente
+                                        </span>
+                                      )}
+                                    </TableCell>
+                                  </TableRow>
+
+                                  {/* Expenses Loop */}
+                                  {destExpenses.length > 0 &&
+                                    destExpenses.map((exp) => (
+                                      <TableRow
+                                        key={`exp-${exp.id}`}
+                                        className="hover:bg-transparent"
+                                      >
+                                        <TableCell
+                                          colSpan={2}
+                                          className="pl-16 py-1 border-0"
+                                        >
+                                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                            <Receipt className="h-3 w-3" />
+                                            <span className="italic">
+                                              {exp.descricao}
+                                            </span>
+                                            <span className="text-[10px] bg-neutral-100 dark:bg-neutral-800 px-1 rounded border">
+                                              {new Date(
+                                                exp.data,
+                                              ).toLocaleDateString('pt-BR')}
+                                            </span>
+                                          </div>
+                                        </TableCell>
+                                        <TableCell className="text-right py-1 border-0 text-xs text-muted-foreground">
+                                          -
+                                        </TableCell>
+                                        <TableCell className="text-right py-1 border-0 text-xs text-muted-foreground">
+                                          {formatCurrencyBRL(exp.valor)}
+                                        </TableCell>
+                                        <TableCell className="py-1 border-0"></TableCell>
+                                      </TableRow>
+                                    ))}
+                                </>
+                              )
+                            })}
+                          </>
+                        )
+                      })
+                    )}
+                  </>
+                ))}
               </TableBody>
             </Table>
           </div>
