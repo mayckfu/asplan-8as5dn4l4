@@ -24,7 +24,7 @@ const App = () => (
   <BrowserRouter
     future={{ v7_startTransition: false, v7_relativeSplatPath: false }}
   >
-    <ThemeProvider defaultTheme="system" storageKey="theme">
+    <ThemeProvider defaultTheme="light" storageKey="theme">
       <TooltipProvider>
         <AuthProvider>
           <NotificationProvider>
