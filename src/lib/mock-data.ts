@@ -98,6 +98,7 @@ export type Despesa = {
   fornecedor_nome: string
   status_execucao: 'PLANEJADA' | 'EMPENHADA' | 'LIQUIDADA' | 'PAGA'
   demanda?: string
+  destinacao_id?: string | null
 }
 
 export type Anexo = {
@@ -138,6 +139,30 @@ export type Pendencia = {
   targetId: string
 }
 
+export type Destination = {
+  id: string
+  acao_id: string
+  tipo_destinacao: string
+  subtipo?: string
+  valor_destinado: number
+  portaria_vinculada?: string
+  observacao_tecnica?: string
+}
+
+export type Action = {
+  id: string
+  emenda_id: string
+  nome_acao: string
+  area: string
+  complexidade?: string
+  publico_alvo?: string
+  descricao_oficial?: string
+}
+
+export type ActionWithDestinations = Action & {
+  destinacoes: Destination[]
+}
+
 export type DetailedAmendment = Amendment & {
   descricao_completa: string
   repasses: Repasse[]
@@ -145,6 +170,7 @@ export type DetailedAmendment = Amendment & {
   anexos: Anexo[]
   historico: Historico[]
   pendencias: Pendencia[]
+  acoes: ActionWithDestinations[]
   natureza?: string
   objeto_emenda?: string
   meta_operacional?: string

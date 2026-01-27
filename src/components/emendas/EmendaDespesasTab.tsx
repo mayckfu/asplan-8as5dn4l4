@@ -40,7 +40,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Despesa } from '@/lib/mock-data'
+import { Despesa, Destination } from '@/lib/mock-data'
 import { StatusBadge } from '@/components/StatusBadge'
 import { ExpenseDossierDrawer } from './ExpenseDossierDrawer'
 import { formatCurrencyBRL } from '@/lib/utils'
@@ -54,16 +54,15 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectGroup,
+  SelectLabel,
 } from '@/components/ui/select'
 import { useAuth } from '@/contexts/AuthContext'
-import {
-  formatDisplayDate,
-  formatDateToDB,
-  parseDateFromDB,
-} from '@/lib/date-utils'
+import { formatDisplayDate, formatDateToDB } from '@/lib/date-utils'
 
 interface EmendaDespesasTabProps {
   despesas: Despesa[]
+  destinations?: { actionName: string; items: Destination[] }[]
   onDespesasChange: (despesas: Despesa[]) => void
 }
 
@@ -74,7 +73,7 @@ export interface EmendaDespesasTabHandles {
 export const EmendaDespesasTab = forwardRef<
   EmendaDespesasTabHandles,
   EmendaDespesasTabProps
->(({ despesas, onDespesasChange }, ref) => {
+>(({ despesas, destinations = [], onDespesasChange }, ref) => {
   const { toast } = useToast()
   const { user, checkPermission } = useAuth()
   const [dossierExpense, setDossierExpense] = useState<Despesa | null>(null)
@@ -156,6 +155,7 @@ export const EmendaDespesasTab = forwardRef<
       registrada_por:
         selectedExpense?.registrada_por || user?.name || 'Usuário',
       demanda: formData.demanda,
+      destinacao_id: formData.destinacao_id,
     }
 
     if (selectedExpense) {
@@ -168,6 +168,15 @@ export const EmendaDespesasTab = forwardRef<
       toast({ title: 'Despesa adicionada com sucesso!' })
     }
     setIsFormOpen(false)
+  }
+
+  const getDestinationName = (id?: string | null) => {
+    if (!id) return '-'
+    for (const group of destinations) {
+      const found = group.items.find((d) => d.id === id)
+      if (found) return `${found.tipo_destinacao} (${group.actionName})`
+    }
+    return '-'
   }
 
   return (
@@ -192,151 +201,82 @@ export const EmendaDespesasTab = forwardRef<
               Nenhuma despesa registrada.
             </div>
           ) : (
-            <>
-              {/* Mobile Card View */}
-              <div className="block md:hidden space-y-4">
-                {despesas.map((despesa) => (
-                  <Card
-                    key={despesa.id}
-                    className="border border-neutral-200 dark:border-neutral-800"
-                  >
-                    <CardContent className="p-4 space-y-3">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="text-sm font-medium text-neutral-500">
-                            Data
-                          </p>
-                          <p className="text-neutral-900 dark:text-neutral-200">
-                            {formatDisplayDate(despesa.data)}
-                          </p>
-                        </div>
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead>Destinação</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Valor</TableHead>
+                    <TableHead>
+                      <span className="sr-only">Ações</span>
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {despesas.map((despesa) => (
+                    <TableRow key={despesa.id}>
+                      <TableCell>{formatDisplayDate(despesa.data)}</TableCell>
+                      <TableCell className="font-medium">
+                        {despesa.descricao}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {getDestinationName(despesa.destinacao_id)}
+                      </TableCell>
+                      <TableCell>
                         <StatusBadge status={despesa.status_execucao as any} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-neutral-500">
-                          Descrição
-                        </p>
-                        <p className="text-neutral-900 dark:text-neutral-200 font-medium">
-                          {despesa.descricao}
-                        </p>
-                      </div>
-                      <div className="flex justify-between items-center pt-2 border-t border-neutral-100 dark:border-neutral-800">
-                        <div>
-                          <p className="text-sm font-medium text-neutral-500">
-                            Valor
-                          </p>
-                          <p className="text-lg font-bold text-neutral-900 dark:text-neutral-200">
-                            {formatCurrencyBRL(despesa.valor)}
-                          </p>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setDossierExpense(despesa)}
-                          >
-                            <FileText className="h-4 w-4" />
-                          </Button>
-                          {canEdit && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleEdit(despesa)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-destructive hover:text-destructive"
-                                onClick={() => handleDelete(despesa)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              {/* Desktop Table View */}
-              <div className="hidden md:block">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Descrição</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Valor</TableHead>
-                      <TableHead>
-                        <span className="sr-only">Ações</span>
-                      </TableHead>
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {formatCurrencyBRL(despesa.valor)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem
+                              onClick={() => setDossierExpense(despesa)}
+                            >
+                              <FileText className="mr-2 h-4 w-4" /> Dossiê
+                            </DropdownMenuItem>
+                            {canEdit && (
+                              <>
+                                <DropdownMenuItem
+                                  onClick={() => handleEdit(despesa)}
+                                >
+                                  <Edit className="mr-2 h-4 w-4" /> Editar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="text-destructive"
+                                  onClick={() => handleDelete(despesa)}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {despesas.map((despesa) => (
-                      <TableRow key={despesa.id}>
-                        <TableCell>{formatDisplayDate(despesa.data)}</TableCell>
-                        <TableCell className="font-medium">
-                          {despesa.descricao}
-                        </TableCell>
-                        <TableCell>
-                          <StatusBadge
-                            status={despesa.status_execucao as any}
-                          />
-                        </TableCell>
-                        <TableCell className="text-right tabular-nums">
-                          {formatCurrencyBRL(despesa.valor)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                              <DropdownMenuItem
-                                onClick={() => setDossierExpense(despesa)}
-                              >
-                                <FileText className="mr-2 h-4 w-4" /> Dossiê
-                              </DropdownMenuItem>
-                              {canEdit && (
-                                <>
-                                  <DropdownMenuItem
-                                    onClick={() => handleEdit(despesa)}
-                                  >
-                                    <Edit className="mr-2 h-4 w-4" /> Editar
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    className="text-destructive"
-                                    onClick={() => handleDelete(despesa)}
-                                  >
-                                    <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                                  </DropdownMenuItem>
-                                </>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
+
       <ExpenseDossierDrawer
         expense={dossierExpense}
         isOpen={!!dossierExpense}
         onOpenChange={(open) => !open && setDossierExpense(null)}
       />
+
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -374,6 +314,34 @@ export const EmendaDespesasTab = forwardRef<
                   setFormData({ ...formData, descricao: e.target.value })
                 }
               />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="destinacao" className="text-right">
+                Destinação
+              </Label>
+              <Select
+                value={formData.destinacao_id || ''}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, destinacao_id: value })
+                }
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Selecione a destinação planejada" />
+                </SelectTrigger>
+                <SelectContent>
+                  {destinations.map((group) => (
+                    <SelectGroup key={group.actionName}>
+                      <SelectLabel>{group.actionName}</SelectLabel>
+                      {group.items.map((dest) => (
+                        <SelectItem key={dest.id} value={dest.id}>
+                          {dest.tipo_destinacao} -{' '}
+                          {formatCurrencyBRL(dest.valor_destinado)}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="valor" className="text-right">

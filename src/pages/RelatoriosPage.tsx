@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   Users,
   TrendingUp,
+  FileSearch,
 } from 'lucide-react'
 import {
   DetailedAmendment,
@@ -23,6 +24,7 @@ import { KPICards } from '@/components/KPICards'
 import { FinancialOverviewTab } from '@/components/reports/FinancialOverviewTab'
 import { LegislatorPerformanceTab } from '@/components/reports/LegislatorPerformanceTab'
 import { ExecutionDetailsTab } from '@/components/reports/ExecutionDetailsTab'
+import { AuditReportTab } from '@/components/reports/AuditReportTab'
 
 const currentYear = new Date().getFullYear().toString()
 
@@ -55,7 +57,6 @@ const COLORS = [
 ]
 
 const RelatoriosPage = () => {
-  // Initialize filters with year from localStorage or default
   const [filters, setFilters] = useState<ReportFiltersState>(() => {
     const savedYear = localStorage.getItem('asplan_dashboard_year')
     return {
@@ -66,7 +67,6 @@ const RelatoriosPage = () => {
   const [allData, setAllData] = useState<DetailedAmendment[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  // Persist year selection
   useEffect(() => {
     if (filters.year) {
       localStorage.setItem('asplan_dashboard_year', filters.year)
@@ -78,8 +78,6 @@ const RelatoriosPage = () => {
       setIsLoading(true)
       try {
         let query = supabase.from('emendas').select('*')
-
-        // Apply year filter using ano_exercicio instead of created_at
         if (filters.year) {
           query = query.eq('ano_exercicio', parseInt(filters.year))
         }
@@ -95,20 +93,36 @@ const RelatoriosPage = () => {
 
         const emendaIds = emendas.map((e: any) => e.id)
 
-        // Fetch related data for the retrieved emendas
+        // Fetch related data
         const { data: despesas, error: despesasError } = await supabase
           .from('despesas')
           .select('*, profiles:registrada_por(name)')
           .in('emenda_id', emendaIds)
-
         if (despesasError) throw despesasError
 
         const { data: repasses, error: repassesError } = await supabase
           .from('repasses')
           .select('*')
           .in('emenda_id', emendaIds)
-
         if (repassesError) throw repassesError
+
+        // Fetch Actions and Destinations
+        const { data: acoes, error: acoesError } = await supabase
+          .from('acoes_emendas')
+          .select('*')
+          .in('emenda_id', emendaIds)
+        if (acoesError) throw acoesError
+
+        const acaoIds = acoes.map((a: any) => a.id)
+        let destinacoes: any[] = []
+        if (acaoIds.length > 0) {
+          const { data: dests, error: destError } = await supabase
+            .from('destinacoes_recursos')
+            .select('*')
+            .in('acao_id', acaoIds)
+          if (destError) throw destError
+          destinacoes = dests
+        }
 
         const detailed: DetailedAmendment[] = (emendas || []).map((e: any) => {
           const emendaDespesas = (despesas || [])
@@ -122,10 +136,18 @@ const RelatoriosPage = () => {
             (r: any) => r.emenda_id === e.id,
           )
 
+          const emendaAcoes = (acoes || [])
+            .filter((a: any) => a.emenda_id === e.id)
+            .map((a: any) => ({
+              ...a,
+              destinacoes: destinacoes.filter((d: any) => d.acao_id === a.id),
+            }))
+
           return {
             ...e,
             despesas: emendaDespesas,
             repasses: emendaRepasses,
+            acoes: emendaAcoes,
             anexos: [],
             historico: [],
             pendencias: [],
@@ -141,20 +163,16 @@ const RelatoriosPage = () => {
     }
 
     fetchData()
-  }, [filters.year]) // Fetch new data when year changes
+  }, [filters.year])
 
   const filteredData = useMemo(() => {
     return allData.filter((amendment) => {
-      // Filter by Month (Local filter)
-      // Note: This relies on created_at for monthly distribution within the fiscal year
-      // Alternatively, we could filter by date of first repasse or despesa
       if (filters.month !== 'all') {
         const amendmentDate = new Date(amendment.created_at)
         const amendmentMonth = (amendmentDate.getMonth() + 1).toString()
         if (amendmentMonth !== filters.month) return false
       }
 
-      // Existing Filters
       if (
         filters.autor &&
         !amendment.autor.toLowerCase().includes(filters.autor.toLowerCase())
@@ -179,58 +197,9 @@ const RelatoriosPage = () => {
       if (filters.valorMax && amendment.valor_total > filters.valorMax)
         return false
 
-      const hasDespesaFilters =
-        filters.responsavel ||
-        filters.unidade ||
-        filters.demanda ||
-        filters.statusExecucao !== 'all' ||
-        filters.fornecedor
-
-      if (hasDespesaFilters) {
-        const matchingDespesas = amendment.despesas.filter((despesa) => {
-          if (
-            filters.responsavel &&
-            !despesa.registrada_por
-              .toLowerCase()
-              .includes(filters.responsavel.toLowerCase())
-          )
-            return false
-          if (
-            filters.unidade &&
-            !despesa.unidade_destino
-              .toLowerCase()
-              .includes(filters.unidade.toLowerCase())
-          )
-            return false
-          if (
-            filters.demanda &&
-            !despesa.demanda
-              ?.toLowerCase()
-              .includes(filters.demanda.toLowerCase())
-          )
-            return false
-          if (
-            filters.statusExecucao !== 'all' &&
-            despesa.status_execucao !== filters.statusExecucao
-          )
-            return false
-          if (
-            filters.fornecedor &&
-            !despesa.fornecedor_nome
-              .toLowerCase()
-              .includes(filters.fornecedor.toLowerCase())
-          )
-            return false
-          return true
-        })
-        if (matchingDespesas.length === 0) return false
-      }
-
       return true
     })
   }, [filters, allData])
-
-  // --- Data Processors ---
 
   const allDespesas = useMemo(
     () => filteredData.flatMap((a) => a.despesas),
@@ -430,7 +399,7 @@ const RelatoriosPage = () => {
         </div>
       ) : (
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-[600px] mb-6">
+          <TabsList className="grid w-full grid-cols-4 max-w-[800px] mb-6">
             <TabsTrigger value="overview" className="gap-2">
               <LayoutDashboard className="h-4 w-4" />
               <span className="hidden sm:inline">Visão Geral</span>
@@ -442,6 +411,10 @@ const RelatoriosPage = () => {
             <TabsTrigger value="execution" className="gap-2">
               <TrendingUp className="h-4 w-4" />
               <span className="hidden sm:inline">Execução</span>
+            </TabsTrigger>
+            <TabsTrigger value="audit" className="gap-2">
+              <FileSearch className="h-4 w-4" />
+              <span className="hidden sm:inline">Auditoria</span>
             </TabsTrigger>
           </TabsList>
 
@@ -477,6 +450,10 @@ const RelatoriosPage = () => {
               executionByResponsavel={executionByResponsavel}
               executionByUnidade={executionByUnidade}
             />
+          </TabsContent>
+
+          <TabsContent value="audit" className="space-y-6 animate-fade-in-up">
+            <AuditReportTab data={filteredData} />
           </TabsContent>
         </Tabs>
       )}
