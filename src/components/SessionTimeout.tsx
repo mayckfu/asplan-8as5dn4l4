@@ -33,6 +33,12 @@ export const SessionTimeout = () => {
     }
   }, [showWarning])
 
+  const handleLogout = useCallback(async () => {
+    setShowWarning(false)
+    await logout()
+    window.location.href = '/login'
+  }, [logout])
+
   useEffect(() => {
     if (!isAuthenticated) return
 
@@ -57,8 +63,10 @@ export const SessionTimeout = () => {
 
       if (timeSinceLastActivity >= INACTIVITY_LIMIT) {
         // Time expired
-        clearInterval(timerRef.current!)
-        window.removeEventListener('mousemove', handleActivity) // Clean up
+        if (timerRef.current) clearInterval(timerRef.current)
+        events.forEach((event) => {
+          window.removeEventListener(event, handleActivity)
+        })
         handleLogout()
       } else if (timeSinceLastActivity >= WARNING_LIMIT) {
         // Show warning
@@ -74,13 +82,7 @@ export const SessionTimeout = () => {
         window.removeEventListener(event, handleActivity)
       })
     }
-  }, [isAuthenticated, handleActivity, showWarning])
-
-  const handleLogout = async () => {
-    setShowWarning(false)
-    await logout()
-    window.location.href = '/login'
-  }
+  }, [isAuthenticated, handleActivity, showWarning, handleLogout])
 
   const handleRenewSession = () => {
     lastActivityRef.current = Date.now()
