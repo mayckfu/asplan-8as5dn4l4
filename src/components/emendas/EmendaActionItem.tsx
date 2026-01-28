@@ -28,6 +28,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
 import {
@@ -310,6 +311,9 @@ export const EmendaActionItem = ({
               <DialogTitle>
                 {editingDest ? 'Editar Destinação' : 'Nova Destinação'}
               </DialogTitle>
+              <DialogDescription>
+                Preencha os dados e valores da destinação do recurso.
+              </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">

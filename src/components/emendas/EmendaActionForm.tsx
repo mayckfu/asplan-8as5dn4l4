@@ -94,19 +94,8 @@ export const EmendaActionForm = ({
     }, 0)
 
     // If editing, subtract the CURRENT usage of THIS action to get "usage by others"
-    // Note: We subtract ALL destinations of this action because we are effectively re-planning it
-    // Wait, we are only re-planning the 3 categories.
-    // If there are OTHER categories (e.g. "Outros"), they should remain and still count as used.
-    // However, the prompt implies a "Unified form" to define the action.
-    // For simplicity and safety, we will assume this form controls the main budget.
-    // But to be precise: "totalUsed" currently includes the "old" values of this action.
-
     if (action) {
       const currentActionUsed = action.destinacoes.reduce((acc, d) => {
-        // We only "free up" the amounts of the categories we are editing.
-        // If there is an "Outros" destination, it remains, so its cost remains.
-        // Actually, if we are editing, we replace the values for these specific categories.
-        // So we should subtract the OLD values of these SPECIFIC categories from totalUsed.
         if (
           [
             AuditCategories.SERVICOS_TERCEIROS,

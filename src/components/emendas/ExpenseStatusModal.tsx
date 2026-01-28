@@ -3,6 +3,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -43,6 +44,9 @@ export const ExpenseStatusModal = ({
           <DialogTitle className="text-neutral-900 dark:text-neutral-200">
             Alterar Status da Despesa
           </DialogTitle>
+          <DialogDescription>
+            Selecione o novo status para a despesa.
+          </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4 text-neutral-600 dark:text-neutral-400">
           <p>
