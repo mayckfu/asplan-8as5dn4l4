@@ -19,6 +19,7 @@ import {
   EmendaDadosTecnicos,
   EmendaDadosTecnicosHandles,
 } from '@/components/emendas/EmendaDadosTecnicos'
+import { EmendaObjetoFinalidade } from '@/components/emendas/EmendaObjetoFinalidade'
 import {
   EmendaRepassesTab,
   EmendaRepassesTabHandles,
@@ -297,11 +298,18 @@ const EmendaDetailPage = () => {
         onStatusInternoChange={handleStatusInternoChange}
       />
 
-      <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-6">
         <EmendaDadosTecnicos
           ref={dadosTecnicosRef}
           emenda={emendaData}
           onEmendaChange={handleEmendaDataChange}
+        />
+
+        <EmendaObjetoFinalidade
+          description={emendaData.descricao_completa || ''}
+          onSave={(desc) =>
+            handleEmendaDataChange({ ...emendaData, descricao_completa: desc })
+          }
         />
       </div>
 
