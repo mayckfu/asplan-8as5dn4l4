@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import {
   Menu,
   Search,
@@ -8,6 +8,7 @@ import {
   LogOut,
   Check,
   User as UserIcon,
+  Timer,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -22,6 +23,7 @@ import { useSidebar } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNotification } from '@/contexts/NotificationContext'
+import { useSession } from '@/contexts/SessionContext'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { formatNotificationDate } from '@/lib/date-utils'
 import {
@@ -37,11 +39,19 @@ export const Header = () => {
   const { user, logout } = useAuth()
   const { notifications, unreadCount, markAsRead, markAllAsRead } =
     useNotification()
+  const { timeLeft, isWarning } = useSession()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
 
   const handleNotificationClick = async (id: string, emendaId: string) => {
     await markAsRead(id)
     navigate(`/emenda/${emendaId}`)
+  }
+
+  // Format time for header display
+  const formatTimeHeader = (seconds: number) => {
+    const m = Math.floor(seconds / 60)
+    const s = seconds % 60
+    return `${m}:${s < 10 ? '0' : ''}${s}`
   }
 
   return (
@@ -94,6 +104,20 @@ export const Header = () => {
       </div>
 
       <div className="flex items-center gap-2 md:gap-3">
+        {/* Session Timer */}
+        <div
+          className={cn(
+            'hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono border transition-colors',
+            isWarning
+              ? 'bg-amber-50 text-amber-700 border-amber-200 animate-pulse'
+              : 'bg-neutral-50 text-neutral-600 border-neutral-200',
+          )}
+          title="Tempo restante de sessão"
+        >
+          <Timer className="h-3.5 w-3.5" />
+          <span>{formatTimeHeader(timeLeft)}</span>
+        </div>
+
         {/* Mobile Search Trigger */}
         <Button
           variant="ghost"
@@ -249,9 +273,11 @@ export const Header = () => {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer">
-              <UserIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-              Meu Perfil
+            <DropdownMenuItem className="cursor-pointer" asChild>
+              <Link to="/perfil">
+                <UserIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                Meu Perfil
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem

@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useSession } from '@/contexts/SessionContext'
 import {
   Dialog,
   DialogContent,
@@ -11,82 +12,17 @@ import {
 import { Button } from '@/components/ui/button'
 import { Timer, AlertTriangle } from 'lucide-react'
 
-// Time in milliseconds
-const INACTIVITY_LIMIT = 60 * 60 * 1000 // 60 minutes
-const WARNING_LIMIT = 50 * 60 * 1000 // 50 minutes (10 minutes before logout)
-const CHECK_INTERVAL = 1000 // Check every second
-
 export const SessionTimeout = () => {
-  const { logout, isAuthenticated } = useAuth()
-  const [showWarning, setShowWarning] = useState(false)
-  const [timeLeft, setTimeLeft] = useState(0)
-
-  // Use refs to keep track of state without triggering re-renders of listeners
-  const lastActivityRef = useRef<number>(Date.now())
-  const timerRef = useRef<NodeJS.Timeout | null>(null)
-
-  const handleActivity = useCallback(() => {
-    // Only update activity timestamp if we are NOT in warning state
-    // This forces the user to explicitly click "Renew" if warning is shown
-    if (!showWarning) {
-      lastActivityRef.current = Date.now()
-    }
-  }, [showWarning])
+  const { logout } = useAuth()
+  const { timeLeft, isWarning, resetTimer } = useSession()
 
   const handleLogout = useCallback(async () => {
-    setShowWarning(false)
     await logout()
     window.location.href = '/login'
   }, [logout])
 
-  useEffect(() => {
-    if (!isAuthenticated) return
-
-    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart']
-
-    // Add event listeners
-    events.forEach((event) => {
-      window.addEventListener(event, handleActivity)
-    })
-
-    // Start checking timer
-    timerRef.current = setInterval(() => {
-      const now = Date.now()
-      const timeSinceLastActivity = now - lastActivityRef.current
-
-      // Calculate remaining time for the warning countdown
-      const remaining = Math.max(
-        0,
-        Math.ceil((INACTIVITY_LIMIT - timeSinceLastActivity) / 1000),
-      )
-      setTimeLeft(remaining)
-
-      if (timeSinceLastActivity >= INACTIVITY_LIMIT) {
-        // Time expired
-        if (timerRef.current) clearInterval(timerRef.current)
-        events.forEach((event) => {
-          window.removeEventListener(event, handleActivity)
-        })
-        handleLogout()
-      } else if (timeSinceLastActivity >= WARNING_LIMIT) {
-        // Show warning
-        if (!showWarning) {
-          setShowWarning(true)
-        }
-      }
-    }, CHECK_INTERVAL)
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current)
-      events.forEach((event) => {
-        window.removeEventListener(event, handleActivity)
-      })
-    }
-  }, [isAuthenticated, handleActivity, showWarning, handleLogout])
-
   const handleRenewSession = () => {
-    lastActivityRef.current = Date.now()
-    setShowWarning(false)
+    resetTimer()
   }
 
   // Format countdown minutes:seconds
@@ -96,9 +32,11 @@ export const SessionTimeout = () => {
     return `${m}:${s < 10 ? '0' : ''}${s}`
   }
 
+  if (!isWarning) return null
+
   return (
     <Dialog
-      open={showWarning}
+      open={isWarning}
       onOpenChange={(open) => {
         // Prevent closing by clicking outside or escape, enforce action
         if (!open && timeLeft > 0) return

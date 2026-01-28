@@ -205,6 +205,7 @@ export type User = {
   status: UserStatus
   created_at: string
   password?: string
+  inactivity_timeout?: number
 }
 
 export type Cargo = {

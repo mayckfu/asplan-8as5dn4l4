@@ -4,6 +4,7 @@ import {
   useState,
   useEffect,
   ReactNode,
+  useCallback,
 } from 'react'
 import { User, UserRole } from '@/lib/mock-data'
 import { useToast } from '@/components/ui/use-toast'
@@ -23,6 +24,7 @@ interface AuthContextType {
   isLoading: boolean
   session: Session | null
   checkPermission: (requiredRoles: UserRole[]) => boolean
+  refreshProfile: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -32,6 +34,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const { toast } = useToast()
+
+  const fetchProfile = useCallback(async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
+
+      if (error) {
+        console.error('Error fetching profile:', error.message)
+      }
+
+      if (data) {
+        setUser(data as User)
+      }
+    } catch (error: any) {
+      console.error('Unexpected error fetching profile:', error.message)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     // Check active session
@@ -57,29 +81,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     })
 
     return () => subscription.unsubscribe()
-  }, [])
-
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single()
-
-      if (error) {
-        console.error('Error fetching profile:', error.message)
-      }
-
-      if (data) {
-        setUser(data as User)
-      }
-    } catch (error: any) {
-      console.error('Unexpected error fetching profile:', error.message)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  }, [fetchProfile])
 
   const login = async (
     email: string,
@@ -141,6 +143,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return requiredRoles.includes(user.role)
   }
 
+  const refreshProfile = async () => {
+    if (session?.user) {
+      await fetchProfile(session.user.id)
+    }
+  }
+
   const value = {
     user,
     session,
@@ -150,6 +158,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isAdmin: user?.role === 'ADMIN',
     isLoading,
     checkPermission,
+    refreshProfile,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
