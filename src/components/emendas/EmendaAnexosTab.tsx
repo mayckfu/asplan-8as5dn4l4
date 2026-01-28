@@ -1,13 +1,5 @@
-import { useState, useRef } from 'react'
-import {
-  FileText,
-  Upload,
-  MoreHorizontal,
-  Trash2,
-  Download,
-  Eye,
-  Loader2,
-} from 'lucide-react'
+import { useState } from 'react'
+import { FileText, Trash2, ExternalLink, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -18,24 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { Anexo } from '@/lib/mock-data'
-import { formatBytes } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { useToast } from '@/components/ui/use-toast'
 import {
   Dialog,
@@ -43,14 +19,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from '@/components/ui/dialog'
 import { supabase } from '@/lib/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
+import { AnexoForm } from './AnexoForm'
+import { formatDateToDB, formatDisplayDate } from '@/lib/date-utils'
 
 interface EmendaAnexosTabProps {
   anexos: Anexo[]
   onAnexosChange: (anexos: Anexo[]) => void
+  emendaId: string
 }
 
 const DOCUMENT_TYPES = {
@@ -66,85 +44,75 @@ const DOCUMENT_TYPES = {
 export const EmendaAnexosTab = ({
   anexos,
   onAnexosChange,
+  emendaId,
 }: EmendaAnexosTabProps) => {
   const { toast } = useToast()
-  const { checkPermission } = useAuth()
-  const [isUploadOpen, setIsUploadOpen] = useState(false)
-  const [isUploading, setIsUploading] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const [newAnexoType, setNewAnexoType] = useState<string>('OUTRO')
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const { user, checkPermission } = useAuth()
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const canEdit = checkPermission(['ADMIN', 'GESTOR', 'ANALISTA'])
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0])
-    }
-  }
-
-  const handleUpload = async () => {
-    if (!selectedFile) {
+  const handleSaveAnexo = async (values: any) => {
+    if (!emendaId) {
       toast({
         title: 'Erro',
-        description: 'Selecione um arquivo para enviar.',
+        description: 'Emenda não identificada.',
         variant: 'destructive',
       })
       return
     }
 
-    setIsUploading(true)
+    setIsSubmitting(true)
     try {
-      const fileName = `${Date.now()}_${selectedFile.name}`.replace(/\s+/g, '_')
-      const { data, error } = await supabase.storage
-        .from('emendas-docs')
-        .upload(fileName, selectedFile)
+      const { error } = await supabase.from('anexos').insert({
+        emenda_id: emendaId,
+        tipo: values.tipo,
+        filename: values.filename,
+        url: values.url,
+        data_documento: formatDateToDB(values.data),
+        uploader: user?.id,
+      })
 
       if (error) throw error
 
-      // Get public URL or signed URL logic handles in detail page usually, but for record we need the path
-      const { data: publicUrlData } = supabase.storage
-        .from('emendas-docs')
-        .getPublicUrl(data.path)
-
-      const newAnexo: Anexo = {
-        id: `A-${Date.now()}`, // Temporary ID, backend will assign real UUID
-        tipo: newAnexoType as any,
-        filename: selectedFile.name,
-        url: publicUrlData.publicUrl, // Store public URL or path depending on architecture. Here public URL for simplicity.
-        created_at: new Date().toISOString(),
-        uploader: 'Eu', // UI optimistic update
-        data: new Date().toISOString(),
-        size: selectedFile.size,
-        metadata: { path: data.path },
-      }
-
-      onAnexosChange([...anexos, newAnexo])
-      setIsUploadOpen(false)
-      setSelectedFile(null)
-      toast({ title: 'Arquivo enviado com sucesso!' })
+      // Call parent to refresh data
+      onAnexosChange([...anexos]) // The parent refreshData will actually reload everything
+      setIsFormOpen(false)
+      toast({ title: 'Anexo adicionado com sucesso!' })
     } catch (error: any) {
-      console.error('Upload error:', error)
+      console.error('Error saving anexo:', error)
       toast({
-        title: 'Erro no envio',
-        description: error.message || 'Falha ao enviar arquivo.',
+        title: 'Erro ao salvar',
+        description: error.message || 'Falha ao salvar anexo.',
         variant: 'destructive',
       })
     } finally {
-      setIsUploading(false)
+      setIsSubmitting(false)
     }
   }
 
   const handleDelete = async (anexo: Anexo) => {
     if (!canEdit) return
     if (confirm(`Tem certeza que deseja excluir "${anexo.filename}"?`)) {
-      onAnexosChange(anexos.filter((a) => a.id !== anexo.id))
-    }
-  }
+      try {
+        const { error } = await supabase
+          .from('anexos')
+          .delete()
+          .eq('id', anexo.id)
 
-  const handleDownload = (url: string) => {
-    window.open(url, '_blank')
+        if (error) throw error
+
+        toast({ title: 'Anexo excluído com sucesso!' })
+        onAnexosChange(anexos.filter((a) => a.id !== anexo.id))
+      } catch (error: any) {
+        toast({
+          title: 'Erro ao excluir',
+          description: error.message,
+          variant: 'destructive',
+        })
+      }
+    }
   }
 
   return (
@@ -153,12 +121,12 @@ export const EmendaAnexosTab = ({
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
-              Documentos e Anexos
+              Documentos e Links
             </CardTitle>
             {canEdit && (
-              <Button size="sm" onClick={() => setIsUploadOpen(true)}>
-                <Upload className="h-4 w-4 mr-2" />
-                Novo Anexo
+              <Button size="sm" onClick={() => setIsFormOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Novo Link/Anexo
               </Button>
             )}
           </div>
@@ -166,72 +134,71 @@ export const EmendaAnexosTab = ({
         <CardContent>
           {anexos.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              Nenhum anexo encontrado.
+              Nenhum documento registrado.
             </div>
           ) : (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nome</TableHead>
+                    <TableHead>Título / Descrição</TableHead>
                     <TableHead>Tipo</TableHead>
-                    <TableHead>Tamanho</TableHead>
+                    <TableHead>Data Doc.</TableHead>
                     <TableHead>Enviado por</TableHead>
-                    <TableHead>Data</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {anexos.map((anexo) => (
-                    <TableRow key={anexo.id}>
+                    <TableRow
+                      key={anexo.id}
+                      className="group hover:bg-muted/50 transition-colors"
+                    >
                       <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-primary" />
-                          <span className="truncate max-w-[200px]">
+                        <a
+                          href={anexo.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center gap-2 text-primary hover:underline cursor-pointer"
+                        >
+                          <FileText className="h-4 w-4 shrink-0" />
+                          <span className="truncate max-w-[200px] md:max-w-[400px]">
                             {anexo.filename}
                           </span>
-                        </div>
+                          <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                        </a>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">
+                        <Badge
+                          variant="outline"
+                          className="font-normal whitespace-nowrap"
+                        >
                           {DOCUMENT_TYPES[
                             anexo.tipo as keyof typeof DOCUMENT_TYPES
                           ] || anexo.tipo}
                         </Badge>
                       </TableCell>
-                      <TableCell>{formatBytes(anexo.size || 0)}</TableCell>
-                      <TableCell>{anexo.uploader || '-'}</TableCell>
-                      <TableCell>
-                        {new Date(anexo.created_at).toLocaleDateString()}
+                      <TableCell className="whitespace-nowrap">
+                        {formatDisplayDate(anexo.data)}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {anexo.uploader || '-'}
                       </TableCell>
                       <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => handleDownload(anexo.url)}
-                            >
-                              <Download className="mr-2 h-4 w-4" /> Baixar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => window.open(anexo.url, '_blank')}
-                            >
-                              <Eye className="mr-2 h-4 w-4" /> Visualizar
-                            </DropdownMenuItem>
-                            {canEdit && (
-                              <DropdownMenuItem
-                                className="text-destructive"
-                                onClick={() => handleDelete(anexo)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        {canEdit && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDelete(anexo)
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Excluir</span>
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -242,61 +209,19 @@ export const EmendaAnexosTab = ({
         </CardContent>
       </Card>
 
-      <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Enviar Anexo</DialogTitle>
+            <DialogTitle>Adicionar Documento</DialogTitle>
             <DialogDescription>
-              Selecione o tipo de documento e o arquivo.
+              Insira o link para o documento externo.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="type">Tipo de Documento</Label>
-              <Select value={newAnexoType} onValueChange={setNewAnexoType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(DOCUMENT_TYPES).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="file">Arquivo</Label>
-              <Input
-                id="file"
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileSelect}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsUploadOpen(false)}
-              disabled={isUploading}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleUpload}
-              disabled={!selectedFile || isUploading}
-            >
-              {isUploading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Enviando...
-                </>
-              ) : (
-                'Enviar'
-              )}
-            </Button>
-          </DialogFooter>
+          <AnexoForm
+            onSubmit={handleSaveAnexo}
+            onCancel={() => setIsFormOpen(false)}
+            isSubmitting={isSubmitting}
+          />
         </DialogContent>
       </Dialog>
     </>

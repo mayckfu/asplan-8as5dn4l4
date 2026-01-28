@@ -1,12 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import {
-  ArrowLeft,
-  FileText,
-  Loader2,
-  AlertTriangle,
-  ListChecks,
-} from 'lucide-react'
+import { ArrowLeft, Loader2, AlertTriangle, ListChecks } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -25,7 +19,6 @@ import {
   EmendaDadosTecnicos,
   EmendaDadosTecnicosHandles,
 } from '@/components/emendas/EmendaDadosTecnicos'
-import { EmendaObjetoFinalidade } from '@/components/emendas/EmendaObjetoFinalidade'
 import {
   EmendaRepassesTab,
   EmendaRepassesTabHandles,
@@ -41,13 +34,13 @@ import { EmendaPlanejamentoTab } from '@/components/emendas/EmendaPlanejamentoTa
 import { useToast } from '@/components/ui/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase/client'
-import { getSignedUrl, deleteFile } from '@/lib/supabase/storage'
+import { getSignedUrl } from '@/lib/supabase/storage'
 
 const EmendaDetailPage = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const { toast } = useToast()
-  const { user, checkPermission } = useAuth()
+  const { checkPermission } = useAuth()
   const [activeTab, setActiveTab] = useState('planning')
   const [emendaData, setEmendaData] = useState<DetailedAmendment | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -146,6 +139,7 @@ const EmendaDetailPage = () => {
             filename: a.filename || a.titulo || 'Sem Nome',
             url: signedUrl,
             uploader: a.profiles?.name || 'Desconhecido',
+            data: a.data_documento || a.created_at,
           }
         }),
       )
@@ -364,6 +358,7 @@ const EmendaDetailPage = () => {
             <EmendaAnexosTab
               anexos={emendaData.anexos}
               onAnexosChange={() => refreshData()}
+              emendaId={emendaData.id}
             />
           </div>
         </TabsContent>
