@@ -31,6 +31,7 @@ import { EmendaAnexosTab } from '@/components/emendas/EmendaAnexosTab'
 import { EmendaChecklistTab } from '@/components/emendas/EmendaChecklistTab'
 import { EmendaHistoricoTab } from '@/components/emendas/EmendaHistoricoTab'
 import { EmendaPlanejamentoTab } from '@/components/emendas/EmendaPlanejamentoTab'
+import { AuditReportTab } from '@/components/reports/AuditReportTab'
 import { useToast } from '@/components/ui/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase/client'
@@ -311,7 +312,7 @@ const EmendaDetailPage = () => {
         className="w-full"
       >
         <div className="w-full overflow-x-auto pb-2 scrollbar-none">
-          <TabsList className="inline-flex w-full min-w-max md:w-full md:grid md:grid-cols-6 p-1 h-auto">
+          <TabsList className="inline-flex w-full min-w-max md:w-full md:grid md:grid-cols-7 p-1 h-auto">
             <TabsTrigger value="planning" className="px-4 py-2 gap-2">
               <ListChecks className="h-4 w-4" />
               Ações e Planejamento
@@ -324,6 +325,9 @@ const EmendaDetailPage = () => {
             </TabsTrigger>
             <TabsTrigger value="anexos" className="px-4 py-2">
               Anexos
+            </TabsTrigger>
+            <TabsTrigger value="audit" className="px-4 py-2">
+              Auditoria
             </TabsTrigger>
             <TabsTrigger value="checklist" className="px-4 py-2">
               Checklist
@@ -361,6 +365,9 @@ const EmendaDetailPage = () => {
               emendaId={emendaData.id}
             />
           </div>
+        </TabsContent>
+        <TabsContent value="audit" className="mt-4">
+          <AuditReportTab data={[emendaData]} />
         </TabsContent>
         <TabsContent value="checklist" className="mt-4">
           <EmendaChecklistTab

@@ -57,16 +57,7 @@ export const AuditReportTab = ({ data }: AuditReportTabProps) => {
             <CardTitle className="text-xl font-bold">
               Visão de Auditoria Detalhada
             </CardTitle>
-            <div className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
-              <span>Hierarquia:</span>
-              <span className="font-medium text-primary">Portaria MS</span>
-              <span className="text-muted-foreground/60">&gt;</span>
-              <span className="font-medium text-foreground">Eixo/Ação</span>
-              <span className="text-muted-foreground/60">&gt;</span>
-              <span className="font-medium text-foreground">Destinação</span>
-              <span className="text-muted-foreground/60">&gt;</span>
-              <span className="font-medium text-foreground">Detalhamento</span>
-            </div>
+            {/* Hierarchy description removed as per user story */}
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="icon" title="Download">
