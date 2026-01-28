@@ -3,6 +3,7 @@ import {
   ActionWithDestinations,
   Destination,
   DetailedAmendment,
+  AuditCategories,
 } from '@/lib/mock-data'
 import {
   Card,
@@ -29,6 +30,13 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { MoneyInput } from '@/components/ui/money-input'
 import { Trash2, Edit2, Plus, AlertCircle } from 'lucide-react'
 import { formatCurrencyBRL } from '@/lib/utils'
@@ -80,7 +88,10 @@ export const EmendaActionItem = ({
       setDestForm(dest)
     } else {
       setEditingDest(null)
-      setDestForm({ valor_destinado: 0 })
+      setDestForm({
+        valor_destinado: 0,
+        grupo_despesa: AuditCategories.SERVICOS_TERCEIROS,
+      })
     }
     setIsDestOpen(true)
   }
@@ -126,6 +137,7 @@ export const EmendaActionItem = ({
         valor_destinado: destForm.valor_destinado,
         portaria_vinculada: destForm.portaria_vinculada,
         observacao_tecnica: destForm.observacao_tecnica,
+        grupo_despesa: destForm.grupo_despesa || AuditCategories.OUTROS,
       }
 
       if (editingDest) {
@@ -202,8 +214,8 @@ export const EmendaActionItem = ({
               <TableHeader>
                 <TableRow>
                   <TableHead className="py-2 h-9 text-xs">Tipo</TableHead>
+                  <TableHead className="py-2 h-9 text-xs">Grupo</TableHead>
                   <TableHead className="py-2 h-9 text-xs">Subtipo</TableHead>
-                  <TableHead className="py-2 h-9 text-xs">Portaria</TableHead>
                   <TableHead className="py-2 h-9 text-xs text-right">
                     Valor
                   </TableHead>
@@ -226,11 +238,11 @@ export const EmendaActionItem = ({
                       <TableCell className="py-2 text-xs font-medium">
                         {dest.tipo_destinacao}
                       </TableCell>
-                      <TableCell className="py-2 text-xs">
-                        {dest.subtipo || '-'}
+                      <TableCell className="py-2 text-xs text-muted-foreground">
+                        {dest.grupo_despesa || '-'}
                       </TableCell>
                       <TableCell className="py-2 text-xs">
-                        {dest.portaria_vinculada || '-'}
+                        {dest.subtipo || '-'}
                       </TableCell>
                       <TableCell className="py-2 text-xs text-right font-medium">
                         {formatCurrencyBRL(dest.valor_destinado)}
@@ -293,6 +305,26 @@ export const EmendaActionItem = ({
                 }
                 placeholder="Ex: PJ, Material de Consumo"
               />
+            </div>
+            <div className="grid gap-2">
+              <Label>Grupo de Despesa (Auditoria)</Label>
+              <Select
+                value={destForm.grupo_despesa}
+                onValueChange={(val) =>
+                  setDestForm({ ...destForm, grupo_despesa: val })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o grupo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(AuditCategories).map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid gap-2">
               <Label>Subtipo (Opcional)</Label>

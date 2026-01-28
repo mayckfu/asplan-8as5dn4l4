@@ -40,7 +40,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Despesa, Destination } from '@/lib/mock-data'
+import { Despesa, Destination, AuditCategories } from '@/lib/mock-data'
 import { StatusBadge } from '@/components/StatusBadge'
 import { ExpenseDossierDrawer } from './ExpenseDossierDrawer'
 import { formatCurrencyBRL } from '@/lib/utils'
@@ -95,6 +95,7 @@ export const EmendaDespesasTab = forwardRef<
         data: formatDateToDB(new Date()),
         status_execucao: 'PLANEJADA',
         valor: 0,
+        categoria: AuditCategories.SERVICOS_TERCEIROS,
       })
       setIsFormOpen(true)
     },
@@ -106,6 +107,7 @@ export const EmendaDespesasTab = forwardRef<
       data: formatDateToDB(new Date()),
       status_execucao: 'PLANEJADA',
       valor: 0,
+      categoria: AuditCategories.SERVICOS_TERCEIROS,
     })
     setIsFormOpen(true)
   }
@@ -149,7 +151,7 @@ export const EmendaDespesasTab = forwardRef<
       valor: Number(formData.valor),
       descricao: formData.descricao!,
       status_execucao: formData.status_execucao || 'PLANEJADA',
-      categoria: formData.categoria || 'Outros',
+      categoria: formData.categoria || AuditCategories.OUTROS,
       fornecedor_nome: formData.fornecedor_nome || '',
       unidade_destino: formData.unidade_destino || '',
       registrada_por:
@@ -207,7 +209,7 @@ export const EmendaDespesasTab = forwardRef<
                   <TableRow>
                     <TableHead>Data</TableHead>
                     <TableHead>Descrição</TableHead>
-                    <TableHead>Destinação</TableHead>
+                    <TableHead>Categoria</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Valor</TableHead>
                     <TableHead>
@@ -223,7 +225,7 @@ export const EmendaDespesasTab = forwardRef<
                         {despesa.descricao}
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
-                        {getDestinationName(despesa.destinacao_id)}
+                        {despesa.categoria}
                       </TableCell>
                       <TableCell>
                         <StatusBadge status={despesa.status_execucao as any} />
@@ -314,6 +316,28 @@ export const EmendaDespesasTab = forwardRef<
                   setFormData({ ...formData, descricao: e.target.value })
                 }
               />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="categoria" className="text-right">
+                Categoria (Auditoria)
+              </Label>
+              <Select
+                value={formData.categoria}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, categoria: value })
+                }
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Selecione a categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(AuditCategories).map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="destinacao" className="text-right">

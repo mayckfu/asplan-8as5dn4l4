@@ -37,6 +37,13 @@ export const StatusInterno = {
     'Proposta Classificada aguardando autorização Secretaria',
 } as const
 
+export const AuditCategories = {
+  SERVICOS_TERCEIROS: 'SERVIÇOS TERCEIROS (PJ)',
+  MATERIAL_CONSUMO: 'MATERIAL DE CONSUMO',
+  DISTRIBUICAO_GRATUITA: 'DISTRIBUIÇÃO GRATUITA',
+  OUTROS: 'OUTROS',
+} as const
+
 export const TipoEmenda = {
   individual: 'Individual',
   bancada: 'Bancada',
@@ -47,6 +54,8 @@ export type TipoRecursoEnum = keyof typeof TipoRecurso
 export type SituacaoOficialEnum = keyof typeof SituacaoOficial
 export type StatusInternoEnum = keyof typeof StatusInterno
 export type TipoEmendaEnum = keyof typeof TipoEmenda
+export type AuditCategoryEnum =
+  (typeof AuditCategories)[keyof typeof AuditCategories]
 
 export type Amendment = {
   id: string
@@ -147,6 +156,7 @@ export type Destination = {
   valor_destinado: number
   portaria_vinculada?: string
   observacao_tecnica?: string
+  grupo_despesa?: string
 }
 
 export type Action = {

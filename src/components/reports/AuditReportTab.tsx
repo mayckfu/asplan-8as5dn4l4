@@ -1,4 +1,10 @@
-import { Fragment } from 'react'
+import { useState } from 'react'
+import {
+  DetailedAmendment,
+  AuditCategories,
+  ActionWithDestinations,
+} from '@/lib/mock-data'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -7,452 +13,338 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card'
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltipContent,
-} from '@/components/ui/chart'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-} from 'recharts'
-import { DetailedAmendment } from '@/lib/mock-data'
-import { formatCurrencyBRL, cn } from '@/lib/utils'
-import {
-  AlertCircle,
-  CornerDownRight,
-  Receipt,
-  Target,
-  FileText,
-  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  Download,
+  Printer,
+  Package,
+  Activity,
+  User,
+  Box,
+  Gift,
 } from 'lucide-react'
+import { formatCurrencyBRL, cn } from '@/lib/utils'
 
 interface AuditReportTabProps {
   data: DetailedAmendment[]
 }
 
-const chartConfig = {
-  planned: {
-    label: 'Planejado',
-    color: 'hsl(var(--chart-1))',
-  },
-  executed: {
-    label: 'Executado',
-    color: 'hsl(var(--chart-2))',
-  },
-} satisfies ChartConfig
-
-const COLORS = [
-  '#0088FE',
-  '#00C49F',
-  '#FFBB28',
-  '#FF8042',
-  '#8884d8',
-  '#82ca9d',
-]
-
 export const AuditReportTab = ({ data }: AuditReportTabProps) => {
-  // Aggregate data for charts
-  const destinationSummary = data
-    .flatMap((d) => d.acoes.flatMap((a) => a.destinacoes))
-    .reduce(
-      (acc, dest) => {
-        acc[dest.tipo_destinacao] =
-          (acc[dest.tipo_destinacao] || 0) + dest.valor_destinado
-        return acc
-      },
-      {} as Record<string, number>,
-    )
-
-  const destinationChartData = Object.entries(destinationSummary).map(
-    ([name, value]) => ({ name, value }),
+  // We want to flatten all Actions from all Amendments to show them in the list
+  const allActions = data.flatMap((emenda) =>
+    emenda.acoes.map((acao) => {
+      const destinationIds = acao.destinacoes.map((d) => d.id)
+      const relatedExpenses = emenda.despesas.filter(
+        (d) => d.destinacao_id && destinationIds.includes(d.destinacao_id),
+      )
+      return {
+        ...acao,
+        portaria: emenda.portaria || '-',
+        emenda_numero: emenda.numero_emenda,
+        relatedExpenses,
+      }
+    }),
   )
 
-  const actionComparison = data
-    .flatMap((d) => d.acoes)
-    .map((action) => {
-      const planned = action.destinacoes.reduce(
-        (acc, dest) => acc + dest.valor_destinado,
-        0,
-      )
-      // Find expenses linked to this action's destinations
-      const destinationIds = action.destinacoes.map((d) => d.id)
-      const emenda = data.find((d) => d.id === action.emenda_id)
-      const executed =
-        emenda?.despesas
-          .filter(
-            (d) => d.destinacao_id && destinationIds.includes(d.destinacao_id),
-          )
-          .reduce((acc, d) => acc + d.valor, 0) || 0
+  return (
+    <Card className="border-none shadow-none bg-transparent">
+      <CardHeader className="px-0 pt-0 pb-6">
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle className="text-xl font-bold">
+              Visão de Auditoria Detalhada
+            </CardTitle>
+            <div className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
+              <span>Hierarquia:</span>
+              <span className="font-medium text-primary">Portaria MS</span>
+              <span className="text-muted-foreground/60">&gt;</span>
+              <span className="font-medium text-foreground">Eixo/Ação</span>
+              <span className="text-muted-foreground/60">&gt;</span>
+              <span className="font-medium text-foreground">Destinação</span>
+              <span className="text-muted-foreground/60">&gt;</span>
+              <span className="font-medium text-foreground">Detalhamento</span>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="icon" title="Download">
+              <Download className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" title="Imprimir">
+              <Printer className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="px-0">
+        <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
+          <Table>
+            <TableHeader className="bg-muted/30">
+              <TableRow>
+                <TableHead className="w-[30%] text-xs font-bold uppercase tracking-wider text-muted-foreground pl-10">
+                  Eixo / Ação de Controle
+                </TableHead>
+                <TableHead className="w-[15%] text-xs font-bold uppercase tracking-wider text-muted-foreground text-right">
+                  Valor Total (R$)
+                </TableHead>
+                <TableHead className="w-[15%] text-xs font-bold uppercase tracking-wider text-muted-foreground text-right">
+                  Serviços
+                  <br />
+                  Terceiros (PJ)
+                </TableHead>
+                <TableHead className="w-[15%] text-xs font-bold uppercase tracking-wider text-muted-foreground text-right">
+                  Material de
+                  <br />
+                  Consumo
+                </TableHead>
+                <TableHead className="w-[15%] text-xs font-bold uppercase tracking-wider text-muted-foreground text-right">
+                  Distribuição
+                  <br />
+                  Gratuita
+                </TableHead>
+                <TableHead className="w-[10%] text-xs font-bold uppercase tracking-wider text-muted-foreground text-center">
+                  Status
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {allActions.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={6}
+                    className="text-center py-8 text-muted-foreground"
+                  >
+                    Nenhuma ação encontrada.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                allActions.map((action) => (
+                  <AuditActionRow key={action.id} action={action} />
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
 
-      return {
-        name: action.nome_acao,
-        planned,
-        executed,
-      }
-    })
-    .sort((a, b) => b.planned - a.planned)
-    .slice(0, 10)
+const AuditActionRow = ({
+  action,
+}: {
+  action: ActionWithDestinations & {
+    portaria: string
+    emenda_numero: string
+    relatedExpenses: any[]
+  }
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  // Calculate totals based on Expenses
+  const expenses = action.relatedExpenses
+  const totalExecuted = expenses.reduce((acc, curr) => acc + curr.valor, 0)
+
+  const servicesTotal = expenses
+    .filter((e) => e.categoria === AuditCategories.SERVICOS_TERCEIROS)
+    .reduce((acc, curr) => acc + curr.valor, 0)
+
+  const materialsTotal = expenses
+    .filter((e) => e.categoria === AuditCategories.MATERIAL_CONSUMO)
+    .reduce((acc, curr) => acc + curr.valor, 0)
+
+  const distributionTotal = expenses
+    .filter((e) => e.categoria === AuditCategories.DISTRIBUICAO_GRATUITA)
+    .reduce((acc, curr) => acc + curr.valor, 0)
+
+  // Determine status
+  let status = 'PENDENTE'
+  let statusColor = 'bg-neutral-100 text-neutral-600 border-neutral-200'
+
+  if (totalExecuted > 0) {
+    status = 'EM ANDAMENTO'
+    statusColor = 'bg-blue-100 text-blue-700 border-blue-200'
+  }
+
+  // Calculate planned total to check completion
+  const totalPlanned = action.destinacoes.reduce(
+    (acc, d) => acc + d.valor_destinado,
+    0,
+  )
+  if (totalExecuted >= totalPlanned && totalPlanned > 0) {
+    status = 'EXECUTADO'
+    statusColor = 'bg-emerald-100 text-emerald-700 border-emerald-200'
+  }
 
   return (
-    <div className="space-y-8">
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="border border-neutral-200 dark:border-neutral-800">
-          <CardHeader>
-            <CardTitle>Resumo por Destinação (Planejado)</CardTitle>
-            <CardDescription>
-              Distribuição dos recursos por tipo de destinação
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="w-full h-[300px]">
-              <PieChart>
-                <Pie
-                  data={destinationChartData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  label={({ name, percent }) =>
-                    `${name} ${(percent * 100).toFixed(0)}%`
-                  }
-                >
-                  {destinationChartData.map((_, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  content={
-                    <ChartTooltipContent
-                      formatter={(v) => formatCurrencyBRL(Number(v))}
-                    />
-                  }
-                />
-                <Legend />
-              </PieChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-neutral-200 dark:border-neutral-800">
-          <CardHeader>
-            <CardTitle>Execução por Ação (Top 10)</CardTitle>
-            <CardDescription>
-              Planejado vs Executado nas principais ações
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="w-full h-[300px]">
-              <BarChart
-                data={actionComparison}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis
-                  dataKey="name"
-                  axisLine={false}
-                  tickLine={false}
-                  tickMargin={10}
-                  fontSize={12}
-                  interval={0}
-                  angle={-15}
-                  textAnchor="end"
-                  height={60}
-                />
-                <YAxis
-                  tickFormatter={(v) =>
-                    new Intl.NumberFormat('pt-BR', {
-                      notation: 'compact',
-                    }).format(v)
-                  }
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip
-                  content={
-                    <ChartTooltipContent
-                      formatter={(v) => formatCurrencyBRL(Number(v))}
-                    />
-                  }
-                />
-                <Legend />
-                <Bar
-                  dataKey="planned"
-                  name="Planejado"
-                  fill="var(--color-planned)"
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar
-                  dataKey="executed"
-                  name="Executado"
-                  fill="var(--color-executed)"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="border border-neutral-200 dark:border-neutral-800">
-        <CardHeader>
-          <CardTitle>Visão de Auditoria Detalhada</CardTitle>
-          <CardDescription>
-            Acompanhamento hierárquico: Emenda &gt; Ação &gt; Destinação &gt;
-            Despesas
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border bg-white dark:bg-neutral-950 overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="w-[35%]">
-                    Hierarquia / Detalhe
-                  </TableHead>
-                  <TableHead className="w-[20%]">Natureza / Tipo</TableHead>
-                  <TableHead className="w-[15%] text-right">
-                    Planejado (R$)
-                  </TableHead>
-                  <TableHead className="w-[15%] text-right">
-                    Executado (R$)
-                  </TableHead>
-                  <TableHead className="w-[15%]">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.map((emenda) => (
-                  <Fragment key={emenda.id}>
-                    {/* Emenda Row */}
-                    <TableRow className="bg-muted">
-                      <TableCell colSpan={5} className="py-4">
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-2 font-bold text-base">
-                            <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-sm border border-primary/20">
-                              {emenda.numero_emenda}
-                            </span>
-                            <span>{emenda.autor}</span>
-                          </div>
-                          {emenda.objeto_emenda && (
-                            <div className="flex items-start gap-2 text-sm text-muted-foreground pl-1">
-                              <FileText className="h-4 w-4 mt-0.5 shrink-0" />
-                              <span className="font-medium">Objeto:</span>
-                              {emenda.objeto_emenda}
-                            </div>
-                          )}
-                          {emenda.meta_operacional && (
-                            <div className="flex items-start gap-2 text-sm text-muted-foreground pl-1">
-                              <Target className="h-4 w-4 mt-0.5 shrink-0" />
-                              <span className="font-medium">Meta:</span>
-                              {emenda.meta_operacional}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-
-                    {/* Actions Loop */}
-                    {emenda.acoes.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center py-4">
-                          <span className="text-muted-foreground italic">
-                            Nenhuma ação planejada.
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      emenda.acoes.map((acao) => {
-                        const actionPlanned = acao.destinacoes.reduce(
-                          (sum, d) => sum + d.valor_destinado,
-                          0,
-                        )
-                        const destinationIds = acao.destinacoes.map((d) => d.id)
-                        const actionExpenses = emenda.despesas.filter(
-                          (d) =>
-                            d.destinacao_id &&
-                            destinationIds.includes(d.destinacao_id),
-                        )
-                        const actionExecuted = actionExpenses.reduce(
-                          (sum, d) => sum + d.valor,
-                          0,
-                        )
-                        const isActionOverBudget =
-                          actionExecuted > actionPlanned && actionPlanned > 0
-
-                        return (
-                          <Fragment key={acao.id}>
-                            {/* Action Row */}
-                            <TableRow className="bg-muted/10">
-                              <TableCell className="font-medium pl-6">
-                                <div className="flex items-center gap-2">
-                                  <CornerDownRight className="h-4 w-4 text-muted-foreground" />
-                                  <span className="text-primary font-semibold">
-                                    Ação:
-                                  </span>
-                                  {acao.nome_acao}
-                                </div>
-                                <div className="pl-6 text-xs text-muted-foreground">
-                                  Área: {acao.area}
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-muted-foreground italic">
-                                Total da Ação
-                              </TableCell>
-                              <TableCell className="text-right font-medium">
-                                {formatCurrencyBRL(actionPlanned)}
-                              </TableCell>
-                              <TableCell
-                                className={cn(
-                                  'text-right font-medium',
-                                  isActionOverBudget ? 'text-red-600' : '',
-                                )}
-                              >
-                                {formatCurrencyBRL(actionExecuted)}
-                              </TableCell>
-                              <TableCell>
-                                {isActionOverBudget && (
-                                  <Badge
-                                    variant="destructive"
-                                    className="text-[10px]"
-                                  >
-                                    Acima do Planejado
-                                  </Badge>
-                                )}
-                              </TableCell>
-                            </TableRow>
-
-                            {/* Destinations Loop */}
-                            {acao.destinacoes.map((dest) => {
-                              const destExpenses = emenda.despesas.filter(
-                                (d) => d.destinacao_id === dest.id,
-                              )
-                              const destExecuted = destExpenses.reduce(
-                                (sum, d) => sum + d.valor,
-                                0,
-                              )
-                              const isDestOverBudget =
-                                destExecuted > dest.valor_destinado &&
-                                dest.valor_destinado > 0
-
-                              return (
-                                <Fragment key={dest.id}>
-                                  <TableRow>
-                                    <TableCell className="pl-12 py-2">
-                                      <div className="flex items-center gap-2 text-sm">
-                                        <div className="h-1.5 w-1.5 rounded-full bg-neutral-300" />
-                                        Destinação Planejada
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="py-2">
-                                      <div className="flex flex-col">
-                                        <span className="font-medium text-sm">
-                                          {dest.tipo_destinacao}
-                                        </span>
-                                        {dest.subtipo && (
-                                          <span className="text-xs text-muted-foreground">
-                                            {dest.subtipo}
-                                          </span>
-                                        )}
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="text-right py-2">
-                                      {formatCurrencyBRL(dest.valor_destinado)}
-                                    </TableCell>
-                                    <TableCell
-                                      className={cn(
-                                        'text-right py-2',
-                                        isDestOverBudget
-                                          ? 'text-red-600 font-bold'
-                                          : '',
-                                      )}
-                                    >
-                                      {formatCurrencyBRL(destExecuted)}
-                                    </TableCell>
-                                    <TableCell className="py-2">
-                                      {isDestOverBudget ? (
-                                        <div className="flex items-center gap-1 text-red-600 text-xs font-medium">
-                                          <AlertCircle className="h-3 w-3" />
-                                          Excedido
-                                        </div>
-                                      ) : destExecuted > 0 ? (
-                                        <div className="flex items-center gap-1 text-emerald-600 text-xs font-medium">
-                                          <CheckCircle2 className="h-3 w-3" />
-                                          Executando
-                                        </div>
-                                      ) : (
-                                        <span className="text-xs text-muted-foreground">
-                                          Pendente
-                                        </span>
-                                      )}
-                                    </TableCell>
-                                  </TableRow>
-
-                                  {/* Expenses Loop */}
-                                  {destExpenses.length > 0 &&
-                                    destExpenses.map((exp) => (
-                                      <TableRow
-                                        key={exp.id}
-                                        className="hover:bg-transparent"
-                                      >
-                                        <TableCell
-                                          colSpan={2}
-                                          className="pl-16 py-1 border-0"
-                                        >
-                                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                            <Receipt className="h-3 w-3" />
-                                            <span className="italic">
-                                              {exp.descricao}
-                                            </span>
-                                            <span className="text-[10px] bg-neutral-100 dark:bg-neutral-800 px-1 rounded border">
-                                              {new Date(
-                                                exp.data,
-                                              ).toLocaleDateString('pt-BR')}
-                                            </span>
-                                          </div>
-                                        </TableCell>
-                                        <TableCell className="text-right py-1 border-0 text-xs text-muted-foreground">
-                                          -
-                                        </TableCell>
-                                        <TableCell className="text-right py-1 border-0 text-xs text-muted-foreground">
-                                          {formatCurrencyBRL(exp.valor)}
-                                        </TableCell>
-                                        <TableCell className="py-1 border-0"></TableCell>
-                                      </TableRow>
-                                    ))}
-                                </Fragment>
-                              )
-                            })}
-                          </Fragment>
-                        )
-                      })
-                    )}
-                  </Fragment>
-                ))}
-              </TableBody>
-            </Table>
+    <>
+      <TableRow
+        className={cn(
+          'cursor-pointer hover:bg-muted/30 transition-colors',
+          isExpanded && 'bg-muted/30',
+        )}
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <TableCell className="pl-4 py-4">
+          <div className="flex items-start gap-3">
+            <div className="mt-1">
+              {isExpanded ? (
+                <ChevronDown className="h-4 w-4 text-primary" />
+              ) : (
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              )}
+            </div>
+            <div className="mt-0.5 p-1.5 rounded-lg bg-primary/10 text-primary">
+              <Activity className="h-4 w-4" />
+            </div>
+            <div>
+              <div className="font-semibold text-sm text-foreground">
+                {action.nome_acao}
+              </div>
+              <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2 max-w-[250px]">
+                {action.descricao_oficial || 'Sem descrição oficial'}
+              </div>
+              <div className="text-[10px] text-muted-foreground mt-1 bg-muted px-1.5 py-0.5 rounded-sm w-fit">
+                Portaria: {action.portaria}
+              </div>
+            </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </TableCell>
+        <TableCell className="text-right align-middle font-bold text-sm">
+          {formatCurrencyBRL(totalExecuted)}
+        </TableCell>
+        <TableCell className="text-right align-middle text-sm text-muted-foreground">
+          {servicesTotal > 0 ? (
+            <div className="flex items-center justify-end gap-1.5">
+              <User className="h-3 w-3 text-blue-500" />
+              {formatCurrencyBRL(servicesTotal)}
+            </div>
+          ) : (
+            '-'
+          )}
+        </TableCell>
+        <TableCell className="text-right align-middle text-sm text-muted-foreground">
+          {materialsTotal > 0 ? (
+            <div className="flex items-center justify-end gap-1.5">
+              <Box className="h-3 w-3 text-emerald-500" />
+              {formatCurrencyBRL(materialsTotal)}
+            </div>
+          ) : (
+            '-'
+          )}
+        </TableCell>
+        <TableCell className="text-right align-middle text-sm text-muted-foreground">
+          {distributionTotal > 0 ? (
+            <div className="flex items-center justify-end gap-1.5">
+              <Gift className="h-3 w-3 text-amber-500" />
+              {formatCurrencyBRL(distributionTotal)}
+            </div>
+          ) : (
+            '-'
+          )}
+        </TableCell>
+        <TableCell className="text-center align-middle">
+          <Badge
+            variant="outline"
+            className={cn('text-[10px] font-bold border', statusColor)}
+          >
+            {status}
+          </Badge>
+        </TableCell>
+      </TableRow>
+
+      {isExpanded && (
+        <TableRow className="hover:bg-transparent bg-muted/10">
+          <TableCell colSpan={6} className="p-0 border-b">
+            <div className="px-12 py-6 animate-fade-in-down">
+              <div className="flex items-center gap-2 mb-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                <Package className="h-4 w-4" />
+                Detalhamento de Itens de Despesa
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Services Column */}
+                <div className="bg-white dark:bg-card border rounded-lg p-4 shadow-sm">
+                  <div className="flex justify-between items-center mb-3 pb-2 border-b">
+                    <span className="text-xs font-bold text-muted-foreground uppercase">
+                      Serviços de Terceiros
+                    </span>
+                    <span className="text-sm font-bold text-blue-600">
+                      {formatCurrencyBRL(servicesTotal)}
+                    </span>
+                  </div>
+                  <ExpenseList
+                    expenses={expenses.filter(
+                      (e) => e.categoria === AuditCategories.SERVICOS_TERCEIROS,
+                    )}
+                  />
+                </div>
+
+                {/* Materials Column */}
+                <div className="bg-white dark:bg-card border rounded-lg p-4 shadow-sm">
+                  <div className="flex justify-between items-center mb-3 pb-2 border-b">
+                    <span className="text-xs font-bold text-muted-foreground uppercase">
+                      Material de Consumo
+                    </span>
+                    <span className="text-sm font-bold text-emerald-600">
+                      {formatCurrencyBRL(materialsTotal)}
+                    </span>
+                  </div>
+                  <ExpenseList
+                    expenses={expenses.filter(
+                      (e) => e.categoria === AuditCategories.MATERIAL_CONSUMO,
+                    )}
+                  />
+                </div>
+
+                {/* Distribution Column */}
+                <div className="bg-white dark:bg-card border rounded-lg p-4 shadow-sm">
+                  <div className="flex justify-between items-center mb-3 pb-2 border-b">
+                    <span className="text-xs font-bold text-muted-foreground uppercase">
+                      Material de Distribuição
+                    </span>
+                    <span className="text-sm font-bold text-amber-600">
+                      {formatCurrencyBRL(distributionTotal)}
+                    </span>
+                  </div>
+                  <ExpenseList
+                    expenses={expenses.filter(
+                      (e) =>
+                        e.categoria === AuditCategories.DISTRIBUICAO_GRATUITA,
+                    )}
+                  />
+                </div>
+              </div>
+            </div>
+          </TableCell>
+        </TableRow>
+      )}
+    </>
+  )
+}
+
+const ExpenseList = ({ expenses }: { expenses: any[] }) => {
+  if (expenses.length === 0) {
+    return (
+      <div className="text-xs text-muted-foreground/50 italic py-2 text-center">
+        Nenhum item registrado
+      </div>
+    )
+  }
+  return (
+    <ul className="space-y-2">
+      {expenses.map((expense) => (
+        <li key={expense.id} className="flex justify-between items-start gap-2">
+          <span className="text-xs text-foreground line-clamp-2 leading-tight">
+            {expense.descricao}
+          </span>
+          <span className="text-xs font-medium italic text-muted-foreground whitespace-nowrap">
+            {formatCurrencyBRL(expense.valor)}
+          </span>
+        </li>
+      ))}
+    </ul>
   )
 }
