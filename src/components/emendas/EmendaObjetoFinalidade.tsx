@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Edit2, Save, X, FileText } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { ExpandableText } from '@/components/ui/expandable-text'
 
 interface EmendaObjetoFinalidadeProps {
   description: string
@@ -36,7 +37,7 @@ export const EmendaObjetoFinalidade = ({
 
   return (
     <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
-      <CardHeader className="flex flex-row items-center justify-between py-4">
+      <CardHeader className="flex flex-row items-center justify-between py-4 border-b border-neutral-100 dark:border-neutral-800">
         <div className="flex items-center gap-2">
           <div className="bg-primary/10 p-2 rounded-lg text-primary">
             <FileText className="h-4 w-4" />
@@ -67,7 +68,7 @@ export const EmendaObjetoFinalidade = ({
           </div>
         )}
       </CardHeader>
-      <CardContent className="pt-2 pb-6">
+      <CardContent className="pt-6 pb-6">
         {isEditing ? (
           <Textarea
             value={text || ''}
@@ -76,14 +77,13 @@ export const EmendaObjetoFinalidade = ({
             placeholder="Descreva detalhadamente o objeto e a finalidade desta emenda..."
           />
         ) : (
-          <div className="bg-neutral-50 dark:bg-neutral-900/50 rounded-lg p-4 border border-neutral-100 dark:border-neutral-800">
-            <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap break-words">
-              {text || (
-                <span className="text-neutral-400 italic">
-                  Nenhuma descrição detalhada informada.
-                </span>
-              )}
-            </p>
+          <div className="bg-neutral-50 dark:bg-neutral-900/30 rounded-lg p-4 border border-transparent hover:border-neutral-100 transition-colors">
+            <ExpandableText text={text} limit={400} />
+            {!text && (
+              <span className="text-neutral-400 italic text-sm">
+                Nenhuma descrição detalhada informada.
+              </span>
+            )}
           </div>
         )}
       </CardContent>

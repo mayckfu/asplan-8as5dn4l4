@@ -16,6 +16,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { MoneyInput } from '@/components/ui/money-input'
 import { cn, formatCurrencyBRL } from '@/lib/utils'
 import { formatDisplayDate } from '@/lib/date-utils'
+import { ExpandableText } from '@/components/ui/expandable-text'
 
 interface EmendaDadosTecnicosProps {
   emenda: DetailedAmendment
@@ -31,24 +32,30 @@ const ReadOnlyField = ({
   value,
   className,
   fullWidth = false,
+  isExpandable = false,
 }: {
   label: string
-  value: React.ReactNode
+  value: string | number | null | undefined
   className?: string
   fullWidth?: boolean
+  isExpandable?: boolean
 }) => (
   <div
     className={cn(
-      'space-y-1.5',
+      'flex flex-col gap-1.5 p-3 rounded-lg border border-transparent hover:bg-neutral-50/80 hover:border-neutral-100 transition-colors',
       fullWidth ? 'col-span-1 md:col-span-2 lg:col-span-3' : '',
       className,
     )}
   >
-    <dt className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+    <dt className="text-xs font-bold text-neutral-500 uppercase tracking-wide">
       {label}
     </dt>
-    <dd className="text-sm font-medium text-foreground leading-relaxed whitespace-pre-wrap break-words">
-      {value || <span className="text-muted-foreground/50 italic">-</span>}
+    <dd className="text-sm font-medium text-neutral-900 dark:text-neutral-100 leading-relaxed">
+      {isExpandable ? (
+        <ExpandableText text={String(value || '')} limit={150} />
+      ) : (
+        value || <span className="text-muted-foreground/50 italic">-</span>
+      )}
     </dd>
   </div>
 )
@@ -102,7 +109,7 @@ export const EmendaDadosTecnicos = forwardRef<
       className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800"
       ref={containerRef}
     >
-      <CardHeader className="flex flex-row items-center justify-between py-4">
+      <CardHeader className="flex flex-row items-center justify-between py-4 border-b border-neutral-100 dark:border-neutral-800">
         <div className="flex items-center gap-2">
           <div className="bg-primary/10 p-2 rounded-lg text-primary">
             <Info className="h-4 w-4" />
@@ -133,7 +140,7 @@ export const EmendaDadosTecnicos = forwardRef<
           </div>
         )}
       </CardHeader>
-      <CardContent className="pt-2 pb-6">
+      <CardContent className="pt-6 pb-6">
         {isEditing ? (
           <div className="grid gap-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -229,7 +236,7 @@ export const EmendaDadosTecnicos = forwardRef<
             </div>
           </div>
         ) : (
-          <dl className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8">
+          <dl className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-6">
             {/* Core Identification Fields (Read Only Context) */}
             <ReadOnlyField
               label="Número da Emenda"
@@ -243,31 +250,30 @@ export const EmendaDadosTecnicos = forwardRef<
               label="Número da Proposta"
               value={emenda.numero_proposta}
             />
+
             <ReadOnlyField
               label="Valor Total"
               value={formatCurrencyBRL(emenda.valor_total)}
             />
             <ReadOnlyField
-              label="Parlamentar"
-              value={emenda.parlamentar}
-              className="md:col-span-2"
-            />
-            <ReadOnlyField
-              label="Autor"
-              value={emenda.autor}
-              className="md:col-span-2"
+              label="Tipo de Recurso"
+              value={TipoRecurso[emenda.tipo_recurso] || emenda.tipo_recurso}
             />
             <ReadOnlyField
               label="Tipo de Emenda"
               value={TipoEmenda[emenda.tipo] || emenda.tipo}
             />
+
             <ReadOnlyField
-              label="Tipo de Recurso"
-              value={TipoRecurso[emenda.tipo_recurso] || emenda.tipo_recurso}
+              label="Parlamentar"
+              value={emenda.parlamentar}
+              className="md:col-span-2"
             />
-            <div className="hidden lg:block lg:col-span-2" /> {/* Spacer */}
-            <div className="col-span-full border-t border-dashed border-neutral-200 dark:border-neutral-800 my-2" />
-            {/* Editable Technical Fields */}
+            <ReadOnlyField label="Autor" value={emenda.autor} />
+
+            <div className="col-span-full border-t border-neutral-100 dark:border-neutral-800 my-2" />
+
+            {/* Editable Technical Fields Display */}
             <ReadOnlyField
               label="Natureza da Despesa"
               value={emenda.natureza}
@@ -280,6 +286,12 @@ export const EmendaDadosTecnicos = forwardRef<
               label="Unidade de Destino"
               value={emenda.destino_recurso}
             />
+
+            <ReadOnlyField label="Portaria" value={emenda.portaria} />
+            <ReadOnlyField
+              label="Deliberação CIE"
+              value={emenda.deliberacao_cie}
+            />
             <ReadOnlyField
               label="Data Prev. Repasse"
               value={
@@ -288,28 +300,19 @@ export const EmendaDadosTecnicos = forwardRef<
                   : null
               }
             />
-            <ReadOnlyField label="Portaria" value={emenda.portaria} />
-            <ReadOnlyField
-              label="Deliberação CIE"
-              value={emenda.deliberacao_cie}
-            />
-            <ReadOnlyField
-              label="Valor Repasse Prev."
-              value={
-                emenda.valor_repasse
-                  ? formatCurrencyBRL(emenda.valor_repasse)
-                  : null
-              }
-            />
+
             <ReadOnlyField
               label="Objeto (Resumido)"
               value={emenda.objeto_emenda}
               fullWidth
+              isExpandable
             />
+
             <ReadOnlyField
               label="Observações Gerais"
               value={emenda.observacoes}
               fullWidth
+              isExpandable
             />
           </dl>
         )}

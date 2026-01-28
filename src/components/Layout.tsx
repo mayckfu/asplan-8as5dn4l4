@@ -3,6 +3,7 @@ import { AppSidebar } from '@/components/AppSidebar'
 import { Header } from '@/components/Header'
 import { SidebarProvider, useSidebar } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
+import { SessionTimeout } from '@/components/SessionTimeout'
 
 const AppLayout = () => {
   const { state, isMobile } = useSidebar()
@@ -17,6 +18,7 @@ const AppLayout = () => {
         'print:block print:w-full print:h-auto',
       )}
     >
+      <SessionTimeout />
       <AppSidebar />
       <div className="flex flex-col overflow-hidden h-screen print:overflow-visible print:h-auto print:block">
         <Header />
