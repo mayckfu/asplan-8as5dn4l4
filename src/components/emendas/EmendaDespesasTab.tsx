@@ -58,7 +58,7 @@ import {
   SelectLabel,
 } from '@/components/ui/select'
 import { useAuth } from '@/contexts/AuthContext'
-import { formatDisplayDate, formatDateToDB } from '@/lib/date-utils'
+import { formatDateToDB, formatDisplayDate } from '@/lib/date-utils'
 
 interface EmendaDespesasTabProps {
   despesas: Despesa[]
@@ -170,15 +170,6 @@ export const EmendaDespesasTab = forwardRef<
       toast({ title: 'Despesa adicionada com sucesso!' })
     }
     setIsFormOpen(false)
-  }
-
-  const getDestinationName = (id?: string | null) => {
-    if (!id) return '-'
-    for (const group of destinations) {
-      const found = group.items.find((d) => d.id === id)
-      if (found) return `${found.tipo_destinacao} (${group.actionName})`
-    }
-    return '-'
   }
 
   return (

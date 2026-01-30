@@ -15,6 +15,7 @@ import {
   DetailedAmendment,
   ActionWithDestinations,
   AuditCategories,
+  Destination,
 } from '@/lib/mock-data'
 import { formatCurrencyBRL, cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase/client'
@@ -117,7 +118,7 @@ export const EmendaActionForm = ({
     return { available, remaining }
   }
 
-  const { available, remaining } = calculateBalance()
+  const { remaining } = calculateBalance()
   const isOverBudget = remaining < 0
 
   const handleSave = async () => {
