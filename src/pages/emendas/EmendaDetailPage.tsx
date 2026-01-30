@@ -355,6 +355,7 @@ const EmendaDetailPage = () => {
             ref={repassesTabRef}
             repasses={emendaData.repasses}
             onRepassesChange={() => refreshData()}
+            emendaId={emendaData.id}
           />
         </TabsContent>
         <TabsContent value="despesas" className="mt-4">

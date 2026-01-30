@@ -43,6 +43,7 @@ const repasseSchema = z.object({
     required_error: 'O status é obrigatório.',
   }),
   observacoes: z.string().optional(),
+  ordem_bancaria: z.string().optional(),
 })
 
 type RepasseFormValues = z.infer<typeof repasseSchema>
@@ -66,6 +67,7 @@ export const RepasseForm = ({
       fonte: repasse?.fonte || '',
       status: repasse?.status || 'PENDENTE',
       observacoes: repasse?.observacoes || '',
+      ordem_bancaria: repasse?.ordem_bancaria || '',
     },
   })
 
@@ -148,6 +150,19 @@ export const RepasseForm = ({
               <FormLabel>Fonte</FormLabel>
               <FormControl>
                 <Input placeholder="Ex: Fundo Nacional de Saúde" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="ordem_bancaria"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Ordem Bancária</FormLabel>
+              <FormControl>
+                <Input placeholder="Ex: 2024OB800123" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -91,6 +91,7 @@ export type Repasse = {
   comprovante_url?: string
   status: 'REPASSADO' | 'PENDENTE' | 'CANCELADO'
   observacoes?: string
+  ordem_bancaria?: string
 }
 
 export type Despesa = {
