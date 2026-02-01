@@ -26,7 +26,7 @@ import {
   Box,
   Gift,
 } from 'lucide-react'
-import { formatCurrencyBRL, cn } from '@/lib/utils'
+import { formatCurrencyBRL, cn, formatPercent } from '@/lib/utils'
 
 interface AuditReportTabProps {
   data: DetailedAmendment[]
@@ -55,9 +55,8 @@ export const AuditReportTab = ({ data }: AuditReportTabProps) => {
         <div className="flex justify-between items-start">
           <div>
             <CardTitle className="text-xl font-bold">
-              Visão de Auditoria Detalhada
+              Visão de Auditoria e Controle
             </CardTitle>
-            {/* Hierarchy description removed as per user story */}
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="icon" title="Download">
@@ -78,24 +77,18 @@ export const AuditReportTab = ({ data }: AuditReportTabProps) => {
                   Eixo / Ação de Controle
                 </TableHead>
                 <TableHead className="w-[15%] text-xs font-bold uppercase tracking-wider text-muted-foreground text-right">
-                  Valor Total (R$)
+                  Valor Planejado
                 </TableHead>
                 <TableHead className="w-[15%] text-xs font-bold uppercase tracking-wider text-muted-foreground text-right">
-                  Serviços
-                  <br />
-                  Terceiros (PJ)
+                  Valor Executado
                 </TableHead>
                 <TableHead className="w-[15%] text-xs font-bold uppercase tracking-wider text-muted-foreground text-right">
-                  Material de
-                  <br />
-                  Consumo
+                  Saldo
                 </TableHead>
-                <TableHead className="w-[15%] text-xs font-bold uppercase tracking-wider text-muted-foreground text-right">
-                  Distribuição
-                  <br />
-                  Gratuita
+                <TableHead className="w-[10%] text-xs font-bold uppercase tracking-wider text-muted-foreground text-right">
+                  % Execução
                 </TableHead>
-                <TableHead className="w-[10%] text-xs font-bold uppercase tracking-wider text-muted-foreground text-center">
+                <TableHead className="w-[15%] text-xs font-bold uppercase tracking-wider text-muted-foreground text-center">
                   Status
                 </TableHead>
               </TableRow>
@@ -134,39 +127,56 @@ const AuditActionRow = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false)
 
-  // Calculate totals based on Expenses
-  const expenses = action.relatedExpenses
-  const totalExecuted = expenses.reduce((acc, curr) => acc + curr.valor, 0)
+  // Calculate totals
+  const totalPlanned = action.destinacoes.reduce(
+    (acc, d) => acc + d.valor_destinado,
+    0,
+  )
+  const totalExecuted = action.relatedExpenses.reduce(
+    (acc, curr) => acc + curr.valor,
+    0,
+  )
+  const balance = totalPlanned - totalExecuted
+  const percent = totalPlanned > 0 ? (totalExecuted / totalPlanned) * 100 : 0
 
+  // Category Breakdowns (Executed)
+  const expenses = action.relatedExpenses
   const servicesTotal = expenses
     .filter((e) => e.categoria === AuditCategories.SERVICOS_TERCEIROS)
     .reduce((acc, curr) => acc + curr.valor, 0)
-
   const materialsTotal = expenses
     .filter((e) => e.categoria === AuditCategories.MATERIAL_CONSUMO)
     .reduce((acc, curr) => acc + curr.valor, 0)
-
   const distributionTotal = expenses
     .filter((e) => e.categoria === AuditCategories.DISTRIBUICAO_GRATUITA)
     .reduce((acc, curr) => acc + curr.valor, 0)
+
+  // Category Breakdowns (Planned)
+  const plannedServices = action.destinacoes
+    .filter((d) => d.tipo_destinacao === AuditCategories.SERVICOS_TERCEIROS)
+    .reduce((acc, curr) => acc + curr.valor_destinado, 0)
+  const plannedMaterials = action.destinacoes
+    .filter((d) => d.tipo_destinacao === AuditCategories.MATERIAL_CONSUMO)
+    .reduce((acc, curr) => acc + curr.valor_destinado, 0)
+  const plannedDistribution = action.destinacoes
+    .filter((d) => d.tipo_destinacao === AuditCategories.DISTRIBUICAO_GRATUITA)
+    .reduce((acc, curr) => acc + curr.valor_destinado, 0)
 
   // Determine status
   let status = 'PENDENTE'
   let statusColor = 'bg-neutral-100 text-neutral-600 border-neutral-200'
 
   if (totalExecuted > 0) {
-    status = 'EM ANDAMENTO'
-    statusColor = 'bg-blue-100 text-blue-700 border-blue-200'
-  }
-
-  // Calculate planned total to check completion
-  const totalPlanned = action.destinacoes.reduce(
-    (acc, d) => acc + d.valor_destinado,
-    0,
-  )
-  if (totalExecuted >= totalPlanned && totalPlanned > 0) {
-    status = 'EXECUTADO'
-    statusColor = 'bg-emerald-100 text-emerald-700 border-emerald-200'
+    if (totalExecuted >= totalPlanned && totalPlanned > 0) {
+      status = 'EXECUTADO'
+      statusColor = 'bg-emerald-100 text-emerald-700 border-emerald-200'
+    } else if (totalExecuted > totalPlanned) {
+      status = 'EXCEDIDO'
+      statusColor = 'bg-red-100 text-red-700 border-red-200'
+    } else {
+      status = 'PARCIAL'
+      statusColor = 'bg-blue-100 text-blue-700 border-blue-200'
+    }
   }
 
   return (
@@ -197,44 +207,27 @@ const AuditActionRow = ({
               <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2 max-w-[250px]">
                 {action.descricao_oficial || 'Sem descrição oficial'}
               </div>
-              <div className="text-[10px] text-muted-foreground mt-1 bg-muted px-1.5 py-0.5 rounded-sm w-fit">
-                Portaria: {action.portaria}
-              </div>
             </div>
           </div>
+        </TableCell>
+        <TableCell className="text-right align-middle text-sm font-medium text-muted-foreground">
+          {formatCurrencyBRL(totalPlanned)}
         </TableCell>
         <TableCell className="text-right align-middle font-bold text-sm">
           {formatCurrencyBRL(totalExecuted)}
         </TableCell>
-        <TableCell className="text-right align-middle text-sm text-muted-foreground">
-          {servicesTotal > 0 ? (
-            <div className="flex items-center justify-end gap-1.5">
-              <User className="h-3 w-3 text-blue-500" />
-              {formatCurrencyBRL(servicesTotal)}
-            </div>
-          ) : (
-            '-'
-          )}
+        <TableCell className="text-right align-middle text-sm">
+          <span
+            className={cn(
+              'font-medium',
+              balance < 0 ? 'text-red-600' : 'text-emerald-600',
+            )}
+          >
+            {formatCurrencyBRL(balance)}
+          </span>
         </TableCell>
-        <TableCell className="text-right align-middle text-sm text-muted-foreground">
-          {materialsTotal > 0 ? (
-            <div className="flex items-center justify-end gap-1.5">
-              <Box className="h-3 w-3 text-emerald-500" />
-              {formatCurrencyBRL(materialsTotal)}
-            </div>
-          ) : (
-            '-'
-          )}
-        </TableCell>
-        <TableCell className="text-right align-middle text-sm text-muted-foreground">
-          {distributionTotal > 0 ? (
-            <div className="flex items-center justify-end gap-1.5">
-              <Gift className="h-3 w-3 text-amber-500" />
-              {formatCurrencyBRL(distributionTotal)}
-            </div>
-          ) : (
-            '-'
-          )}
+        <TableCell className="text-right align-middle text-sm font-medium text-muted-foreground">
+          {formatPercent(percent)}
         </TableCell>
         <TableCell className="text-center align-middle">
           <Badge
@@ -252,61 +245,46 @@ const AuditActionRow = ({
             <div className="px-12 py-6 animate-fade-in-down">
               <div className="flex items-center gap-2 mb-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 <Package className="h-4 w-4" />
-                Detalhamento de Itens de Despesa
+                Detalhamento por Categoria de Despesa
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Services Column */}
-                <div className="bg-white dark:bg-card border rounded-lg p-4 shadow-sm">
-                  <div className="flex justify-between items-center mb-3 pb-2 border-b">
-                    <span className="text-xs font-bold text-muted-foreground uppercase">
-                      Serviços de Terceiros
-                    </span>
-                    <span className="text-sm font-bold text-blue-600">
-                      {formatCurrencyBRL(servicesTotal)}
-                    </span>
-                  </div>
-                  <ExpenseList
-                    expenses={expenses.filter(
-                      (e) => e.categoria === AuditCategories.SERVICOS_TERCEIROS,
-                    )}
-                  />
-                </div>
+                <CategoryCard
+                  title="Serviços de Terceiros"
+                  planned={plannedServices}
+                  executed={servicesTotal}
+                  expenses={expenses.filter(
+                    (e) => e.categoria === AuditCategories.SERVICOS_TERCEIROS,
+                  )}
+                  icon={<User className="h-4 w-4" />}
+                  colorClass="text-blue-600"
+                />
 
                 {/* Materials Column */}
-                <div className="bg-white dark:bg-card border rounded-lg p-4 shadow-sm">
-                  <div className="flex justify-between items-center mb-3 pb-2 border-b">
-                    <span className="text-xs font-bold text-muted-foreground uppercase">
-                      Material de Consumo
-                    </span>
-                    <span className="text-sm font-bold text-emerald-600">
-                      {formatCurrencyBRL(materialsTotal)}
-                    </span>
-                  </div>
-                  <ExpenseList
-                    expenses={expenses.filter(
-                      (e) => e.categoria === AuditCategories.MATERIAL_CONSUMO,
-                    )}
-                  />
-                </div>
+                <CategoryCard
+                  title="Material de Consumo"
+                  planned={plannedMaterials}
+                  executed={materialsTotal}
+                  expenses={expenses.filter(
+                    (e) => e.categoria === AuditCategories.MATERIAL_CONSUMO,
+                  )}
+                  icon={<Box className="h-4 w-4" />}
+                  colorClass="text-emerald-600"
+                />
 
                 {/* Distribution Column */}
-                <div className="bg-white dark:bg-card border rounded-lg p-4 shadow-sm">
-                  <div className="flex justify-between items-center mb-3 pb-2 border-b">
-                    <span className="text-xs font-bold text-muted-foreground uppercase">
-                      Material de Distribuição
-                    </span>
-                    <span className="text-sm font-bold text-amber-600">
-                      {formatCurrencyBRL(distributionTotal)}
-                    </span>
-                  </div>
-                  <ExpenseList
-                    expenses={expenses.filter(
-                      (e) =>
-                        e.categoria === AuditCategories.DISTRIBUICAO_GRATUITA,
-                    )}
-                  />
-                </div>
+                <CategoryCard
+                  title="Material de Distribuição"
+                  planned={plannedDistribution}
+                  executed={distributionTotal}
+                  expenses={expenses.filter(
+                    (e) =>
+                      e.categoria === AuditCategories.DISTRIBUICAO_GRATUITA,
+                  )}
+                  icon={<Gift className="h-4 w-4" />}
+                  colorClass="text-amber-600"
+                />
               </div>
             </div>
           </TableCell>
@@ -316,16 +294,74 @@ const AuditActionRow = ({
   )
 }
 
+const CategoryCard = ({
+  title,
+  planned,
+  executed,
+  expenses,
+  icon,
+  colorClass,
+}: {
+  title: string
+  planned: number
+  executed: number
+  expenses: any[]
+  icon: React.ReactNode
+  colorClass: string
+}) => {
+  const balance = planned - executed
+  return (
+    <div className="bg-white dark:bg-card border rounded-lg p-4 shadow-sm">
+      <div className="flex justify-between items-center mb-1">
+        <div className="flex items-center gap-2">
+          {icon}
+          <span className="text-xs font-bold text-muted-foreground uppercase">
+            {title}
+          </span>
+        </div>
+      </div>
+      <div className="flex justify-between items-end mb-3 pb-3 border-b border-dashed">
+        <div className="flex flex-col">
+          <span className="text-[10px] text-muted-foreground">Planejado</span>
+          <span className="text-xs font-medium">
+            {formatCurrencyBRL(planned)}
+          </span>
+        </div>
+        <div className="flex flex-col items-end">
+          <span className="text-[10px] text-muted-foreground">Executado</span>
+          <span className={cn('text-sm font-bold', colorClass)}>
+            {formatCurrencyBRL(executed)}
+          </span>
+        </div>
+      </div>
+      <ExpenseList expenses={expenses} />
+      {balance !== 0 && (
+        <div className="mt-3 pt-2 border-t text-right">
+          <span className="text-[10px] text-muted-foreground mr-2">Saldo:</span>
+          <span
+            className={cn(
+              'text-xs font-medium',
+              balance < 0 ? 'text-red-600' : 'text-emerald-600',
+            )}
+          >
+            {formatCurrencyBRL(balance)}
+          </span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 const ExpenseList = ({ expenses }: { expenses: any[] }) => {
   if (expenses.length === 0) {
     return (
       <div className="text-xs text-muted-foreground/50 italic py-2 text-center">
-        Nenhum item registrado
+        Nenhum item lançado
       </div>
     )
   }
   return (
-    <ul className="space-y-2">
+    <ul className="space-y-2 max-h-[150px] overflow-y-auto pr-1">
       {expenses.map((expense) => (
         <li key={expense.id} className="flex justify-between items-start gap-2">
           <span className="text-xs text-foreground line-clamp-2 leading-tight">

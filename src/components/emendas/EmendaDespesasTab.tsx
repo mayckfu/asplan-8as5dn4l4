@@ -5,6 +5,7 @@ import {
   Edit,
   Trash2,
   FileText,
+  Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -59,11 +60,13 @@ import {
 } from '@/components/ui/select'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatDateToDB, formatDisplayDate } from '@/lib/date-utils'
+import { supabase } from '@/lib/supabase/client'
 
 interface EmendaDespesasTabProps {
   despesas: Despesa[]
   destinations?: { actionName: string; items: Destination[] }[]
   onDespesasChange: (despesas: Despesa[]) => void
+  emendaId: string
 }
 
 export interface EmendaDespesasTabHandles {
@@ -73,12 +76,13 @@ export interface EmendaDespesasTabHandles {
 export const EmendaDespesasTab = forwardRef<
   EmendaDespesasTabHandles,
   EmendaDespesasTabProps
->(({ despesas, destinations = [], onDespesasChange }, ref) => {
+>(({ despesas, destinations = [], onDespesasChange, emendaId }, ref) => {
   const { toast } = useToast()
   const { user, checkPermission } = useAuth()
   const [dossierExpense, setDossierExpense] = useState<Despesa | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedExpense, setSelectedExpense] = useState<Despesa | null>(null)
 
   // Form state
@@ -126,50 +130,101 @@ export const EmendaDespesasTab = forwardRef<
     setIsDeleteOpen(true)
   }
 
-  const handleConfirmDelete = () => {
-    if (selectedExpense) {
-      onDespesasChange(despesas.filter((d) => d.id !== selectedExpense.id))
+  const handleConfirmDelete = async () => {
+    if (!selectedExpense) return
+    setIsSubmitting(true)
+
+    try {
+      const { error } = await supabase
+        .from('despesas')
+        .delete()
+        .eq('id', selectedExpense.id)
+
+      if (error) throw error
+
       toast({ title: 'Despesa excluída com sucesso!' })
+      onDespesasChange([]) // Trigger refresh
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao excluir',
+        description: error.message,
+        variant: 'destructive',
+      })
+    } finally {
+      setIsSubmitting(false)
+      setIsDeleteOpen(false)
+      setSelectedExpense(null)
     }
-    setIsDeleteOpen(false)
-    setSelectedExpense(null)
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.descricao || !formData.valor || !formData.data) {
       toast({
         title: 'Erro',
-        description: 'Preencha os campos obrigatórios.',
+        description:
+          'Preencha os campos obrigatórios (Data, Descrição, Valor).',
         variant: 'destructive',
       })
       return
     }
 
-    const newDespesa: Despesa = {
-      id: selectedExpense?.id || `D-${Date.now()}`,
-      data: formData.data!,
-      valor: Number(formData.valor),
-      descricao: formData.descricao!,
-      status_execucao: formData.status_execucao || 'PLANEJADA',
-      categoria: formData.categoria || AuditCategories.OUTROS,
-      fornecedor_nome: formData.fornecedor_nome || '',
-      unidade_destino: formData.unidade_destino || '',
-      registrada_por:
-        selectedExpense?.registrada_por || user?.name || 'Usuário',
-      demanda: formData.demanda,
-      destinacao_id: formData.destinacao_id,
+    if (!formData.destinacao_id) {
+      toast({
+        title: 'Destinação Obrigatória',
+        description:
+          'Por favor, selecione a qual item do planejamento (Destinação) esta despesa se refere.',
+        variant: 'destructive',
+      })
+      return
     }
 
-    if (selectedExpense) {
-      onDespesasChange(
-        despesas.map((d) => (d.id === selectedExpense.id ? newDespesa : d)),
-      )
-      toast({ title: 'Despesa atualizada com sucesso!' })
-    } else {
-      onDespesasChange([...despesas, newDespesa])
-      toast({ title: 'Despesa adicionada com sucesso!' })
+    setIsSubmitting(true)
+    try {
+      const payload = {
+        emenda_id: emendaId,
+        data: formData.data!,
+        valor: Number(formData.valor),
+        descricao: formData.descricao!,
+        status_execucao: formData.status_execucao || 'PLANEJADA',
+        categoria: formData.categoria || AuditCategories.OUTROS,
+        fornecedor_nome: formData.fornecedor_nome || '',
+        unidade_destino: formData.unidade_destino || '',
+        registrada_por: selectedExpense?.registrada_por ? undefined : user?.id, // Only set if creating
+        demanda: formData.demanda,
+        destinacao_id: formData.destinacao_id,
+      }
+
+      if (selectedExpense) {
+        // Update
+        const { error } = await supabase
+          .from('despesas')
+          .update(payload as any)
+          .eq('id', selectedExpense.id)
+
+        if (error) throw error
+        toast({ title: 'Despesa atualizada com sucesso!' })
+      } else {
+        // Insert
+        const { error } = await supabase
+          .from('despesas')
+          .insert({ ...payload, registrada_por: user?.id } as any)
+
+        if (error) throw error
+        toast({ title: 'Despesa adicionada com sucesso!' })
+      }
+
+      setIsFormOpen(false)
+      onDespesasChange([]) // Trigger parent refresh
+    } catch (error: any) {
+      console.error(error)
+      toast({
+        title: 'Erro ao salvar despesa',
+        description: error.message,
+        variant: 'destructive',
+      })
+    } finally {
+      setIsSubmitting(false)
     }
-    setIsFormOpen(false)
   }
 
   return (
@@ -283,7 +338,7 @@ export const EmendaDespesasTab = forwardRef<
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="data" className="text-right">
-                Data
+                Data *
               </Label>
               <Input
                 id="data"
@@ -297,7 +352,7 @@ export const EmendaDespesasTab = forwardRef<
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="descricao" className="text-right">
-                Descrição
+                Descrição *
               </Label>
               <Input
                 id="descricao"
@@ -332,7 +387,7 @@ export const EmendaDespesasTab = forwardRef<
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="destinacao" className="text-right">
-                Destinação
+                Destinação (Planejamento) *
               </Label>
               <Select
                 value={formData.destinacao_id || ''}
@@ -360,7 +415,7 @@ export const EmendaDespesasTab = forwardRef<
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="valor" className="text-right">
-                Valor
+                Valor *
               </Label>
               <div className="col-span-3">
                 <MoneyInput
@@ -407,10 +462,19 @@ export const EmendaDespesasTab = forwardRef<
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsFormOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsFormOpen(false)}
+              disabled={isSubmitting}
+            >
               Cancelar
             </Button>
-            <Button onClick={handleSave}>Salvar</Button>
+            <Button onClick={handleSave} disabled={isSubmitting}>
+              {isSubmitting && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Salvar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -424,9 +488,18 @@ export const EmendaDespesasTab = forwardRef<
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete}>
-              Excluir
+            <AlertDialogCancel disabled={isSubmitting}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                'Excluir'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -434,3 +507,5 @@ export const EmendaDespesasTab = forwardRef<
     </>
   )
 })
+
+EmendaDespesasTab.displayName = 'EmendaDespesasTab'

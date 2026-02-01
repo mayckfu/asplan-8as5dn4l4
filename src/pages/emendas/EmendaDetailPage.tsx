@@ -364,6 +364,7 @@ const EmendaDetailPage = () => {
             despesas={emendaData.despesas}
             destinations={destinationsForDropdown}
             onDespesasChange={() => refreshData()}
+            emendaId={emendaData.id}
           />
         </TabsContent>
         <TabsContent value="anexos" className="mt-4">
