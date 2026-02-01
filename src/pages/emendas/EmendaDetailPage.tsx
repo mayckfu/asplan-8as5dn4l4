@@ -55,154 +55,157 @@ const EmendaDetailPage = () => {
 
   const canEdit = checkPermission(['ADMIN', 'GESTOR', 'ANALISTA'])
 
-  const fetchEmendaDetails = useCallback(async () => {
-    if (!id) return
-    setIsLoading(true)
-    setError(null)
-    try {
-      // Fetch core emenda
-      const { data: emenda, error: emendaError } = await supabase
-        .from('emendas')
-        .select('*')
-        .eq('id', id)
-        .single()
-      if (emendaError) throw emendaError
-
-      // Fetch related data
-      const { data: repasses, error: repassesError } = await supabase
-        .from('repasses')
-        .select('*')
-        .eq('emenda_id', id)
-      if (repassesError) throw repassesError
-
-      const { data: despesas, error: despesasError } = await supabase
-        .from('despesas')
-        .select('*, profiles:registrada_por(name)')
-        .eq('emenda_id', id)
-      if (despesasError) throw despesasError
-
-      const { data: anexos, error: anexosError } = await supabase
-        .from('anexos')
-        .select('*, profiles:uploader(name)')
-        .eq('emenda_id', id)
-      if (anexosError) throw anexosError
-
-      const { data: historico, error: historicoError } = await supabase
-        .from('historico')
-        .select('*, profiles:feito_por(name)')
-        .eq('emenda_id', id)
-        .order('criado_em', { ascending: false })
-      if (historicoError) throw historicoError
-
-      const { data: pendenciasData, error: pendenciasError } = await supabase
-        .from('pendencias')
-        .select('*')
-        .eq('emenda_id', id)
-      if (pendenciasError) throw pendenciasError
-
-      // Fetch Actions & Destinations
-      const { data: acoes, error: acoesError } = await supabase
-        .from('acoes_emendas')
-        .select('*')
-        .eq('emenda_id', id)
-      if (acoesError) throw acoesError
-
-      const acaoIds = acoes.map((a: any) => a.id)
-      let destinacoes: any[] = []
-      if (acaoIds.length > 0) {
-        const { data: dests, error: destError } = await supabase
-          .from('destinacoes_recursos')
+  const fetchEmendaDetails = useCallback(
+    async (showLoading = true) => {
+      if (!id) return
+      if (showLoading) setIsLoading(true)
+      setError(null)
+      try {
+        // Fetch core emenda
+        const { data: emenda, error: emendaError } = await supabase
+          .from('emendas')
           .select('*')
-          .in('acao_id', acaoIds)
-        if (destError) throw destError
-        destinacoes = dests
+          .eq('id', id)
+          .single()
+        if (emendaError) throw emendaError
+
+        // Fetch related data
+        const { data: repasses, error: repassesError } = await supabase
+          .from('repasses')
+          .select('*')
+          .eq('emenda_id', id)
+        if (repassesError) throw repassesError
+
+        const { data: despesas, error: despesasError } = await supabase
+          .from('despesas')
+          .select('*, profiles:registrada_por(name)')
+          .eq('emenda_id', id)
+        if (despesasError) throw despesasError
+
+        const { data: anexos, error: anexosError } = await supabase
+          .from('anexos')
+          .select('*, profiles:uploader(name)')
+          .eq('emenda_id', id)
+        if (anexosError) throw anexosError
+
+        const { data: historico, error: historicoError } = await supabase
+          .from('historico')
+          .select('*, profiles:feito_por(name)')
+          .eq('emenda_id', id)
+          .order('criado_em', { ascending: false })
+        if (historicoError) throw historicoError
+
+        const { data: pendenciasData, error: pendenciasError } = await supabase
+          .from('pendencias')
+          .select('*')
+          .eq('emenda_id', id)
+        if (pendenciasError) throw pendenciasError
+
+        // Fetch Actions & Destinations
+        const { data: acoes, error: acoesError } = await supabase
+          .from('acoes_emendas')
+          .select('*')
+          .eq('emenda_id', id)
+        if (acoesError) throw acoesError
+
+        const acaoIds = acoes.map((a: any) => a.id)
+        let destinacoes: any[] = []
+        if (acaoIds.length > 0) {
+          const { data: dests, error: destError } = await supabase
+            .from('destinacoes_recursos')
+            .select('*')
+            .in('acao_id', acaoIds)
+          if (destError) throw destError
+          destinacoes = dests
+        }
+
+        const mappedAcoes: ActionWithDestinations[] = acoes.map((a: any) => ({
+          ...a,
+          destinacoes: destinacoes.filter((d: any) => d.acao_id === a.id),
+        }))
+
+        // Map other entities
+        const mappedDespesas = despesas.map((d: any) => ({
+          ...d,
+          registrada_por: d.profiles?.name || 'Desconhecido',
+        }))
+
+        const mappedAnexos = await Promise.all(
+          anexos.map(async (a: any) => {
+            let signedUrl = a.url
+            if (!a.url.startsWith('http')) {
+              const signed = await getSignedUrl(a.url)
+              if (signed) signedUrl = signed
+            }
+            return {
+              ...a,
+              filename: a.filename || a.titulo || 'Sem Nome',
+              url: signedUrl,
+              uploader: a.profiles?.name || 'Desconhecido',
+              data: a.data_documento || a.created_at,
+            }
+          }),
+        )
+
+        const mappedHistorico = historico.map((h: any) => ({
+          ...h,
+          feito_por: h.profiles?.name || 'Desconhecido',
+        }))
+
+        const mappedPendencias: Pendencia[] = pendenciasData.map((p: any) => ({
+          id: p.id,
+          descricao: p.descricao,
+          dispensada: p.dispensada,
+          resolvida: p.resolvida,
+          justificativa: p.justificativa,
+          targetType: p.target_type,
+          targetId: p.target_id,
+        }))
+
+        const totalRepassado = repasses.reduce(
+          (sum: number, r: any) =>
+            r.status === 'REPASSADO' ? sum + Number(r.valor) : sum,
+          0,
+        )
+        const totalGasto = mappedDespesas.reduce(
+          (sum: number, d: any) => sum + Number(d.valor),
+          0,
+        )
+
+        const detailedEmenda: DetailedAmendment = {
+          ...emenda,
+          repasses: repasses as Repasse[],
+          despesas: mappedDespesas as Despesa[],
+          anexos: mappedAnexos as Anexo[],
+          historico: mappedHistorico as Historico[],
+          pendencias: mappedPendencias,
+          acoes: mappedAcoes,
+          total_repassado: totalRepassado,
+          total_gasto: totalGasto,
+        }
+
+        setEmendaData(detailedEmenda)
+      } catch (error: any) {
+        console.error('Error fetching emenda details:', error)
+        setError(error.message || 'Erro ao carregar detalhes.')
+        toast({
+          title: 'Erro ao carregar detalhes',
+          description: 'Não foi possível carregar os dados da emenda.',
+          variant: 'destructive',
+        })
+      } finally {
+        if (showLoading) setIsLoading(false)
       }
-
-      const mappedAcoes: ActionWithDestinations[] = acoes.map((a: any) => ({
-        ...a,
-        destinacoes: destinacoes.filter((d: any) => d.acao_id === a.id),
-      }))
-
-      // Map other entities
-      const mappedDespesas = despesas.map((d: any) => ({
-        ...d,
-        registrada_por: d.profiles?.name || 'Desconhecido',
-      }))
-
-      const mappedAnexos = await Promise.all(
-        anexos.map(async (a: any) => {
-          let signedUrl = a.url
-          if (!a.url.startsWith('http')) {
-            const signed = await getSignedUrl(a.url)
-            if (signed) signedUrl = signed
-          }
-          return {
-            ...a,
-            filename: a.filename || a.titulo || 'Sem Nome',
-            url: signedUrl,
-            uploader: a.profiles?.name || 'Desconhecido',
-            data: a.data_documento || a.created_at,
-          }
-        }),
-      )
-
-      const mappedHistorico = historico.map((h: any) => ({
-        ...h,
-        feito_por: h.profiles?.name || 'Desconhecido',
-      }))
-
-      const mappedPendencias: Pendencia[] = pendenciasData.map((p: any) => ({
-        id: p.id,
-        descricao: p.descricao,
-        dispensada: p.dispensada,
-        resolvida: p.resolvida,
-        justificativa: p.justificativa,
-        targetType: p.target_type,
-        targetId: p.target_id,
-      }))
-
-      const totalRepassado = repasses.reduce(
-        (sum: number, r: any) =>
-          r.status === 'REPASSADO' ? sum + Number(r.valor) : sum,
-        0,
-      )
-      const totalGasto = mappedDespesas.reduce(
-        (sum: number, d: any) => sum + Number(d.valor),
-        0,
-      )
-
-      const detailedEmenda: DetailedAmendment = {
-        ...emenda,
-        repasses: repasses as Repasse[],
-        despesas: mappedDespesas as Despesa[],
-        anexos: mappedAnexos as Anexo[],
-        historico: mappedHistorico as Historico[],
-        pendencias: mappedPendencias,
-        acoes: mappedAcoes,
-        total_repassado: totalRepassado,
-        total_gasto: totalGasto,
-      }
-
-      setEmendaData(detailedEmenda)
-    } catch (error: any) {
-      console.error('Error fetching emenda details:', error)
-      setError(error.message || 'Erro ao carregar detalhes.')
-      toast({
-        title: 'Erro ao carregar detalhes',
-        description: 'Não foi possível carregar os dados da emenda.',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }, [id, toast])
+    },
+    [id, toast],
+  )
 
   useEffect(() => {
     fetchEmendaDetails()
   }, [fetchEmendaDetails])
 
   const refreshData = async () => {
-    await fetchEmendaDetails()
+    await fetchEmendaDetails(false)
   }
 
   const handleEmendaDataChange = async (updatedEmenda: DetailedAmendment) => {
@@ -228,7 +231,8 @@ const EmendaDetailPage = () => {
         .eq('id', emendaData.id)
 
       if (error) throw error
-      setEmendaData(updatedEmenda)
+      // Refresh to get updated pendencies triggered by DB
+      await fetchEmendaDetails(false)
       toast({ title: 'Dados atualizados com sucesso!' })
     } catch (error: any) {
       toast({
@@ -247,6 +251,72 @@ const EmendaDetailPage = () => {
   const handleStatusOficialChange = (newStatus: SituacaoOficialEnum) => {
     if (!canEdit || !emendaData) return
     handleEmendaDataChange({ ...emendaData, situacao: newStatus })
+  }
+
+  const handlePendencyClick = (pendency: Pendencia) => {
+    const { targetType, targetId } = pendency
+
+    // Handle Attachment Redirection (Specific case for 'Ofício de Envio' or generic anexo)
+    if (
+      targetType === 'anexo' ||
+      targetId === 'oficio' ||
+      targetId === 'OFICIO'
+    ) {
+      setActiveTab('anexos')
+      setTimeout(() => {
+        anexosTabRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        })
+      }, 100)
+      return
+    }
+
+    // Handle Tab Redirection
+    if (targetType === 'tab') {
+      setActiveTab(targetId)
+      return
+    }
+
+    // Handle Field Redirection
+    if (targetType === 'field') {
+      const technicalFields = [
+        'valor_repasse',
+        'destino_recurso',
+        'natureza',
+        'meta_operacional',
+        'portaria',
+        'deliberacao_cie',
+        'data_repasse',
+        'objeto_emenda',
+        'observacoes',
+      ]
+
+      if (technicalFields.includes(targetId)) {
+        // Ensure we are somewhat visible if user scrolled far down
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+        // Trigger edit on the component
+        setTimeout(() => {
+          dadosTecnicosRef.current?.triggerEditAndFocus(targetId)
+        }, 300)
+        return
+      }
+    }
+
+    // Fallback if no specific logic found, try to set tab if matches
+    if (
+      [
+        'planning',
+        'repasses',
+        'despesas',
+        'anexos',
+        'audit',
+        'checklist',
+        'historico',
+      ].includes(targetId)
+    ) {
+      setActiveTab(targetId)
+    }
   }
 
   if (isLoading) {
@@ -382,7 +452,7 @@ const EmendaDetailPage = () => {
         <TabsContent value="checklist" className="mt-4">
           <EmendaChecklistTab
             pendencias={emendaData.pendencias}
-            onPendencyClick={() => {}}
+            onPendencyClick={handlePendencyClick}
             onDismiss={() => {}}
           />
         </TabsContent>

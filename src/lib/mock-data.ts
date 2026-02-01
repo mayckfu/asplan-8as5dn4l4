@@ -145,7 +145,7 @@ export type Pendencia = {
   dispensada: boolean
   resolvida?: boolean
   justificativa?: string
-  targetType: 'field' | 'tab'
+  targetType: 'field' | 'tab' | 'anexo'
   targetId: string
 }
 

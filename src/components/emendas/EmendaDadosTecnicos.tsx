@@ -154,9 +154,9 @@ export const EmendaDadosTecnicos = forwardRef<
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="meta">Meta Operacional</Label>
+                <Label htmlFor="meta_operacional">Meta Operacional</Label>
                 <Input
-                  id="meta"
+                  id="meta_operacional"
                   value={formData.meta_operacional || ''}
                   onChange={(e) =>
                     handleChange('meta_operacional', e.target.value)
@@ -165,9 +165,9 @@ export const EmendaDadosTecnicos = forwardRef<
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="destino">Unidade de Destino</Label>
+                <Label htmlFor="destino_recurso">Unidade de Destino</Label>
                 <Input
-                  id="destino"
+                  id="destino_recurso"
                   value={formData.destino_recurso || ''}
                   onChange={(e) =>
                     handleChange('destino_recurso', e.target.value)
@@ -185,9 +185,9 @@ export const EmendaDadosTecnicos = forwardRef<
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="cie">Deliberação CIE</Label>
+                <Label htmlFor="deliberacao_cie">Deliberação CIE</Label>
                 <Input
-                  id="cie"
+                  id="deliberacao_cie"
                   value={formData.deliberacao_cie || ''}
                   onChange={(e) =>
                     handleChange('deliberacao_cie', e.target.value)
@@ -216,9 +216,9 @@ export const EmendaDadosTecnicos = forwardRef<
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="objeto">Objeto (Resumido)</Label>
+              <Label htmlFor="objeto_emenda">Objeto (Resumido)</Label>
               <Input
-                id="objeto"
+                id="objeto_emenda"
                 value={formData.objeto_emenda || ''}
                 onChange={(e) => handleChange('objeto_emenda', e.target.value)}
                 placeholder="Ex: Aquisição de equipamentos"
