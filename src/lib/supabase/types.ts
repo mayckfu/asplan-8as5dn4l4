@@ -11,7 +11,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: '13.0.5'
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
@@ -51,11 +51,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'acoes_emendas_emenda_id_fkey'
-            columns: ['emenda_id']
+            foreignKeyName: "acoes_emendas_emenda_id_fkey"
+            columns: ["emenda_id"]
             isOneToOne: false
-            referencedRelation: 'emendas'
-            referencedColumns: ['id']
+            referencedRelation: "emendas"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -98,18 +98,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'anexos_emenda_id_fkey'
-            columns: ['emenda_id']
+            foreignKeyName: "anexos_emenda_id_fkey"
+            columns: ["emenda_id"]
             isOneToOne: false
-            referencedRelation: 'emendas'
-            referencedColumns: ['id']
+            referencedRelation: "emendas"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'anexos_uploader_fkey'
-            columns: ['uploader']
+            foreignKeyName: "anexos_uploader_fkey"
+            columns: ["uploader"]
             isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -146,11 +146,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'audit_logs_changed_by_fkey'
-            columns: ['changed_by']
+            foreignKeyName: "audit_logs_changed_by_fkey"
+            columns: ["changed_by"]
             isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -187,11 +187,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'backup_logs_initiated_by_fkey'
-            columns: ['initiated_by']
+            foreignKeyName: "backup_logs_initiated_by_fkey"
+            columns: ["initiated_by"]
             isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -199,7 +199,7 @@ export type Database = {
         Row: {
           active: boolean | null
           created_at: string | null
-          default_role: Database['public']['Enums']['user_role'] | null
+          default_role: Database["public"]["Enums"]["user_role"] | null
           descricao: string | null
           id: string
           nome: string
@@ -207,7 +207,7 @@ export type Database = {
         Insert: {
           active?: boolean | null
           created_at?: string | null
-          default_role?: Database['public']['Enums']['user_role'] | null
+          default_role?: Database["public"]["Enums"]["user_role"] | null
           descricao?: string | null
           id?: string
           nome: string
@@ -215,7 +215,7 @@ export type Database = {
         Update: {
           active?: boolean | null
           created_at?: string | null
-          default_role?: Database['public']['Enums']['user_role'] | null
+          default_role?: Database["public"]["Enums"]["user_role"] | null
           descricao?: string | null
           id?: string
           nome?: string
@@ -279,39 +279,39 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'despesas_autorizada_por_fkey'
-            columns: ['autorizada_por']
+            foreignKeyName: "despesas_autorizada_por_fkey"
+            columns: ["autorizada_por"]
             isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'despesas_destinacao_id_fkey'
-            columns: ['destinacao_id']
+            foreignKeyName: "despesas_destinacao_id_fkey"
+            columns: ["destinacao_id"]
             isOneToOne: false
-            referencedRelation: 'destinacoes_recursos'
-            referencedColumns: ['id']
+            referencedRelation: "destinacoes_recursos"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'despesas_emenda_id_fkey'
-            columns: ['emenda_id']
+            foreignKeyName: "despesas_emenda_id_fkey"
+            columns: ["emenda_id"]
             isOneToOne: false
-            referencedRelation: 'emendas'
-            referencedColumns: ['id']
+            referencedRelation: "emendas"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'despesas_registrada_por_fkey'
-            columns: ['registrada_por']
+            foreignKeyName: "despesas_registrada_por_fkey"
+            columns: ["registrada_por"]
             isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'despesas_responsavel_execucao_fkey'
-            columns: ['responsavel_execucao']
+            foreignKeyName: "despesas_responsavel_execucao_fkey"
+            columns: ["responsavel_execucao"]
             isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -351,11 +351,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'destinacoes_recursos_acao_id_fkey'
-            columns: ['acao_id']
+            foreignKeyName: "destinacoes_recursos_acao_id_fkey"
+            columns: ["acao_id"]
             isOneToOne: false
-            referencedRelation: 'acoes_emendas'
-            referencedColumns: ['id']
+            referencedRelation: "acoes_emendas"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -381,11 +381,11 @@ export type Database = {
           portaria: string | null
           segundo_autor: string | null
           segundo_parlamentar: string | null
-          situacao: Database['public']['Enums']['situacao_oficial']
+          situacao: Database["public"]["Enums"]["situacao_oficial"]
           situacao_recurso: string | null
-          status_interno: Database['public']['Enums']['status_interno']
-          tipo: Database['public']['Enums']['tipo_emenda_enum']
-          tipo_recurso: Database['public']['Enums']['tipo_recurso']
+          status_interno: Database["public"]["Enums"]["status_interno"]
+          tipo: Database["public"]["Enums"]["tipo_emenda_enum"]
+          tipo_recurso: Database["public"]["Enums"]["tipo_recurso"]
           updated_at: string | null
           valor_repasse: number | null
           valor_segundo_responsavel: number | null
@@ -412,11 +412,11 @@ export type Database = {
           portaria?: string | null
           segundo_autor?: string | null
           segundo_parlamentar?: string | null
-          situacao?: Database['public']['Enums']['situacao_oficial']
+          situacao?: Database["public"]["Enums"]["situacao_oficial"]
           situacao_recurso?: string | null
-          status_interno?: Database['public']['Enums']['status_interno']
-          tipo: Database['public']['Enums']['tipo_emenda_enum']
-          tipo_recurso: Database['public']['Enums']['tipo_recurso']
+          status_interno?: Database["public"]["Enums"]["status_interno"]
+          tipo: Database["public"]["Enums"]["tipo_emenda_enum"]
+          tipo_recurso: Database["public"]["Enums"]["tipo_recurso"]
           updated_at?: string | null
           valor_repasse?: number | null
           valor_segundo_responsavel?: number | null
@@ -443,11 +443,11 @@ export type Database = {
           portaria?: string | null
           segundo_autor?: string | null
           segundo_parlamentar?: string | null
-          situacao?: Database['public']['Enums']['situacao_oficial']
+          situacao?: Database["public"]["Enums"]["situacao_oficial"]
           situacao_recurso?: string | null
-          status_interno?: Database['public']['Enums']['status_interno']
-          tipo?: Database['public']['Enums']['tipo_emenda_enum']
-          tipo_recurso?: Database['public']['Enums']['tipo_recurso']
+          status_interno?: Database["public"]["Enums"]["status_interno"]
+          tipo?: Database["public"]["Enums"]["tipo_emenda_enum"]
+          tipo_recurso?: Database["public"]["Enums"]["tipo_recurso"]
           updated_at?: string | null
           valor_repasse?: number | null
           valor_segundo_responsavel?: number | null
@@ -482,18 +482,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'historico_emenda_id_fkey'
-            columns: ['emenda_id']
+            foreignKeyName: "historico_emenda_id_fkey"
+            columns: ["emenda_id"]
             isOneToOne: false
-            referencedRelation: 'emendas'
-            referencedColumns: ['id']
+            referencedRelation: "emendas"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'historico_feito_por_fkey'
-            columns: ['feito_por']
+            foreignKeyName: "historico_feito_por_fkey"
+            columns: ["feito_por"]
             isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -524,18 +524,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'notifications_emenda_id_fkey'
-            columns: ['emenda_id']
+            foreignKeyName: "notifications_emenda_id_fkey"
+            columns: ["emenda_id"]
             isOneToOne: false
-            referencedRelation: 'emendas'
-            referencedColumns: ['id']
+            referencedRelation: "emendas"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'notifications_user_id_fkey'
-            columns: ['user_id']
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -575,11 +575,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'pendencias_emenda_id_fkey'
-            columns: ['emenda_id']
+            foreignKeyName: "pendencias_emenda_id_fkey"
+            columns: ["emenda_id"]
             isOneToOne: false
-            referencedRelation: 'emendas'
-            referencedColumns: ['id']
+            referencedRelation: "emendas"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -592,8 +592,8 @@ export type Database = {
           id: string
           inactivity_timeout: number
           name: string
-          role: Database['public']['Enums']['user_role']
-          status: Database['public']['Enums']['user_status']
+          role: Database["public"]["Enums"]["user_role"]
+          status: Database["public"]["Enums"]["user_status"]
           unidade: string | null
           updated_at: string | null
         }
@@ -605,8 +605,8 @@ export type Database = {
           id: string
           inactivity_timeout?: number
           name: string
-          role?: Database['public']['Enums']['user_role']
-          status?: Database['public']['Enums']['user_status']
+          role?: Database["public"]["Enums"]["user_role"]
+          status?: Database["public"]["Enums"]["user_status"]
           unidade?: string | null
           updated_at?: string | null
         }
@@ -618,18 +618,18 @@ export type Database = {
           id?: string
           inactivity_timeout?: number
           name?: string
-          role?: Database['public']['Enums']['user_role']
-          status?: Database['public']['Enums']['user_status']
+          role?: Database["public"]["Enums"]["user_role"]
+          status?: Database["public"]["Enums"]["user_status"]
           unidade?: string | null
           updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: 'profiles_cargo_id_fkey'
-            columns: ['cargo_id']
+            foreignKeyName: "profiles_cargo_id_fkey"
+            columns: ["cargo_id"]
             isOneToOne: false
-            referencedRelation: 'cargos'
-            referencedColumns: ['id']
+            referencedRelation: "cargos"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -669,11 +669,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'repasses_emenda_id_fkey'
-            columns: ['emenda_id']
+            foreignKeyName: "repasses_emenda_id_fkey"
+            columns: ["emenda_id"]
             isOneToOne: false
-            referencedRelation: 'emendas'
-            referencedColumns: ['id']
+            referencedRelation: "emendas"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -707,11 +707,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'security_notifications_user_id_fkey'
-            columns: ['user_id']
+            foreignKeyName: "security_notifications_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -722,7 +722,7 @@ export type Database = {
     Functions: {
       get_user_role: {
         Args: never
-        Returns: Database['public']['Enums']['user_role']
+        Returns: Database["public"]["Enums"]["user_role"]
       }
       log_security_notification: {
         Args: {
@@ -756,19 +756,19 @@ export type Database = {
           portaria: string | null
           segundo_autor: string | null
           segundo_parlamentar: string | null
-          situacao: Database['public']['Enums']['situacao_oficial']
+          situacao: Database["public"]["Enums"]["situacao_oficial"]
           situacao_recurso: string | null
-          status_interno: Database['public']['Enums']['status_interno']
-          tipo: Database['public']['Enums']['tipo_emenda_enum']
-          tipo_recurso: Database['public']['Enums']['tipo_recurso']
+          status_interno: Database["public"]["Enums"]["status_interno"]
+          tipo: Database["public"]["Enums"]["tipo_emenda_enum"]
+          tipo_recurso: Database["public"]["Enums"]["tipo_recurso"]
           updated_at: string | null
           valor_repasse: number | null
           valor_segundo_responsavel: number | null
           valor_total: number
         }[]
         SetofOptions: {
-          from: '*'
-          to: 'emendas'
+          from: "*"
+          to: "emendas"
           isOneToOne: false
           isSetofReturn: true
         }
@@ -776,37 +776,37 @@ export type Database = {
     }
     Enums: {
       situacao_oficial:
-        | 'PAGA'
-        | 'EMPENHADA_AGUARDANDO_FORMALIZACAO'
-        | 'FAVORAVEL'
-        | 'EM_ANALISE'
-        | 'LIBERADO_PAGAMENTO_FNS'
-        | 'OUTRA'
+        | "PAGA"
+        | "EMPENHADA_AGUARDANDO_FORMALIZACAO"
+        | "FAVORAVEL"
+        | "EM_ANALISE"
+        | "LIBERADO_PAGAMENTO_FNS"
+        | "OUTRA"
       status_interno:
-        | 'RASCUNHO'
-        | 'EM_EXECUCAO'
-        | 'PAGA_SEM_DOCUMENTOS'
-        | 'PAGA_COM_PENDENCIAS'
-        | 'CONCLUIDA'
-        | 'PROPOSTA_PAGA'
-        | 'EM_ANALISE_PAGAMENTO'
-        | 'APROVADA_PAGAMENTO'
-        | 'AUTORIZADA_AGUARDANDO_EMPENHO'
-        | 'AGUARDANDO_AUTORIZACAO_FNS'
-        | 'PORTARIA_PUBLICADA_AGUARDANDO_FNS'
-        | 'ENVIADA_PUBLICACAO_PORTARIA'
-        | 'PROPOSTA_APROVADA'
-        | 'CLASSIFICADA_AGUARDANDO_SECRETARIA'
-      tipo_emenda_enum: 'individual' | 'bancada' | 'comissao'
+        | "RASCUNHO"
+        | "EM_EXECUCAO"
+        | "PAGA_SEM_DOCUMENTOS"
+        | "PAGA_COM_PENDENCIAS"
+        | "CONCLUIDA"
+        | "PROPOSTA_PAGA"
+        | "EM_ANALISE_PAGAMENTO"
+        | "APROVADA_PAGAMENTO"
+        | "AUTORIZADA_AGUARDANDO_EMPENHO"
+        | "AGUARDANDO_AUTORIZACAO_FNS"
+        | "PORTARIA_PUBLICADA_AGUARDANDO_FNS"
+        | "ENVIADA_PUBLICACAO_PORTARIA"
+        | "PROPOSTA_APROVADA"
+        | "CLASSIFICADA_AGUARDANDO_SECRETARIA"
+      tipo_emenda_enum: "individual" | "bancada" | "comissao"
       tipo_recurso:
-        | 'CUSTEIO_MAC'
-        | 'CUSTEIO_PAP'
-        | 'EQUIPAMENTO'
-        | 'INCREMENTO_MAC'
-        | 'INCREMENTO_PAP'
-        | 'OUTRO'
-      user_role: 'ADMIN' | 'GESTOR' | 'ANALISTA' | 'CONSULTA'
-      user_status: 'ATIVO' | 'BLOQUEADO' | 'PENDENTE'
+        | "CUSTEIO_MAC"
+        | "CUSTEIO_PAP"
+        | "EQUIPAMENTO"
+        | "INCREMENTO_MAC"
+        | "INCREMENTO_PAP"
+        | "OUTRO"
+      user_role: "ADMIN" | "GESTOR" | "ANALISTA" | "CONSULTA"
+      user_status: "ATIVO" | "BLOQUEADO" | "PENDENTE"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -814,33 +814,33 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] &
-        DefaultSchema['Views'])
-    ? (DefaultSchema['Tables'] &
-        DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -849,23 +849,23 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -874,23 +874,23 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -899,76 +899,77 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema['Enums']
+    | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
-    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema['CompositeTypes']
+    | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
-    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
   public: {
     Enums: {
       situacao_oficial: [
-        'PAGA',
-        'EMPENHADA_AGUARDANDO_FORMALIZACAO',
-        'FAVORAVEL',
-        'EM_ANALISE',
-        'LIBERADO_PAGAMENTO_FNS',
-        'OUTRA',
+        "PAGA",
+        "EMPENHADA_AGUARDANDO_FORMALIZACAO",
+        "FAVORAVEL",
+        "EM_ANALISE",
+        "LIBERADO_PAGAMENTO_FNS",
+        "OUTRA",
       ],
       status_interno: [
-        'RASCUNHO',
-        'EM_EXECUCAO',
-        'PAGA_SEM_DOCUMENTOS',
-        'PAGA_COM_PENDENCIAS',
-        'CONCLUIDA',
-        'PROPOSTA_PAGA',
-        'EM_ANALISE_PAGAMENTO',
-        'APROVADA_PAGAMENTO',
-        'AUTORIZADA_AGUARDANDO_EMPENHO',
-        'AGUARDANDO_AUTORIZACAO_FNS',
-        'PORTARIA_PUBLICADA_AGUARDANDO_FNS',
-        'ENVIADA_PUBLICACAO_PORTARIA',
-        'PROPOSTA_APROVADA',
-        'CLASSIFICADA_AGUARDANDO_SECRETARIA',
+        "RASCUNHO",
+        "EM_EXECUCAO",
+        "PAGA_SEM_DOCUMENTOS",
+        "PAGA_COM_PENDENCIAS",
+        "CONCLUIDA",
+        "PROPOSTA_PAGA",
+        "EM_ANALISE_PAGAMENTO",
+        "APROVADA_PAGAMENTO",
+        "AUTORIZADA_AGUARDANDO_EMPENHO",
+        "AGUARDANDO_AUTORIZACAO_FNS",
+        "PORTARIA_PUBLICADA_AGUARDANDO_FNS",
+        "ENVIADA_PUBLICACAO_PORTARIA",
+        "PROPOSTA_APROVADA",
+        "CLASSIFICADA_AGUARDANDO_SECRETARIA",
       ],
-      tipo_emenda_enum: ['individual', 'bancada', 'comissao'],
+      tipo_emenda_enum: ["individual", "bancada", "comissao"],
       tipo_recurso: [
-        'CUSTEIO_MAC',
-        'CUSTEIO_PAP',
-        'EQUIPAMENTO',
-        'INCREMENTO_MAC',
-        'INCREMENTO_PAP',
-        'OUTRO',
+        "CUSTEIO_MAC",
+        "CUSTEIO_PAP",
+        "EQUIPAMENTO",
+        "INCREMENTO_MAC",
+        "INCREMENTO_PAP",
+        "OUTRO",
       ],
-      user_role: ['ADMIN', 'GESTOR', 'ANALISTA', 'CONSULTA'],
-      user_status: ['ATIVO', 'BLOQUEADO', 'PENDENTE'],
+      user_role: ["ADMIN", "GESTOR", "ANALISTA", "CONSULTA"],
+      user_status: ["ATIVO", "BLOQUEADO", "PENDENTE"],
     },
   },
 } as const
+
