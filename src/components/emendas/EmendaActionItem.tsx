@@ -226,6 +226,15 @@ export const EmendaActionItem = ({
           </div>
         </CardHeader>
         <CardContent>
+          <div className="mb-4">
+            <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+              Descrição Oficial
+            </h5>
+            <p className="text-sm text-neutral-700 dark:text-neutral-300 whitespace-pre-line">
+              {action.descricao_oficial || 'Sem descrição oficial'}
+            </p>
+          </div>
+
           <div className="space-y-4">
             <div className="rounded-md border bg-muted/20">
               <Table>

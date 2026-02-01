@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { MoneyInput } from '@/components/ui/money-input'
+import { Textarea } from '@/components/ui/textarea'
 import {
   DetailedAmendment,
   ActionWithDestinations,
@@ -39,8 +40,11 @@ export const EmendaActionForm = ({
 }: EmendaActionFormProps) => {
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Action Fields
   const [nome, setNome] = useState('')
   const [area, setArea] = useState('')
+  const [descricaoOficial, setDescricaoOficial] = useState('')
 
   // Financial Categories
   const [valServicos, setValServicos] = useState(0)
@@ -53,6 +57,7 @@ export const EmendaActionForm = ({
         // Edit Mode: Pre-fill
         setNome(action.nome_acao)
         setArea(action.area)
+        setDescricaoOficial(action.descricao_oficial || '')
 
         // Find values for specific categories
         const servicos = action.destinacoes.find(
@@ -72,6 +77,7 @@ export const EmendaActionForm = ({
         // Create Mode: Reset
         setNome('')
         setArea('')
+        setDescricaoOficial('')
         setValServicos(0)
         setValMaterial(0)
         setValDistribuicao(0)
@@ -85,8 +91,11 @@ export const EmendaActionForm = ({
   const calculateBalance = () => {
     const totalEmenda = emenda.valor_total
 
-    // Calculate what is already used by ALL actions
-    let totalUsed = emenda.acoes.reduce((acc, a) => {
+    // 1. Calculate usage by OTHER actions
+    const otherActionsUsage = emenda.acoes.reduce((acc, a) => {
+      // If we are editing 'action', skip it to simulate returning its value to pool
+      if (action && a.id === action.id) return acc
+
       const actionTotal = a.destinacoes.reduce(
         (dAcc, d) => dAcc + d.valor_destinado,
         0,
@@ -94,31 +103,30 @@ export const EmendaActionForm = ({
       return acc + actionTotal
     }, 0)
 
-    // If editing, subtract the CURRENT usage of THIS action to get "usage by others"
+    // 2. Calculate usage by THIS action's NON-EDITABLE categories (if any)
+    // The form edits: SERVICOS_TERCEIROS, MATERIAL_CONSUMO, DISTRIBUICAO_GRATUITA
+    // Any other category in the current action persists and counts against budget
+    let currentActionFixedUsage = 0
     if (action) {
-      const currentActionUsed = action.destinacoes.reduce((acc, d) => {
-        if (
-          [
-            AuditCategories.SERVICOS_TERCEIROS,
-            AuditCategories.MATERIAL_CONSUMO,
-            AuditCategories.DISTRIBUICAO_GRATUITA,
-          ].includes(d.tipo_destinacao as any)
-        ) {
-          return acc + d.valor_destinado
-        }
-        return acc
-      }, 0)
+      currentActionFixedUsage = action.destinacoes.reduce((acc, d) => {
+        const isEditable = [
+          AuditCategories.SERVICOS_TERCEIROS,
+          AuditCategories.MATERIAL_CONSUMO,
+          AuditCategories.DISTRIBUICAO_GRATUITA,
+        ].includes(d.tipo_destinacao as any)
 
-      totalUsed -= currentActionUsed
+        return isEditable ? acc : acc + d.valor_destinado
+      }, 0)
     }
 
-    const available = totalEmenda - totalUsed
+    // Available to allocate for this action (considering fixed parts as used)
+    const available = totalEmenda - otherActionsUsage - currentActionFixedUsage
     const remaining = available - totalPlanned
 
     return { available, remaining }
   }
 
-  const { remaining } = calculateBalance()
+  const { available, remaining } = calculateBalance()
   const isOverBudget = remaining < 0
 
   const handleSave = async () => {
@@ -146,22 +154,24 @@ export const EmendaActionForm = ({
       let actionId = action?.id
 
       // 1. Create or Update Action
+      const actionPayload = {
+        nome_acao: nome,
+        area: area,
+        descricao_oficial: descricaoOficial,
+      }
+
       if (action) {
         const { error } = await supabase
           .from('acoes_emendas')
-          .update({
-            nome_acao: nome,
-            area: area,
-          })
+          .update(actionPayload)
           .eq('id', action.id)
         if (error) throw error
       } else {
         const { data, error } = await supabase
           .from('acoes_emendas')
           .insert({
+            ...actionPayload,
             emenda_id: emenda.id,
-            nome_acao: nome,
-            area: area,
             complexidade: 'Média', // Default
           })
           .select()
@@ -293,21 +303,36 @@ export const EmendaActionForm = ({
                   placeholder="Ex: Atenção Especializada"
                 />
               </div>
+              <div className="grid gap-2">
+                <Label htmlFor="descricao">Descrição Oficial</Label>
+                <Textarea
+                  id="descricao"
+                  value={descricaoOficial}
+                  onChange={(e) => setDescricaoOficial(e.target.value)}
+                  placeholder="Descrição técnica oficial da ação..."
+                  className="min-h-[80px]"
+                />
+              </div>
             </div>
           </div>
 
           {/* Financial Planning */}
           <div className="space-y-4">
-            <h4 className="text-sm font-medium leading-none text-muted-foreground border-b pb-2 flex justify-between items-center">
+            <h4 className="text-sm font-medium leading-none text-muted-foreground border-b pb-2 flex justify-between items-end">
               <span>Planejamento Financeiro</span>
-              <span
-                className={cn(
-                  'text-xs font-bold',
-                  isOverBudget ? 'text-destructive' : 'text-emerald-600',
-                )}
-              >
-                Saldo Restante: {formatCurrencyBRL(remaining)}
-              </span>
+              <div className="flex flex-col items-end gap-0.5">
+                <span className="text-xs text-muted-foreground">
+                  Disponível: {formatCurrencyBRL(available)}
+                </span>
+                <span
+                  className={cn(
+                    'text-xs font-bold',
+                    isOverBudget ? 'text-destructive' : 'text-emerald-600',
+                  )}
+                >
+                  Restante: {formatCurrencyBRL(remaining)}
+                </span>
+              </div>
             </h4>
             <div className="grid gap-4">
               <div className="grid gap-2">
