@@ -39,6 +39,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { MoneyInput } from '@/components/ui/money-input'
+import { Textarea } from '@/components/ui/textarea'
 import { Trash2, Edit2, Plus } from 'lucide-react'
 import { formatCurrencyBRL } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
@@ -136,10 +137,10 @@ export const EmendaActionItem = ({
       const payload = {
         acao_id: action.id,
         tipo_destinacao: destForm.tipo_destinacao,
-        subtipo: destForm.subtipo,
+        subtipo: destForm.subtipo || null,
         valor_destinado: destForm.valor_destinado,
-        portaria_vinculada: destForm.portaria_vinculada,
-        observacao_tecnica: destForm.observacao_tecnica,
+        portaria_vinculada: destForm.portaria_vinculada || null,
+        observacao_tecnica: destForm.observacao_tecnica || null,
         grupo_despesa: destForm.grupo_despesa || AuditCategories.OUTROS,
       }
 
@@ -317,8 +318,9 @@ export const EmendaActionItem = ({
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label>Tipo de Destinação</Label>
+                <Label htmlFor="tipo-destinacao">Tipo de Destinação</Label>
                 <Input
+                  id="tipo-destinacao"
                   value={destForm.tipo_destinacao || ''}
                   onChange={(e) =>
                     setDestForm({
@@ -350,8 +352,9 @@ export const EmendaActionItem = ({
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label>Subtipo (Opcional)</Label>
+                <Label htmlFor="subtipo">Subtipo (Opcional)</Label>
                 <Input
+                  id="subtipo"
                   value={destForm.subtipo || ''}
                   onChange={(e) =>
                     setDestForm({ ...destForm, subtipo: e.target.value })
@@ -369,8 +372,9 @@ export const EmendaActionItem = ({
                 />
               </div>
               <div className="grid gap-2">
-                <Label>Portaria Vinculada</Label>
+                <Label htmlFor="portaria-vinculada">Portaria Vinculada</Label>
                 <Input
+                  id="portaria-vinculada"
                   value={destForm.portaria_vinculada || ''}
                   onChange={(e) =>
                     setDestForm({
@@ -381,8 +385,9 @@ export const EmendaActionItem = ({
                 />
               </div>
               <div className="grid gap-2">
-                <Label>Observação Técnica</Label>
-                <Input
+                <Label htmlFor="obs-tecnica">Observação Técnica</Label>
+                <Textarea
+                  id="obs-tecnica"
                   value={destForm.observacao_tecnica || ''}
                   onChange={(e) =>
                     setDestForm({
@@ -390,6 +395,8 @@ export const EmendaActionItem = ({
                       observacao_tecnica: e.target.value,
                     })
                   }
+                  placeholder="Detalhes técnicos, justificativas ou especificações..."
+                  className="min-h-[100px]"
                 />
               </div>
             </div>
