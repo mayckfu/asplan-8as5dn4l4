@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -76,6 +76,26 @@ export const AnexoForm = ({
     },
   })
 
+  useEffect(() => {
+    if (anexo) {
+      form.reset({
+        filename: anexo.filename,
+        url: anexo.url,
+        tipo: anexo.tipo,
+        data: anexo.data
+          ? parseDateFromDB(anexo.data) || new Date()
+          : new Date(),
+      })
+    } else {
+      form.reset({
+        filename: '',
+        url: '',
+        tipo: 'OUTRO',
+        data: new Date(),
+      })
+    }
+  }, [anexo, form])
+
   const handleSubmit = (values: AnexoFormValues) => {
     onSubmit(values)
   }
@@ -89,7 +109,7 @@ export const AnexoForm = ({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Categoria (Tipo)</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o tipo" />

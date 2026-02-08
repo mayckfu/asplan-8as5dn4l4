@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FileText, Trash2, ExternalLink, Plus } from 'lucide-react'
+import { FileText, Trash2, ExternalLink, Plus, Edit2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -50,8 +50,19 @@ export const EmendaAnexosTab = ({
   const { user, checkPermission } = useAuth()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [editingAnexo, setEditingAnexo] = useState<Anexo | null>(null)
 
   const canEdit = checkPermission(['ADMIN', 'GESTOR', 'ANALISTA'])
+
+  const handleEdit = (anexo: Anexo) => {
+    setEditingAnexo(anexo)
+    setIsFormOpen(true)
+  }
+
+  const handleAddNew = () => {
+    setEditingAnexo(null)
+    setIsFormOpen(true)
+  }
 
   const handleSaveAnexo = async (values: any) => {
     if (!emendaId) {
@@ -65,21 +76,38 @@ export const EmendaAnexosTab = ({
 
     setIsSubmitting(true)
     try {
-      const { error } = await supabase.from('anexos').insert({
-        emenda_id: emendaId,
+      const payload = {
         tipo: values.tipo,
         filename: values.filename,
         url: values.url,
         data_documento: formatDateToDB(values.data),
-        uploader: user?.id,
-      })
+      }
 
-      if (error) throw error
+      if (editingAnexo) {
+        // Update existing attachment
+        const { error } = await supabase
+          .from('anexos')
+          .update(payload)
+          .eq('id', editingAnexo.id)
+
+        if (error) throw error
+        toast({ title: 'Anexo atualizado com sucesso!' })
+      } else {
+        // Insert new attachment
+        const { error } = await supabase.from('anexos').insert({
+          emenda_id: emendaId,
+          ...payload,
+          uploader: user?.id,
+        })
+
+        if (error) throw error
+        toast({ title: 'Anexo adicionado com sucesso!' })
+      }
 
       // Call parent to refresh data
-      onAnexosChange([...anexos]) // The parent refreshData will actually reload everything
+      onAnexosChange([]) // The parent refreshData will actually reload everything
       setIsFormOpen(false)
-      toast({ title: 'Anexo adicionado com sucesso!' })
+      setEditingAnexo(null)
     } catch (error: any) {
       console.error('Error saving anexo:', error)
       toast({
@@ -124,7 +152,7 @@ export const EmendaAnexosTab = ({
               Documentos e Links
             </CardTitle>
             {canEdit && (
-              <Button size="sm" onClick={() => setIsFormOpen(true)}>
+              <Button size="sm" onClick={handleAddNew}>
                 <Plus className="h-4 w-4 mr-2" />
                 Novo Link/Anexo
               </Button>
@@ -186,18 +214,32 @@ export const EmendaAnexosTab = ({
                       </TableCell>
                       <TableCell className="text-right">
                         {canEdit && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleDelete(anexo)
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">Excluir</span>
-                          </Button>
+                          <div className="flex justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleEdit(anexo)
+                              }}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                              <span className="sr-only">Editar</span>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDelete(anexo)
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              <span className="sr-only">Excluir</span>
+                            </Button>
+                          </div>
                         )}
                       </TableCell>
                     </TableRow>
@@ -212,12 +254,17 @@ export const EmendaAnexosTab = ({
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Adicionar Documento</DialogTitle>
+            <DialogTitle>
+              {editingAnexo ? 'Editar Documento' : 'Adicionar Documento'}
+            </DialogTitle>
             <DialogDescription>
-              Insira o link para o documento externo.
+              {editingAnexo
+                ? 'Atualize os dados do documento.'
+                : 'Insira o link para o documento externo.'}
             </DialogDescription>
           </DialogHeader>
           <AnexoForm
+            anexo={editingAnexo}
             onSubmit={handleSaveAnexo}
             onCancel={() => setIsFormOpen(false)}
             isSubmitting={isSubmitting}

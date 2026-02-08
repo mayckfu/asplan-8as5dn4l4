@@ -50,6 +50,9 @@ export const EmendaActionForm = ({
   const [valServicos, setValServicos] = useState(0)
   const [valMaterial, setValMaterial] = useState(0)
   const [valDistribuicao, setValDistribuicao] = useState(0)
+  const [valEquipamentos, setValEquipamentos] = useState(0)
+
+  const isEquipamento = emenda.tipo_recurso === 'EQUIPAMENTO'
 
   useEffect(() => {
     if (isOpen) {
@@ -69,10 +72,14 @@ export const EmendaActionForm = ({
         const distribuicao = action.destinacoes.find(
           (d) => d.tipo_destinacao === AuditCategories.DISTRIBUICAO_GRATUITA,
         )
+        const equipamentos = action.destinacoes.find(
+          (d) => d.tipo_destinacao === AuditCategories.EQUIPAMENTOS,
+        )
 
         setValServicos(servicos?.valor_destinado || 0)
         setValMaterial(material?.valor_destinado || 0)
         setValDistribuicao(distribuicao?.valor_destinado || 0)
+        setValEquipamentos(equipamentos?.valor_destinado || 0)
       } else {
         // Create Mode: Reset
         setNome('')
@@ -81,12 +88,14 @@ export const EmendaActionForm = ({
         setValServicos(0)
         setValMaterial(0)
         setValDistribuicao(0)
+        setValEquipamentos(0)
       }
     }
   }, [isOpen, action])
 
   // Calculate totals and balance
-  const totalPlanned = valServicos + valMaterial + valDistribuicao
+  const totalPlanned =
+    valServicos + valMaterial + valDistribuicao + valEquipamentos
 
   const calculateBalance = () => {
     const totalEmenda = emenda.valor_total
@@ -104,7 +113,7 @@ export const EmendaActionForm = ({
     }, 0)
 
     // 2. Calculate usage by THIS action's NON-EDITABLE categories (if any)
-    // The form edits: SERVICOS_TERCEIROS, MATERIAL_CONSUMO, DISTRIBUICAO_GRATUITA
+    // The form edits: SERVICOS_TERCEIROS, MATERIAL_CONSUMO, DISTRIBUICAO_GRATUITA, EQUIPAMENTOS (if allowed)
     // Any other category in the current action persists and counts against budget
     let currentActionFixedUsage = 0
     if (action) {
@@ -113,6 +122,7 @@ export const EmendaActionForm = ({
           AuditCategories.SERVICOS_TERCEIROS,
           AuditCategories.MATERIAL_CONSUMO,
           AuditCategories.DISTRIBUICAO_GRATUITA,
+          AuditCategories.EQUIPAMENTOS,
         ].includes(d.tipo_destinacao as any)
 
         return isEditable ? acc : acc + d.valor_destinado
@@ -228,7 +238,7 @@ export const EmendaActionForm = ({
 
       const currentDests = action?.destinacoes || []
 
-      await Promise.all([
+      const promises = [
         handleDestination(
           AuditCategories.SERVICOS_TERCEIROS,
           valServicos,
@@ -244,7 +254,19 @@ export const EmendaActionForm = ({
           valDistribuicao,
           currentDests,
         ),
-      ])
+      ]
+
+      if (isEquipamento) {
+        promises.push(
+          handleDestination(
+            AuditCategories.EQUIPAMENTOS,
+            valEquipamentos,
+            currentDests,
+          ),
+        )
+      }
+
+      await Promise.all(promises)
 
       toast({
         title: action ? 'Ação atualizada' : 'Ação criada',
@@ -361,6 +383,19 @@ export const EmendaActionForm = ({
                   onChange={setValDistribuicao}
                 />
               </div>
+
+              {isEquipamento && (
+                <div className="grid gap-2 animate-fade-in">
+                  <Label htmlFor="equipamentos">
+                    Equipamentos e Material Permanente
+                  </Label>
+                  <MoneyInput
+                    id="equipamentos"
+                    value={valEquipamentos}
+                    onChange={setValEquipamentos}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="bg-muted/50 p-3 rounded-lg flex justify-between items-center border">

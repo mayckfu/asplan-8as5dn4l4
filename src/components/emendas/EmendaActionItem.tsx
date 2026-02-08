@@ -188,6 +188,14 @@ export const EmendaActionItem = ({
     }
   }
 
+  // Conditional Categories
+  const availableCategories = Object.values(AuditCategories).filter((cat) => {
+    if (cat === AuditCategories.EQUIPAMENTOS) {
+      return emenda.tipo_recurso === 'EQUIPAMENTO'
+    }
+    return true
+  })
+
   return (
     <>
       <Card className="border border-neutral-200 dark:border-neutral-800">
@@ -353,7 +361,7 @@ export const EmendaActionItem = ({
                     <SelectValue placeholder="Selecione o grupo" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.values(AuditCategories).map((cat) => (
+                    {availableCategories.map((cat) => (
                       <SelectItem key={cat} value={cat}>
                         {cat}
                       </SelectItem>

@@ -25,6 +25,7 @@ import {
   User,
   Box,
   Gift,
+  Monitor,
 } from 'lucide-react'
 import { formatCurrencyBRL, cn, formatPercent } from '@/lib/utils'
 import { ExpandableText } from '@/components/ui/expandable-text'
@@ -151,6 +152,9 @@ const AuditActionRow = ({
   const distributionTotal = expenses
     .filter((e) => e.categoria === AuditCategories.DISTRIBUICAO_GRATUITA)
     .reduce((acc, curr) => acc + curr.valor, 0)
+  const equipamentosTotal = expenses
+    .filter((e) => e.categoria === AuditCategories.EQUIPAMENTOS)
+    .reduce((acc, curr) => acc + curr.valor, 0)
 
   // Category Breakdowns (Planned)
   const plannedServices = action.destinacoes
@@ -161,6 +165,9 @@ const AuditActionRow = ({
     .reduce((acc, curr) => acc + curr.valor_destinado, 0)
   const plannedDistribution = action.destinacoes
     .filter((d) => d.tipo_destinacao === AuditCategories.DISTRIBUICAO_GRATUITA)
+    .reduce((acc, curr) => acc + curr.valor_destinado, 0)
+  const plannedEquipamentos = action.destinacoes
+    .filter((d) => d.tipo_destinacao === AuditCategories.EQUIPAMENTOS)
     .reduce((acc, curr) => acc + curr.valor_destinado, 0)
 
   // Determine status
@@ -256,7 +263,7 @@ const AuditActionRow = ({
                 Detalhamento por Categoria de Despesa
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* Services Column */}
                 <CategoryCard
                   title="Serviços de Terceiros"
@@ -293,6 +300,20 @@ const AuditActionRow = ({
                   icon={<Gift className="h-4 w-4" />}
                   colorClass="text-amber-600"
                 />
+
+                {/* Equipment Column */}
+                {(plannedEquipamentos > 0 || equipamentosTotal > 0) && (
+                  <CategoryCard
+                    title="Equipamentos"
+                    planned={plannedEquipamentos}
+                    executed={equipamentosTotal}
+                    expenses={expenses.filter(
+                      (e) => e.categoria === AuditCategories.EQUIPAMENTOS,
+                    )}
+                    icon={<Monitor className="h-4 w-4" />}
+                    colorClass="text-purple-600"
+                  />
+                )}
               </div>
             </div>
           </TableCell>
