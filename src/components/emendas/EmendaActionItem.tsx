@@ -46,6 +46,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/use-toast'
 import { EmendaActionForm } from './EmendaActionForm'
+import { ExpandableText } from '@/components/ui/expandable-text'
 
 interface EmendaActionItemProps {
   action: ActionWithDestinations
@@ -230,9 +231,9 @@ export const EmendaActionItem = ({
             <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
               Descrição Oficial
             </h5>
-            <p className="text-sm text-neutral-700 dark:text-neutral-300 whitespace-pre-line">
-              {action.descricao_oficial || 'Sem descrição oficial'}
-            </p>
+            <div className="text-sm text-neutral-700 dark:text-neutral-300">
+              <ExpandableText text={action.descricao_oficial} limit={200} />
+            </div>
           </div>
 
           <div className="space-y-4">

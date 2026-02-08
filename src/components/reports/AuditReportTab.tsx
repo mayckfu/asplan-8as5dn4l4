@@ -27,6 +27,7 @@ import {
   Gift,
 } from 'lucide-react'
 import { formatCurrencyBRL, cn, formatPercent } from '@/lib/utils'
+import { ExpandableText } from '@/components/ui/expandable-text'
 
 interface AuditReportTabProps {
   data: DetailedAmendment[]
@@ -200,12 +201,19 @@ const AuditActionRow = ({
             <div className="mt-0.5 p-1.5 rounded-lg bg-primary/10 text-primary">
               <Activity className="h-4 w-4" />
             </div>
-            <div>
+            <div className="w-full max-w-[250px] min-w-[200px]">
               <div className="font-semibold text-sm text-foreground">
                 {action.nome_acao}
               </div>
-              <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2 max-w-[250px]">
-                {action.descricao_oficial || 'Sem descrição oficial'}
+              <div
+                className="text-xs text-muted-foreground mt-0.5"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <ExpandableText
+                  text={action.descricao_oficial}
+                  limit={50}
+                  className="text-xs"
+                />
               </div>
             </div>
           </div>
@@ -364,9 +372,9 @@ const ExpenseList = ({ expenses }: { expenses: any[] }) => {
     <ul className="space-y-2 max-h-[150px] overflow-y-auto pr-1">
       {expenses.map((expense) => (
         <li key={expense.id} className="flex justify-between items-start gap-2">
-          <span className="text-xs text-foreground line-clamp-2 leading-tight">
-            {expense.descricao}
-          </span>
+          <div className="text-xs text-foreground leading-tight max-w-[70%]">
+            <ExpandableText text={expense.descricao} limit={80} />
+          </div>
           <span className="text-xs font-medium italic text-muted-foreground whitespace-nowrap">
             {formatCurrencyBRL(expense.valor)}
           </span>
