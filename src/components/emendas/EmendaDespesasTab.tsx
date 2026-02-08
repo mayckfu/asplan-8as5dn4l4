@@ -243,6 +243,7 @@ export const EmendaDespesasTab = forwardRef<
     // Conditional Categories
     const availableCategories = Object.values(AuditCategories).filter((cat) => {
       if (cat === AuditCategories.EQUIPAMENTOS) {
+        // Safe check for tipoRecurso which might be passed as undefined initially
         return tipoRecurso === 'EQUIPAMENTO'
       }
       return true
@@ -265,7 +266,7 @@ export const EmendaDespesasTab = forwardRef<
             </div>
           </CardHeader>
           <CardContent>
-            {despesas.length === 0 ? (
+            {!despesas || despesas.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 Nenhuma despesa registrada.
               </div>
@@ -289,10 +290,10 @@ export const EmendaDespesasTab = forwardRef<
                       <TableRow key={despesa.id}>
                         <TableCell>{formatDisplayDate(despesa.data)}</TableCell>
                         <TableCell className="font-medium">
-                          {despesa.descricao}
+                          {despesa.descricao || '-'}
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">
-                          {despesa.categoria}
+                          {despesa.categoria || '-'}
                         </TableCell>
                         <TableCell>
                           <StatusBadge
@@ -300,7 +301,7 @@ export const EmendaDespesasTab = forwardRef<
                           />
                         </TableCell>
                         <TableCell className="text-right tabular-nums">
-                          {formatCurrencyBRL(despesa.valor)}
+                          {formatCurrencyBRL(despesa.valor || 0)}
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>

@@ -13,6 +13,7 @@ import {
   SituacaoOficialEnum,
   Historico,
   ActionWithDestinations,
+  TipoRecursoEnum,
 } from '@/lib/mock-data'
 import { EmendaDetailHeader } from '@/components/emendas/EmendaDetailHeader'
 import {
@@ -57,17 +58,25 @@ const EmendaDetailPage = () => {
 
   const fetchEmendaDetails = useCallback(
     async (showLoading = true) => {
-      if (!id) return
+      if (!id) {
+        setError('ID da emenda não fornecido.')
+        setIsLoading(false)
+        return
+      }
+
       if (showLoading) setIsLoading(true)
       setError(null)
+
       try {
         // Fetch core emenda
         const { data: emenda, error: emendaError } = await supabase
           .from('emendas')
           .select('*')
           .eq('id', id)
-          .single()
+          .maybeSingle()
+
         if (emendaError) throw emendaError
+        if (!emenda) throw new Error('Emenda não encontrada.')
 
         // Fetch related data
         const { data: repasses, error: repassesError } = await supabase
@@ -108,7 +117,7 @@ const EmendaDetailPage = () => {
           .eq('emenda_id', id)
         if (acoesError) throw acoesError
 
-        const acaoIds = acoes.map((a: any) => a.id)
+        const acaoIds = (acoes || []).map((a: any) => a.id)
         let destinacoes: any[] = []
         if (acaoIds.length > 0) {
           const { data: dests, error: destError } = await supabase
@@ -116,24 +125,26 @@ const EmendaDetailPage = () => {
             .select('*')
             .in('acao_id', acaoIds)
           if (destError) throw destError
-          destinacoes = dests
+          destinacoes = dests || []
         }
 
-        const mappedAcoes: ActionWithDestinations[] = acoes.map((a: any) => ({
-          ...a,
-          destinacoes: destinacoes.filter((d: any) => d.acao_id === a.id),
-        }))
+        const mappedAcoes: ActionWithDestinations[] = (acoes || []).map(
+          (a: any) => ({
+            ...a,
+            destinacoes: destinacoes.filter((d: any) => d.acao_id === a.id),
+          }),
+        )
 
         // Map other entities
-        const mappedDespesas = despesas.map((d: any) => ({
+        const mappedDespesas = (despesas || []).map((d: any) => ({
           ...d,
           registrada_por: d.profiles?.name || 'Desconhecido',
         }))
 
         const mappedAnexos = await Promise.all(
-          anexos.map(async (a: any) => {
+          (anexos || []).map(async (a: any) => {
             let signedUrl = a.url
-            if (!a.url.startsWith('http')) {
+            if (a.url && !a.url.startsWith('http')) {
               const signed = await getSignedUrl(a.url)
               if (signed) signedUrl = signed
             }
@@ -147,34 +158,38 @@ const EmendaDetailPage = () => {
           }),
         )
 
-        const mappedHistorico = historico.map((h: any) => ({
+        const mappedHistorico = (historico || []).map((h: any) => ({
           ...h,
           feito_por: h.profiles?.name || 'Desconhecido',
         }))
 
-        const mappedPendencias: Pendencia[] = pendenciasData.map((p: any) => ({
-          id: p.id,
-          descricao: p.descricao,
-          dispensada: p.dispensada,
-          resolvida: p.resolvida,
-          justificativa: p.justificativa,
-          targetType: p.target_type,
-          targetId: p.target_id,
-        }))
+        const mappedPendencias: Pendencia[] = (pendenciasData || []).map(
+          (p: any) => ({
+            id: p.id,
+            descricao: p.descricao,
+            dispensada: p.dispensada,
+            resolvida: p.resolvida,
+            justificativa: p.justificativa,
+            targetType: p.target_type,
+            targetId: p.target_id,
+          }),
+        )
 
-        const totalRepassado = repasses.reduce(
+        const safeRepasses = repasses || []
+        const totalRepassado = safeRepasses.reduce(
           (sum: number, r: any) =>
-            r.status === 'REPASSADO' ? sum + Number(r.valor) : sum,
+            r.status === 'REPASSADO' ? sum + Number(r.valor || 0) : sum,
           0,
         )
         const totalGasto = mappedDespesas.reduce(
-          (sum: number, d: any) => sum + Number(d.valor),
+          (sum: number, d: any) => sum + Number(d.valor || 0),
           0,
         )
 
         const detailedEmenda: DetailedAmendment = {
           ...emenda,
-          repasses: repasses as Repasse[],
+          tipo_recurso: emenda.tipo_recurso as TipoRecursoEnum,
+          repasses: safeRepasses as Repasse[],
           despesas: mappedDespesas as Despesa[],
           anexos: mappedAnexos as Anexo[],
           historico: mappedHistorico as Historico[],
@@ -182,6 +197,12 @@ const EmendaDetailPage = () => {
           acoes: mappedAcoes,
           total_repassado: totalRepassado,
           total_gasto: totalGasto,
+          // Safe defaults for possibly null fields
+          descricao_completa: emenda.descricao_completa || '',
+          objeto_emenda: emenda.objeto_emenda || '',
+          portaria: emenda.portaria || null,
+          deliberacao_cie: emenda.deliberacao_cie || null,
+          observacoes: emenda.observacoes || '',
         }
 
         setEmendaData(detailedEmenda)
@@ -341,9 +362,9 @@ const EmendaDetailPage = () => {
     )
   }
 
-  const destinationsForDropdown = emendaData.acoes.map((action) => ({
+  const destinationsForDropdown = (emendaData.acoes || []).map((action) => ({
     actionName: action.nome_acao,
-    items: action.destinacoes,
+    items: action.destinacoes || [],
   }))
 
   return (
@@ -435,6 +456,7 @@ const EmendaDetailPage = () => {
             destinations={destinationsForDropdown}
             onDespesasChange={() => refreshData()}
             emendaId={emendaData.id}
+            tipoRecurso={emendaData.tipo_recurso}
           />
         </TabsContent>
         <TabsContent value="anexos" className="mt-4">

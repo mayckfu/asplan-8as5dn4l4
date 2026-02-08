@@ -160,7 +160,7 @@ export const EmendaAnexosTab = ({
           </div>
         </CardHeader>
         <CardContent>
-          {anexos.length === 0 ? (
+          {!anexos || anexos.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               Nenhum documento registrado.
             </div>
@@ -183,18 +183,29 @@ export const EmendaAnexosTab = ({
                       className="group hover:bg-muted/50 transition-colors"
                     >
                       <TableCell className="font-medium">
-                        <a
-                          href={anexo.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex items-center gap-2 text-primary hover:underline cursor-pointer"
-                        >
-                          <FileText className="h-4 w-4 shrink-0" />
-                          <span className="truncate max-w-[200px] md:max-w-[400px]">
-                            {anexo.filename}
-                          </span>
-                          <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                        </a>
+                        {anexo.url &&
+                        (anexo.url.startsWith('http') ||
+                          anexo.url.startsWith('/')) ? (
+                          <a
+                            href={anexo.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center gap-2 text-primary hover:underline cursor-pointer"
+                          >
+                            <FileText className="h-4 w-4 shrink-0" />
+                            <span className="truncate max-w-[200px] md:max-w-[400px]">
+                              {anexo.filename || 'Sem Nome'}
+                            </span>
+                            <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                          </a>
+                        ) : (
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <FileText className="h-4 w-4 shrink-0" />
+                            <span className="truncate max-w-[200px] md:max-w-[400px]">
+                              {anexo.filename || 'Sem Nome'}
+                            </span>
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -203,7 +214,9 @@ export const EmendaAnexosTab = ({
                         >
                           {DOCUMENT_TYPES[
                             anexo.tipo as keyof typeof DOCUMENT_TYPES
-                          ] || anexo.tipo}
+                          ] ||
+                            anexo.tipo ||
+                            'Desconhecido'}
                         </Badge>
                       </TableCell>
                       <TableCell className="whitespace-nowrap">

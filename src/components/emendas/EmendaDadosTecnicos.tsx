@@ -52,7 +52,7 @@ const ReadOnlyField = ({
     </dt>
     <dd className="text-sm font-medium text-neutral-900 dark:text-neutral-100 leading-relaxed">
       {isExpandable ? (
-        <ExpandableText text={String(value || '')} limit={150} />
+        <ExpandableText text={value ? String(value) : null} limit={150} />
       ) : (
         value || <span className="text-muted-foreground/50 italic">-</span>
       )}
@@ -253,15 +253,17 @@ export const EmendaDadosTecnicos = forwardRef<
 
             <ReadOnlyField
               label="Valor Total"
-              value={formatCurrencyBRL(emenda.valor_total)}
+              value={formatCurrencyBRL(emenda.valor_total || 0)}
             />
             <ReadOnlyField
               label="Tipo de Recurso"
-              value={TipoRecurso[emenda.tipo_recurso] || emenda.tipo_recurso}
+              value={
+                TipoRecurso[emenda.tipo_recurso] || emenda.tipo_recurso || '-'
+              }
             />
             <ReadOnlyField
               label="Tipo de Emenda"
-              value={TipoEmenda[emenda.tipo] || emenda.tipo}
+              value={TipoEmenda[emenda.tipo] || emenda.tipo || '-'}
             />
 
             <ReadOnlyField

@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { ExpandableText } from '@/components/ui/expandable-text'
 
 interface EmendaObjetoFinalidadeProps {
-  description: string
+  description: string | null | undefined
   onSave: (description: string) => void
 }
 
@@ -17,12 +17,12 @@ export const EmendaObjetoFinalidade = ({
 }: EmendaObjetoFinalidadeProps) => {
   const { checkPermission } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
-  const [text, setText] = useState(description)
+  const [text, setText] = useState(description || '')
 
   const canEdit = checkPermission(['ADMIN', 'GESTOR', 'ANALISTA'])
 
   useEffect(() => {
-    setText(description)
+    setText(description || '')
   }, [description])
 
   const handleSave = () => {
@@ -31,7 +31,7 @@ export const EmendaObjetoFinalidade = ({
   }
 
   const handleCancel = () => {
-    setText(description)
+    setText(description || '')
     setIsEditing(false)
   }
 
