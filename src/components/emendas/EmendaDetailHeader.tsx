@@ -6,8 +6,8 @@ import {
   SituacaoOficialEnum,
   StatusInternoEnum,
 } from '@/lib/mock-data'
-import { Paperclip } from 'lucide-react'
-import { formatCurrencyBRL, formatPercent } from '@/lib/utils'
+import { Paperclip, Calendar, User, FileText } from 'lucide-react'
+import { formatCurrencyBRL, formatPercent, cn } from '@/lib/utils'
 import {
   Select,
   SelectContent,
@@ -16,6 +16,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useAuth } from '@/contexts/AuthContext'
+import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
 
 interface EmendaDetailHeaderProps {
   emenda: DetailedAmendment
@@ -38,40 +40,63 @@ export const EmendaDetailHeader = ({
   const coberturaPercent =
     emenda.valor_total > 0 ? (totalGasto / emenda.valor_total) * 100 : 0
 
-  const kpis = [
-    { label: 'Valor Total', value: emenda.valor_total, format: 'currency' },
-    { label: 'Repassado', value: totalRepassado, format: 'currency' },
-    { label: 'Gasto', value: totalGasto, format: 'currency' },
-    { label: 'Execução', value: execucaoPercent, format: 'percent' },
-    { label: 'Cobertura', value: coberturaPercent, format: 'percent' },
-  ]
-
-  const formatValue = (value: number, format: string) => {
-    if (format === 'currency') return formatCurrencyBRL(value)
-    if (format === 'percent') return formatPercent(value)
-    return value
-  }
-
   return (
-    <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
-      <CardHeader>
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-          <div className="space-y-1">
-            <CardTitle className="text-xl md:text-2xl text-neutral-900 dark:text-neutral-200">
-              {emenda.numero_proposta}
-            </CardTitle>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              {emenda.autor}
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full md:w-auto">
-            <div className="flex items-center gap-2 text-xs font-semibold text-neutral-600 dark:text-neutral-400 sm:mr-2">
-              <Paperclip className="h-4 w-4" />
-              {emenda.anexos.length} Anexos
+    <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 bg-card">
+      <CardHeader className="pb-4">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+          {/* Main Identity */}
+          <div className="space-y-2 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="outline" className="flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                {emenda.ano_exercicio}
+              </Badge>
+              <Badge variant="secondary" className="flex items-center gap-1">
+                {emenda.origem === 'ESTADUAL' ? 'Estadual' : 'Federal'}
+              </Badge>
+              <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                {emenda.tipo === 'individual'
+                  ? 'Emenda Individual'
+                  : emenda.tipo === 'bancada'
+                    ? 'Emenda de Bancada'
+                    : 'Emenda de Comissão'}
+              </span>
             </div>
-            <div className="flex flex-col gap-1 w-full sm:w-auto">
-              <span className="text-xs font-semibold text-neutral-600 dark:text-neutral-400">
-                STATUS OFICIAL
+
+            <div>
+              <CardTitle className="text-2xl md:text-3xl font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+                <span className="text-muted-foreground font-normal text-lg mr-1">
+                  Nº
+                </span>
+                {emenda.numero_emenda}
+              </CardTitle>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-y-1 gap-x-4 text-sm text-neutral-600 dark:text-neutral-400 mt-1">
+                <div className="flex items-center gap-1.5">
+                  <User className="h-4 w-4 text-primary/70" />
+                  <span className="font-medium text-foreground">
+                    {emenda.parlamentar}
+                  </span>
+                  <span className="text-muted-foreground">(Parlamentar)</span>
+                </div>
+                <div className="hidden sm:block text-neutral-300">|</div>
+                <div className="flex items-center gap-1.5">
+                  <FileText className="h-4 w-4 text-primary/70" />
+                  <span>
+                    Proposta:{' '}
+                    <span className="font-medium text-foreground">
+                      {emenda.numero_proposta || 'N/A'}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Status Controls */}
+          <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+            <div className="flex flex-col gap-1.5 w-full sm:w-[200px]">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Status Oficial
               </span>
               <Select
                 value={emenda.situacao}
@@ -80,7 +105,7 @@ export const EmendaDetailHeader = ({
                 }
                 disabled={!canEdit}
               >
-                <SelectTrigger className="h-10 md:h-9 w-full sm:w-[240px] bg-white dark:bg-background">
+                <SelectTrigger className="h-9 w-full bg-background">
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -92,9 +117,9 @@ export const EmendaDetailHeader = ({
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex flex-col gap-1 w-full sm:w-auto">
-              <span className="text-xs font-semibold text-neutral-600 dark:text-neutral-400">
-                STATUS INTERNO
+            <div className="flex flex-col gap-1.5 w-full sm:w-[240px]">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Status Interno
               </span>
               <Select
                 value={emenda.status_interno}
@@ -103,7 +128,7 @@ export const EmendaDetailHeader = ({
                 }
                 disabled={!canEdit}
               >
-                <SelectTrigger className="h-10 md:h-9 w-full sm:w-[320px] bg-white dark:bg-background">
+                <SelectTrigger className="h-9 w-full bg-background">
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -118,21 +143,55 @@ export const EmendaDetailHeader = ({
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 text-center">
-          {kpis.map((kpi) => (
-            <div
-              key={kpi.label}
-              className="p-3 rounded-xl bg-white shadow-sm border border-neutral-200 dark:bg-card"
-            >
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                {kpi.label}
-              </p>
-              <p className="text-2xl font-semibold tabular-nums leading-tight text-neutral-900 dark:text-neutral-200">
-                {formatValue(kpi.value, kpi.format)}
-              </p>
+
+      <CardContent className="pt-2">
+        {/* KPI Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
+          <div className="p-3 rounded-lg border bg-muted/20 flex flex-col justify-center">
+            <span className="text-xs font-medium text-muted-foreground mb-1">
+              Valor Total
+            </span>
+            <span className="text-lg font-bold text-foreground">
+              {formatCurrencyBRL(emenda.valor_total)}
+            </span>
+          </div>
+          <div className="p-3 rounded-lg border bg-muted/20 flex flex-col justify-center">
+            <span className="text-xs font-medium text-muted-foreground mb-1">
+              Repassado
+            </span>
+            <span className="text-lg font-bold text-emerald-600 dark:text-emerald-500">
+              {formatCurrencyBRL(totalRepassado)}
+            </span>
+          </div>
+          <div className="p-3 rounded-lg border bg-muted/20 flex flex-col justify-center">
+            <span className="text-xs font-medium text-muted-foreground mb-1">
+              Gasto (Executado)
+            </span>
+            <span className="text-lg font-bold text-blue-600 dark:text-blue-500">
+              {formatCurrencyBRL(totalGasto)}
+            </span>
+          </div>
+          <div className="p-3 rounded-lg border bg-muted/20 flex flex-col justify-center col-span-2 md:col-span-1 lg:col-span-2">
+            <div className="flex justify-between items-end mb-2">
+              <span className="text-xs font-medium text-muted-foreground">
+                Progresso da Execução
+              </span>
+              <span className="text-xs font-bold">
+                {formatPercent(execucaoPercent)}
+              </span>
             </div>
-          ))}
+            <Progress value={Math.min(execucaoPercent, 100)} className="h-2" />
+            <div className="flex justify-between mt-1">
+              <span className="text-[10px] text-muted-foreground">
+                Cobertura: {formatPercent(coberturaPercent)} do total
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+          <Paperclip className="h-3.5 w-3.5" />
+          {emenda.anexos.length} anexo(s) vinculado(s)
         </div>
       </CardContent>
     </Card>

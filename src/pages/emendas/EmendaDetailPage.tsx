@@ -1,6 +1,18 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Loader2, AlertTriangle, ListChecks } from 'lucide-react'
+import {
+  ArrowLeft,
+  Loader2,
+  AlertTriangle,
+  ListChecks,
+  FileText,
+  Banknote,
+  ArrowRightLeft,
+  Paperclip,
+  CheckSquare,
+  History,
+  LayoutDashboard,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -38,13 +50,17 @@ import { useToast } from '@/components/ui/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase/client'
 import { getSignedUrl } from '@/lib/supabase/storage'
+import { cn } from '@/lib/utils'
 
 const EmendaDetailPage = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const { toast } = useToast()
   const { checkPermission } = useAuth()
-  const [activeTab, setActiveTab] = useState('planning')
+
+  // Default to 'technical' as usually expected in detail views, or 'planning'
+  const [activeTab, setActiveTab] = useState('technical')
+
   const [emendaData, setEmendaData] = useState<DetailedAmendment | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -224,7 +240,6 @@ const EmendaDetailPage = () => {
   useEffect(() => {
     fetchEmendaDetails()
 
-    // Real-time subscription to ensure checklist and data consistency
     if (!id) return
 
     const channel = supabase
@@ -238,7 +253,6 @@ const EmendaDetailPage = () => {
           filter: `emenda_id=eq.${id}`,
         },
         () => {
-          // Refresh data when pendencies change (e.g. triggered by DB function)
           fetchEmendaDetails(false)
         },
       )
@@ -251,7 +265,6 @@ const EmendaDetailPage = () => {
           filter: `id=eq.${id}`,
         },
         () => {
-          // Refresh when emenda itself is updated (e.g. by another user)
           fetchEmendaDetails(false)
         },
       )
@@ -272,7 +285,6 @@ const EmendaDetailPage = () => {
       const { error } = await supabase
         .from('emendas')
         .update({
-          // Only allow updating certain fields through this handler
           natureza: updatedEmenda.natureza,
           objeto_emenda: updatedEmenda.objeto_emenda,
           meta_operacional: updatedEmenda.meta_operacional,
@@ -290,7 +302,6 @@ const EmendaDetailPage = () => {
         .eq('id', emendaData.id)
 
       if (error) throw error
-      // Refresh to get updated pendencies triggered by DB
       await fetchEmendaDetails(false)
       toast({ title: 'Dados atualizados com sucesso!' })
     } catch (error: any) {
@@ -315,7 +326,7 @@ const EmendaDetailPage = () => {
   const handlePendencyClick = (pendency: Pendencia) => {
     const { targetType, targetId } = pendency
 
-    // Handle Attachment Redirection (Specific case for 'Ofício de Envio' or generic anexo)
+    // Handle Attachment Redirection
     if (
       targetType === 'anexo' ||
       targetId === 'oficio' ||
@@ -337,7 +348,7 @@ const EmendaDetailPage = () => {
       return
     }
 
-    // Handle Field Redirection
+    // Handle Field Redirection (mostly technical fields)
     if (targetType === 'field') {
       const technicalFields = [
         'valor_repasse',
@@ -353,19 +364,20 @@ const EmendaDetailPage = () => {
       ]
 
       if (technicalFields.includes(targetId)) {
-        // Ensure we are somewhat visible if user scrolled far down
-        window.scrollTo({ top: 0, behavior: 'smooth' })
-        // Trigger edit on the component
+        setActiveTab('technical')
         setTimeout(() => {
+          // Scroll to top of tab content then focus
+          window.scrollTo({ top: 0, behavior: 'smooth' })
           dadosTecnicosRef.current?.triggerEditAndFocus(targetId)
         }, 300)
         return
       }
     }
 
-    // Fallback if no specific logic found, try to set tab if matches
+    // Fallback
     if (
       [
+        'technical',
         'planning',
         'repasses',
         'despesas',
@@ -406,14 +418,18 @@ const EmendaDetailPage = () => {
     items: action.destinacoes || [],
   }))
 
+  const pendingCount = emendaData.pendencias.filter(
+    (p) => !p.resolvida && !p.dispensada,
+  ).length
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20">
       <div className="flex items-center gap-4">
         <Button
           variant="outline"
           size="icon"
           className="h-8 w-8"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/emendas')}
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
@@ -428,59 +444,93 @@ const EmendaDetailPage = () => {
         onStatusInternoChange={handleStatusInternoChange}
       />
 
-      <div className="grid grid-cols-1 gap-6">
-        <EmendaDadosTecnicos
-          ref={dadosTecnicosRef}
-          emenda={emendaData}
-          onEmendaChange={handleEmendaDataChange}
-        />
-
-        <EmendaObjetoFinalidade
-          description={emendaData.descricao_completa || ''}
-          onSave={(desc) =>
-            handleEmendaDataChange({ ...emendaData, descricao_completa: desc })
-          }
-        />
-      </div>
-
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}
-        defaultValue="planning"
+        defaultValue="technical"
         className="w-full"
       >
         <div className="w-full overflow-x-auto pb-2 scrollbar-none">
-          <TabsList className="inline-flex w-full min-w-max md:w-full md:grid md:grid-cols-7 p-1 h-auto">
-            <TabsTrigger value="planning" className="px-4 py-2 gap-2">
+          <TabsList className="inline-flex w-full min-w-max md:w-full md:grid md:grid-cols-8 p-1 h-auto bg-muted/50 rounded-lg">
+            <TabsTrigger value="technical" className="px-2 py-2.5 gap-2">
+              <LayoutDashboard className="h-4 w-4" />
+              <span className="hidden lg:inline">Dados Técnicos</span>
+              <span className="lg:hidden">Geral</span>
+            </TabsTrigger>
+            <TabsTrigger value="planning" className="px-2 py-2.5 gap-2">
               <ListChecks className="h-4 w-4" />
-              Ações e Planejamento
+              <span className="hidden lg:inline">Ações e Planejamento</span>
+              <span className="lg:hidden">Ações</span>
             </TabsTrigger>
-            <TabsTrigger value="repasses" className="px-4 py-2">
-              Repasses
-            </TabsTrigger>
-            <TabsTrigger value="despesas" className="px-4 py-2">
+            <TabsTrigger value="despesas" className="px-2 py-2.5 gap-2">
+              <Banknote className="h-4 w-4" />
               Despesas
             </TabsTrigger>
-            <TabsTrigger value="anexos" className="px-4 py-2">
+            <TabsTrigger value="repasses" className="px-2 py-2.5 gap-2">
+              <ArrowRightLeft className="h-4 w-4" />
+              Repasses
+            </TabsTrigger>
+            <TabsTrigger value="anexos" className="px-2 py-2.5 gap-2">
+              <Paperclip className="h-4 w-4" />
               Anexos
             </TabsTrigger>
-            <TabsTrigger value="audit" className="px-4 py-2">
+            <TabsTrigger
+              value="checklist"
+              className="px-2 py-2.5 gap-2 relative"
+            >
+              <CheckSquare className="h-4 w-4" />
+              Pendências
+              {pendingCount > 0 && (
+                <span className="absolute top-1 right-1 flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="audit" className="px-2 py-2.5 gap-2">
+              <FileText className="h-4 w-4" />
               Auditoria
             </TabsTrigger>
-            <TabsTrigger value="checklist" className="px-4 py-2">
-              Checklist
-            </TabsTrigger>
-            <TabsTrigger value="historico" className="px-4 py-2">
+            <TabsTrigger value="historico" className="px-2 py-2.5 gap-2">
+              <History className="h-4 w-4" />
               Histórico
             </TabsTrigger>
           </TabsList>
         </div>
 
-        <TabsContent value="planning" className="mt-4">
+        {/* 
+          Use forceMount for technical tab to preserve form state (editing mode).
+          We use hidden class to toggle visibility manually because forceMount keeps it in DOM.
+        */}
+        <TabsContent
+          value="technical"
+          className={cn(
+            'mt-6 space-y-6',
+            activeTab !== 'technical' && 'hidden',
+          )}
+          forceMount
+        >
+          <EmendaDadosTecnicos
+            ref={dadosTecnicosRef}
+            emenda={emendaData}
+            onEmendaChange={handleEmendaDataChange}
+          />
+          <EmendaObjetoFinalidade
+            description={emendaData.descricao_completa || ''}
+            onSave={(desc) =>
+              handleEmendaDataChange({
+                ...emendaData,
+                descricao_completa: desc,
+              })
+            }
+          />
+        </TabsContent>
+
+        <TabsContent value="planning" className="mt-6">
           <EmendaPlanejamentoTab emenda={emendaData} onUpdate={refreshData} />
         </TabsContent>
 
-        <TabsContent value="repasses" className="mt-4">
+        <TabsContent value="repasses" className="mt-6">
           <EmendaRepassesTab
             ref={repassesTabRef}
             repasses={emendaData.repasses}
@@ -488,7 +538,8 @@ const EmendaDetailPage = () => {
             emendaId={emendaData.id}
           />
         </TabsContent>
-        <TabsContent value="despesas" className="mt-4">
+
+        <TabsContent value="despesas" className="mt-6">
           <EmendaDespesasTab
             ref={despesasTabRef}
             despesas={emendaData.despesas}
@@ -498,7 +549,8 @@ const EmendaDetailPage = () => {
             tipoRecurso={emendaData.tipo_recurso}
           />
         </TabsContent>
-        <TabsContent value="anexos" className="mt-4">
+
+        <TabsContent value="anexos" className="mt-6">
           <div ref={anexosTabRef}>
             <EmendaAnexosTab
               anexos={emendaData.anexos}
@@ -507,17 +559,20 @@ const EmendaDetailPage = () => {
             />
           </div>
         </TabsContent>
-        <TabsContent value="audit" className="mt-4">
-          <AuditReportTab data={[emendaData]} />
-        </TabsContent>
-        <TabsContent value="checklist" className="mt-4">
+
+        <TabsContent value="checklist" className="mt-6">
           <EmendaChecklistTab
             pendencias={emendaData.pendencias}
             onPendencyClick={handlePendencyClick}
             onDismiss={() => {}}
           />
         </TabsContent>
-        <TabsContent value="historico" className="mt-4">
+
+        <TabsContent value="audit" className="mt-6">
+          <AuditReportTab data={[emendaData]} />
+        </TabsContent>
+
+        <TabsContent value="historico" className="mt-6">
           <EmendaHistoricoTab historico={emendaData.historico} />
         </TabsContent>
       </Tabs>
