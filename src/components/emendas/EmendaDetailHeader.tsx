@@ -6,8 +6,8 @@ import {
   SituacaoOficialEnum,
   StatusInternoEnum,
 } from '@/lib/mock-data'
-import { Paperclip, Calendar, User, FileText } from 'lucide-react'
-import { formatCurrencyBRL, formatPercent, cn } from '@/lib/utils'
+import { Paperclip, Calendar, User } from 'lucide-react'
+import { formatCurrencyBRL, formatPercent } from '@/lib/utils'
 import {
   Select,
   SelectContent,
@@ -64,29 +64,31 @@ export const EmendaDetailHeader = ({
             </div>
 
             <div>
+              {/* Primary Title: Proposal Number */}
               <CardTitle className="text-2xl md:text-3xl font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
                 <span className="text-muted-foreground font-normal text-lg mr-1">
-                  Nº
+                  Proposta:
                 </span>
-                {emenda.numero_emenda}
+                {emenda.numero_proposta || 'N/A'}
               </CardTitle>
+
               <div className="flex flex-col sm:flex-row sm:items-center gap-y-1 gap-x-4 text-sm text-neutral-600 dark:text-neutral-400 mt-1">
+                {/* Secondary Information: Amendment Number */}
+                <div className="flex items-center gap-1.5">
+                  <span className="text-muted-foreground">Emenda Nº:</span>
+                  <span className="font-semibold text-foreground">
+                    {emenda.numero_emenda}
+                  </span>
+                </div>
+
+                <div className="hidden sm:block text-neutral-300">|</div>
+
                 <div className="flex items-center gap-1.5">
                   <User className="h-4 w-4 text-primary/70" />
                   <span className="font-medium text-foreground">
                     {emenda.parlamentar}
                   </span>
                   <span className="text-muted-foreground">(Parlamentar)</span>
-                </div>
-                <div className="hidden sm:block text-neutral-300">|</div>
-                <div className="flex items-center gap-1.5">
-                  <FileText className="h-4 w-4 text-primary/70" />
-                  <span>
-                    Proposta:{' '}
-                    <span className="font-medium text-foreground">
-                      {emenda.numero_proposta || 'N/A'}
-                    </span>
-                  </span>
                 </div>
               </div>
             </div>
