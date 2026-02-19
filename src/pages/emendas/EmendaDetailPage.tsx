@@ -248,6 +248,7 @@ const EmendaDetailPage = () => {
           descricao_completa: updatedEmenda.descricao_completa,
           situacao: updatedEmenda.situacao,
           status_interno: updatedEmenda.status_interno,
+          numero_proposta: updatedEmenda.numero_proposta,
         })
         .eq('id', emendaData.id)
 
@@ -311,6 +312,7 @@ const EmendaDetailPage = () => {
         'data_repasse',
         'objeto_emenda',
         'observacoes',
+        'numero_proposta',
       ]
 
       if (technicalFields.includes(targetId)) {
