@@ -223,7 +223,44 @@ const EmendaDetailPage = () => {
 
   useEffect(() => {
     fetchEmendaDetails()
-  }, [fetchEmendaDetails])
+
+    // Real-time subscription to ensure checklist and data consistency
+    if (!id) return
+
+    const channel = supabase
+      .channel('emenda-detail-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'pendencias',
+          filter: `emenda_id=eq.${id}`,
+        },
+        () => {
+          // Refresh data when pendencies change (e.g. triggered by DB function)
+          fetchEmendaDetails(false)
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'emendas',
+          filter: `id=eq.${id}`,
+        },
+        () => {
+          // Refresh when emenda itself is updated (e.g. by another user)
+          fetchEmendaDetails(false)
+        },
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [fetchEmendaDetails, id])
 
   const refreshData = async () => {
     await fetchEmendaDetails(false)
