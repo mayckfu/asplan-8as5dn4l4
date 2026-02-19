@@ -1143,22 +1143,16 @@ export const Constants = {
 //   Policy "Admins can do everything on profiles" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: (get_user_role() = 'ADMIN'::user_role)
 //     WITH CHECK: (get_user_role() = 'ADMIN'::user_role)
-//   Policy "Admins update profiles" (UPDATE, PERMISSIVE) roles={authenticated}
-//     USING: (get_user_role() = 'ADMIN'::user_role)
+//   Policy "Admins can update any profile" (UPDATE, PERMISSIVE) roles={public}
+//     USING: ((get_user_role())::text = 'ADMIN'::text)
+//     WITH CHECK: ((get_user_role())::text = 'ADMIN'::text)
 //   Policy "Authenticated users can view all profiles" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: true
 //   Policy "Profiles select policy" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: true
 //   Policy "Read access for all authenticated users" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: true
-//   Policy "Self update profiles" (UPDATE, PERMISSIVE) roles={authenticated}
-//     USING: (auth.uid() = id)
-//     WITH CHECK: ((auth.uid() = id) AND ((get_user_role() = 'ADMIN'::user_role) OR ((role = ( SELECT profiles_1.role
-   FROM profiles profiles_1
-  WHERE (profiles_1.id = auth.uid()))) AND (status = ( SELECT profiles_1.status
-   FROM profiles profiles_1
-  WHERE (profiles_1.id = auth.uid()))))))
-//   Policy "Users can update own profile" (UPDATE, PERMISSIVE) roles={authenticated}
+//   Policy "Users can update own profile" (UPDATE, PERMISSIVE) roles={public}
 //     USING: (auth.uid() = id)
 //     WITH CHECK: (auth.uid() = id)
 // Table: repasses
@@ -1323,6 +1317,26 @@ export const Constants = {
 //   END;
 //   $function$
 //   
+// FUNCTION protect_profile_role_status()
+//   CREATE OR REPLACE FUNCTION public.protect_profile_role_status()
+//    RETURNS trigger
+//    LANGUAGE plpgsql
+//    SECURITY DEFINER
+//   AS $function$
+//   BEGIN
+//     -- If the user is an admin, allow them to change anything
+//     IF public.get_user_role()::text = 'ADMIN' THEN
+//       RETURN NEW;
+//     END IF;
+//   
+//     -- Otherwise, enforce that role and status cannot be changed by the user
+//     NEW.role = OLD.role;
+//     NEW.status = OLD.status;
+//     
+//     RETURN NEW;
+//   END;
+//   $function$
+//   
 // FUNCTION search_emendas_global(text)
 //   CREATE OR REPLACE FUNCTION public.search_emendas_global(search_term text)
 //    RETURNS SETOF emendas
@@ -1355,13 +1369,16 @@ export const Constants = {
 //       v_emenda record;
 //       v_has_oficio boolean;
 //       v_has_repasses boolean;
+//       v_has_despesas boolean;
 //   BEGIN
 //       -- Determine Emenda ID based on the table triggering the function
 //       IF TG_TABLE_NAME = 'emendas' THEN
-//           target_emenda_id := NEW.id;
+//           target_emenda_id := COALESCE(NEW.id, OLD.id);
 //       ELSIF TG_TABLE_NAME = 'anexos' THEN
 //           target_emenda_id := COALESCE(NEW.emenda_id, OLD.emenda_id);
 //       ELSIF TG_TABLE_NAME = 'repasses' THEN
+//           target_emenda_id := COALESCE(NEW.emenda_id, OLD.emenda_id);
+//       ELSIF TG_TABLE_NAME = 'despesas' THEN
 //           target_emenda_id := COALESCE(NEW.emenda_id, OLD.emenda_id);
 //       END IF;
 //   
@@ -1375,9 +1392,10 @@ export const Constants = {
 //       -- Check Repasses (Any record exists)
 //       SELECT EXISTS(SELECT 1 FROM public.repasses WHERE emenda_id = target_emenda_id) INTO v_has_repasses;
 //   
-//       -- Check Anexos (Ofício de Envio)
-//       -- Matches filename or tipo containing "Ofício de Envio" OR type is 'OFICIO'
-//       -- Case insensitive matching for flexibility
+//       -- Check Despesas (Any record exists)
+//       SELECT EXISTS(SELECT 1 FROM public.despesas WHERE emenda_id = target_emenda_id) INTO v_has_despesas;
+//   
+//       -- Check Anexos (Ofício de Envio) - Robust case-insensitive check
 //       SELECT EXISTS(
 //           SELECT 1 FROM public.anexos 
 //           WHERE emenda_id = target_emenda_id 
@@ -1391,7 +1409,6 @@ export const Constants = {
 //       ) INTO v_has_oficio;
 //       
 //       -- 1. Valor do Repasse (Checklist Item)
-//       -- Resolved if field > 0 OR repasses table has entries
 //       IF (v_emenda.valor_repasse IS NOT NULL AND v_emenda.valor_repasse > 0) OR v_has_repasses THEN
 //           UPDATE public.pendencias SET resolvida = true WHERE emenda_id = target_emenda_id AND target_id = 'valor_repasse';
 //       ELSE
@@ -1403,7 +1420,7 @@ export const Constants = {
 //       END IF;
 //   
 //       -- 2. Destino do Recurso (Checklist Item)
-//       IF v_emenda.destino_recurso IS NOT NULL AND v_emenda.destino_recurso <> '' THEN
+//       IF v_emenda.destino_recurso IS NOT NULL AND TRIM(v_emenda.destino_recurso) <> '' THEN
 //           UPDATE public.pendencias SET resolvida = true WHERE emenda_id = target_emenda_id AND target_id = 'destino_recurso';
 //       ELSE
 //           INSERT INTO public.pendencias (emenda_id, descricao, target_type, target_id, resolvida)
@@ -1425,10 +1442,10 @@ export const Constants = {
 //       END IF;
 //   
 //       -- 4. Objeto da Emenda (Checklist Item)
-//       IF v_emenda.objeto_emenda IS NOT NULL AND v_emenda.objeto_emenda <> '' THEN
+//       IF v_emenda.objeto_emenda IS NOT NULL AND TRIM(v_emenda.objeto_emenda) <> '' THEN
 //           UPDATE public.pendencias SET resolvida = true WHERE emenda_id = target_emenda_id AND target_id = 'objeto_emenda';
 //       ELSE
-//            INSERT INTO public.pendencias (emenda_id, descricao, target_type, target_id, resolvida)
+//           INSERT INTO public.pendencias (emenda_id, descricao, target_type, target_id, resolvida)
 //           VALUES (target_emenda_id, 'Definir Objeto da Emenda', 'field', 'objeto_emenda', false)
 //           ON CONFLICT (emenda_id, target_id) DO UPDATE 
 //           SET resolvida = false
@@ -1436,14 +1453,36 @@ export const Constants = {
 //       END IF;
 //       
 //       -- 5. Número da Proposta (Checklist Item)
-//       IF v_emenda.numero_proposta IS NOT NULL AND v_emenda.numero_proposta <> '' THEN
+//       IF v_emenda.numero_proposta IS NOT NULL AND TRIM(v_emenda.numero_proposta) <> '' THEN
 //           UPDATE public.pendencias SET resolvida = true WHERE emenda_id = target_emenda_id AND target_id = 'numero_proposta';
 //       ELSE
-//            INSERT INTO public.pendencias (emenda_id, descricao, target_type, target_id, resolvida)
+//           INSERT INTO public.pendencias (emenda_id, descricao, target_type, target_id, resolvida)
 //           VALUES (target_emenda_id, 'Informar Número da Proposta', 'field', 'numero_proposta', false)
 //           ON CONFLICT (emenda_id, target_id) DO UPDATE 
 //           SET resolvida = false
 //           WHERE public.pendencias.emenda_id = target_emenda_id AND public.pendencias.target_id = 'numero_proposta' AND public.pendencias.dispensada = false;
+//       END IF;
+//   
+//       -- 6. Portaria (Checklist Item)
+//       IF v_emenda.portaria IS NOT NULL AND TRIM(v_emenda.portaria) <> '' THEN
+//           UPDATE public.pendencias SET resolvida = true WHERE emenda_id = target_emenda_id AND target_id = 'portaria';
+//       ELSE
+//           INSERT INTO public.pendencias (emenda_id, descricao, target_type, target_id, resolvida)
+//           VALUES (target_emenda_id, 'Informar Portaria', 'field', 'portaria', false)
+//           ON CONFLICT (emenda_id, target_id) DO UPDATE 
+//           SET resolvida = false
+//           WHERE public.pendencias.emenda_id = target_emenda_id AND public.pendencias.target_id = 'portaria' AND public.pendencias.dispensada = false;
+//       END IF;
+//   
+//       -- 7. Despesas (Checklist Item)
+//       IF v_has_despesas THEN
+//           UPDATE public.pendencias SET resolvida = true WHERE emenda_id = target_emenda_id AND target_id = 'despesas';
+//       ELSE
+//           INSERT INTO public.pendencias (emenda_id, descricao, target_type, target_id, resolvida)
+//           VALUES (target_emenda_id, 'Registrar Despesas', 'tab', 'despesas', false)
+//           ON CONFLICT (emenda_id, target_id) DO UPDATE 
+//           SET resolvida = false
+//           WHERE public.pendencias.emenda_id = target_emenda_id AND public.pendencias.target_id = 'despesas' AND public.pendencias.dispensada = false;
 //       END IF;
 //   
 //       RETURN NULL;
@@ -1494,6 +1533,7 @@ export const Constants = {
 //   on_critical_change: CREATE TRIGGER on_critical_change AFTER INSERT ON public.audit_logs FOR EACH ROW EXECUTE FUNCTION trigger_critical_security_alert()
 // Table: despesas
 //   audit_despesas: CREATE TRIGGER audit_despesas AFTER INSERT OR DELETE OR UPDATE ON public.despesas FOR EACH ROW EXECUTE FUNCTION audit_trigger_func()
+//   sync_pendencias_on_despesas: CREATE TRIGGER sync_pendencias_on_despesas AFTER INSERT OR DELETE OR UPDATE ON public.despesas FOR EACH ROW EXECUTE FUNCTION sync_emenda_pendencias()
 // Table: destinacoes_recursos
 //   update_destinacoes_updated_at: CREATE TRIGGER update_destinacoes_updated_at BEFORE UPDATE ON public.destinacoes_recursos FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 // Table: emendas
@@ -1505,6 +1545,7 @@ export const Constants = {
 // Table: profiles
 //   audit_profiles: CREATE TRIGGER audit_profiles AFTER INSERT OR DELETE OR UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION audit_trigger_func()
 //   check_profile_updates: CREATE TRIGGER check_profile_updates BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION prevent_profile_sensitive_updates()
+//   protect_profile_role_status: CREATE TRIGGER protect_profile_role_status BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION protect_profile_role_status()
 // Table: repasses
 //   audit_repasses: CREATE TRIGGER audit_repasses AFTER INSERT OR DELETE OR UPDATE ON public.repasses FOR EACH ROW EXECUTE FUNCTION audit_trigger_func()
 //   sync_pendencias_on_repasses: CREATE TRIGGER sync_pendencias_on_repasses AFTER INSERT OR DELETE OR UPDATE ON public.repasses FOR EACH ROW EXECUTE FUNCTION sync_emenda_pendencias()
