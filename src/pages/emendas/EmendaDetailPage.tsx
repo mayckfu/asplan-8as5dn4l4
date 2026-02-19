@@ -10,7 +10,6 @@ import {
   ArrowRightLeft,
   Paperclip,
   CheckSquare,
-  History,
   LayoutDashboard,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -43,7 +42,6 @@ import {
 } from '@/components/emendas/EmendaDespesasTab'
 import { EmendaAnexosTab } from '@/components/emendas/EmendaAnexosTab'
 import { EmendaChecklistTab } from '@/components/emendas/EmendaChecklistTab'
-import { EmendaHistoricoTab } from '@/components/emendas/EmendaHistoricoTab'
 import { EmendaPlanejamentoTab } from '@/components/emendas/EmendaPlanejamentoTab'
 import { AuditReportTab } from '@/components/reports/AuditReportTab'
 import { useToast } from '@/components/ui/use-toast'
@@ -344,6 +342,10 @@ const EmendaDetailPage = () => {
 
     // Handle Tab Redirection
     if (targetType === 'tab') {
+      if (targetId === 'historico') {
+        setActiveTab('technical')
+        return
+      }
       setActiveTab(targetId)
       return
     }
@@ -384,10 +386,12 @@ const EmendaDetailPage = () => {
         'anexos',
         'audit',
         'checklist',
-        'historico',
       ].includes(targetId)
     ) {
       setActiveTab(targetId)
+    } else if (targetId === 'historico') {
+      // Redirect historical references to technical or just ignore
+      setActiveTab('technical')
     }
   }
 
@@ -451,7 +455,7 @@ const EmendaDetailPage = () => {
         className="w-full"
       >
         <div className="w-full overflow-x-auto pb-2 scrollbar-none">
-          <TabsList className="inline-flex w-full min-w-max md:w-full md:grid md:grid-cols-8 p-1 h-auto bg-muted/50 rounded-lg">
+          <TabsList className="inline-flex w-full min-w-max md:w-full md:grid md:grid-cols-7 p-1 h-auto bg-muted/50 rounded-lg">
             <TabsTrigger value="technical" className="px-2 py-2.5 gap-2">
               <LayoutDashboard className="h-4 w-4" />
               <span className="hidden lg:inline">Dados Técnicos</span>
@@ -490,10 +494,6 @@ const EmendaDetailPage = () => {
             <TabsTrigger value="audit" className="px-2 py-2.5 gap-2">
               <FileText className="h-4 w-4" />
               Auditoria
-            </TabsTrigger>
-            <TabsTrigger value="historico" className="px-2 py-2.5 gap-2">
-              <History className="h-4 w-4" />
-              Histórico
             </TabsTrigger>
           </TabsList>
         </div>
@@ -570,10 +570,6 @@ const EmendaDetailPage = () => {
 
         <TabsContent value="audit" className="mt-6">
           <AuditReportTab data={[emendaData]} />
-        </TabsContent>
-
-        <TabsContent value="historico" className="mt-6">
-          <EmendaHistoricoTab historico={emendaData.historico} />
         </TabsContent>
       </Tabs>
     </div>
