@@ -6,8 +6,15 @@ import {
   SituacaoOficialEnum,
   StatusInternoEnum,
 } from '@/lib/mock-data'
-import { Paperclip, Calendar, User } from 'lucide-react'
-import { formatCurrencyBRL, formatPercent } from '@/lib/utils'
+import {
+  Paperclip,
+  Calendar,
+  User,
+  Wallet,
+  TrendingUp,
+  CreditCard,
+} from 'lucide-react'
+import { formatCurrencyBRL, formatPercent, cn } from '@/lib/utils'
 import {
   Select,
   SelectContent,
@@ -17,7 +24,6 @@ import {
 } from '@/components/ui/select'
 import { useAuth } from '@/contexts/AuthContext'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
 
 interface EmendaDetailHeaderProps {
   emenda: DetailedAmendment
@@ -149,41 +155,65 @@ export const EmendaDetailHeader = ({
       <CardContent className="pt-2">
         {/* KPI Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
-          <div className="p-3 rounded-lg border bg-muted/20 flex flex-col justify-center">
-            <span className="text-xs font-medium text-muted-foreground mb-1">
+          <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 dark:bg-slate-900/20 dark:border-slate-800 flex flex-col justify-center relative overflow-hidden">
+            <div className="absolute top-2 right-2 opacity-10">
+              <Wallet className="h-12 w-12 text-slate-900" />
+            </div>
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400 mb-1">
               Valor Total
             </span>
-            <span className="text-lg font-bold text-foreground">
+            <span className="text-lg md:text-xl font-bold text-slate-900 dark:text-slate-100">
               {formatCurrencyBRL(emenda.valor_total)}
             </span>
           </div>
-          <div className="p-3 rounded-lg border bg-muted/20 flex flex-col justify-center">
-            <span className="text-xs font-medium text-muted-foreground mb-1">
+
+          <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-800 flex flex-col justify-center relative overflow-hidden">
+            <div className="absolute top-2 right-2 opacity-10">
+              <TrendingUp className="h-12 w-12 text-emerald-700" />
+            </div>
+            <span className="text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400 mb-1">
               Repassado
             </span>
-            <span className="text-lg font-bold text-emerald-600 dark:text-emerald-500">
+            <span className="text-lg md:text-xl font-bold text-emerald-800 dark:text-emerald-300">
               {formatCurrencyBRL(totalRepassado)}
             </span>
           </div>
-          <div className="p-3 rounded-lg border bg-muted/20 flex flex-col justify-center">
-            <span className="text-xs font-medium text-muted-foreground mb-1">
+
+          <div className="p-4 rounded-xl border border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800 flex flex-col justify-center relative overflow-hidden">
+            <div className="absolute top-2 right-2 opacity-10">
+              <CreditCard className="h-12 w-12 text-blue-700" />
+            </div>
+            <span className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-400 mb-1">
               Gasto (Executado)
             </span>
-            <span className="text-lg font-bold text-blue-600 dark:text-blue-500">
+            <span className="text-lg md:text-xl font-bold text-blue-800 dark:text-blue-300">
               {formatCurrencyBRL(totalGasto)}
             </span>
           </div>
+
           <div className="p-3 rounded-lg border bg-muted/20 flex flex-col justify-center col-span-2 md:col-span-1 lg:col-span-2">
             <div className="flex justify-between items-end mb-2">
               <span className="text-xs font-medium text-muted-foreground">
                 Progresso da Execução
               </span>
-              <span className="text-xs font-bold">
+              <span className="text-xs font-bold text-primary">
                 {formatPercent(execucaoPercent)}
               </span>
             </div>
-            <Progress value={Math.min(execucaoPercent, 100)} className="h-2" />
-            <div className="flex justify-between mt-1">
+
+            {/* Custom Gradient Progress Bar */}
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-secondary shadow-inner">
+              <div
+                className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 transition-all duration-700 ease-out"
+                style={{ width: `${Math.min(execucaoPercent, 100)}%` }}
+              />
+            </div>
+
+            <div className="flex justify-between mt-2">
+              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                Executado
+              </span>
               <span className="text-[10px] text-muted-foreground">
                 Cobertura: {formatPercent(coberturaPercent)} do total
               </span>

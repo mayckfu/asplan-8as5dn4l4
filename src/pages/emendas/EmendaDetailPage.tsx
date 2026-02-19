@@ -4,13 +4,13 @@ import {
   ArrowLeft,
   Loader2,
   AlertTriangle,
-  ListChecks,
   FileText,
   Banknote,
-  ArrowRightLeft,
   Paperclip,
-  CheckSquare,
-  LayoutDashboard,
+  Info,
+  Target,
+  Receipt,
+  AlertCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -456,33 +456,53 @@ const EmendaDetailPage = () => {
       >
         <div className="w-full overflow-x-auto pb-2 scrollbar-none">
           <TabsList className="inline-flex w-full min-w-max md:w-full md:grid md:grid-cols-7 p-1 h-auto bg-muted/50 rounded-lg">
-            <TabsTrigger value="technical" className="px-2 py-2.5 gap-2">
-              <LayoutDashboard className="h-4 w-4" />
+            <TabsTrigger
+              value="technical"
+              className="px-2 py-2.5 gap-2 data-[state=active]:text-indigo-600 data-[state=active]:bg-indigo-50/50"
+            >
+              <Info className="h-4 w-4 text-indigo-500/70" />
               <span className="hidden lg:inline">Dados Técnicos</span>
               <span className="lg:hidden">Geral</span>
             </TabsTrigger>
-            <TabsTrigger value="planning" className="px-2 py-2.5 gap-2">
-              <ListChecks className="h-4 w-4" />
+
+            <TabsTrigger
+              value="planning"
+              className="px-2 py-2.5 gap-2 data-[state=active]:text-amber-600 data-[state=active]:bg-amber-50/50"
+            >
+              <Target className="h-4 w-4 text-amber-500/70" />
               <span className="hidden lg:inline">Ações e Planejamento</span>
               <span className="lg:hidden">Ações</span>
             </TabsTrigger>
-            <TabsTrigger value="despesas" className="px-2 py-2.5 gap-2">
-              <Banknote className="h-4 w-4" />
+
+            <TabsTrigger
+              value="despesas"
+              className="px-2 py-2.5 gap-2 data-[state=active]:text-rose-600 data-[state=active]:bg-rose-50/50"
+            >
+              <Receipt className="h-4 w-4 text-rose-500/70" />
               Despesas
             </TabsTrigger>
-            <TabsTrigger value="repasses" className="px-2 py-2.5 gap-2">
-              <ArrowRightLeft className="h-4 w-4" />
+
+            <TabsTrigger
+              value="repasses"
+              className="px-2 py-2.5 gap-2 data-[state=active]:text-emerald-600 data-[state=active]:bg-emerald-50/50"
+            >
+              <Banknote className="h-4 w-4 text-emerald-500/70" />
               Repasses
             </TabsTrigger>
-            <TabsTrigger value="anexos" className="px-2 py-2.5 gap-2">
-              <Paperclip className="h-4 w-4" />
+
+            <TabsTrigger
+              value="anexos"
+              className="px-2 py-2.5 gap-2 data-[state=active]:text-slate-600 data-[state=active]:bg-slate-50/50"
+            >
+              <Paperclip className="h-4 w-4 text-slate-500/70" />
               Anexos
             </TabsTrigger>
+
             <TabsTrigger
               value="checklist"
-              className="px-2 py-2.5 gap-2 relative"
+              className="px-2 py-2.5 gap-2 relative data-[state=active]:text-orange-600 data-[state=active]:bg-orange-50/50"
             >
-              <CheckSquare className="h-4 w-4" />
+              <AlertCircle className="h-4 w-4 text-orange-500/70" />
               Pendências
               {pendingCount > 0 && (
                 <span className="absolute top-1 right-1 flex h-2.5 w-2.5">
@@ -491,8 +511,9 @@ const EmendaDetailPage = () => {
                 </span>
               )}
             </TabsTrigger>
+
             <TabsTrigger value="audit" className="px-2 py-2.5 gap-2">
-              <FileText className="h-4 w-4" />
+              <FileText className="h-4 w-4 text-muted-foreground" />
               Auditoria
             </TabsTrigger>
           </TabsList>
