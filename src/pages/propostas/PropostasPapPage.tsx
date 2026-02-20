@@ -21,6 +21,13 @@ const PropostasPapPage = () => {
   const [papAmendments, setPapAmendments] = useState<Amendment[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
+  const [selectedYear] = useState(() => {
+    return (
+      localStorage.getItem('asplan_dashboard_year') ||
+      new Date().getFullYear().toString()
+    )
+  })
+
   useEffect(() => {
     const fetchPapAmendments = async () => {
       setIsLoading(true)
@@ -28,7 +35,8 @@ const PropostasPapPage = () => {
         const { data, error } = await supabase
           .from('emendas')
           .select('*')
-          .eq('tipo_recurso', 'INCREMENTO_PAP')
+          .in('tipo_recurso', ['INCREMENTO_PAP', 'CUSTEIO_PAP'])
+          .eq('ano_exercicio', parseInt(selectedYear))
           .order('created_at', { ascending: false })
 
         if (error) throw error
@@ -42,7 +50,7 @@ const PropostasPapPage = () => {
     }
 
     fetchPapAmendments()
-  }, [])
+  }, [selectedYear])
 
   if (isLoading) {
     return (
@@ -65,7 +73,7 @@ const PropostasPapPage = () => {
           <span className="sr-only">Voltar</span>
         </Button>
         <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-          Propostas de Incremento PAP
+          Propostas PAP — {selectedYear}
         </h1>
       </div>
       <Card>
@@ -88,7 +96,7 @@ const PropostasPapPage = () => {
               {papAmendments.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8">
-                    Nenhuma proposta encontrada.
+                    Nenhuma proposta encontrada para o ano de {selectedYear}.
                   </TableCell>
                 </TableRow>
               ) : (
