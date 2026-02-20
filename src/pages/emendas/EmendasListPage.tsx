@@ -216,7 +216,9 @@ const EmendasListPage = () => {
   const [deletingEmenda, setDeletingEmenda] = useState<Amendment | null>(null)
 
   // New states for optimization
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchTerm, setSearchTerm] = useState(
+    () => searchParams.get('q') || '',
+  )
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: null,
     direction: 'asc',
@@ -256,11 +258,31 @@ const EmendasListPage = () => {
     fetchAmendments()
   }, [fetchAmendments])
 
+  useEffect(() => {
+    const q = searchParams.get('q') || ''
+    if (q !== searchTerm) {
+      setSearchTerm(q)
+    }
+  }, [searchParams])
+
+  const uniqueAuthors = useMemo(() => {
+    const authors = new Set(localAmendments.map((a) => a.autor).filter(Boolean))
+    return Array.from(authors).sort()
+  }, [localAmendments])
+
+  const uniqueParlamentares = useMemo(() => {
+    const parlamentares = new Set(
+      localAmendments.map((a) => a.parlamentar).filter(Boolean),
+    )
+    return Array.from(parlamentares).sort()
+  }, [localAmendments])
+
   const filters = useMemo<FiltersState>(() => {
     const fromStr = searchParams.get('from')
     const toStr = searchParams.get('to')
     return {
-      autor: searchParams.get('autor') ?? '',
+      autor: searchParams.get('autor') ?? 'all',
+      parlamentar: searchParams.get('parlamentar') ?? 'all',
       tipo: searchParams.get('tipo') ?? 'all',
       tipoRecurso: searchParams.get('tipoRecurso') ?? 'all',
       situacaoOficial: searchParams.get('situacaoOficial') ?? 'all',
@@ -326,6 +348,19 @@ const EmendasListPage = () => {
     },
     [searchParams, setSearchParams],
   )
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setSearchTerm(value)
+    const newParams = new URLSearchParams(searchParams)
+    if (value) {
+      newParams.set('q', value)
+    } else {
+      newParams.delete('q')
+    }
+    newParams.set('page', '1')
+    setSearchParams(newParams, { replace: true })
+  }
 
   const handleResetFilters = useCallback(() => {
     setSearchParams({ page: '1' }, { replace: true })
@@ -430,10 +465,9 @@ const EmendasListPage = () => {
         pendencias: getPendencias(amendment),
       }))
       .filter((amendment) => {
-        // Text Search
+        // Text Search (Global Search functionality)
         if (searchTerm) {
           const searchLower = searchTerm.toLowerCase()
-          // Basic client-side search approximation (backend logic is in GlobalSearch)
           const matchesEmenda = amendment.numero_emenda
             .toLowerCase()
             .includes(searchLower)
@@ -456,11 +490,14 @@ const EmendasListPage = () => {
         }
 
         // Existing Filters
+        if (filters.autor !== 'all' && amendment.autor !== filters.autor)
+          return false
         if (
-          filters.autor &&
-          !amendment.autor.toLowerCase().includes(filters.autor.toLowerCase())
+          filters.parlamentar !== 'all' &&
+          amendment.parlamentar !== filters.parlamentar
         )
           return false
+
         if (filters.tipo !== 'all' && amendment.tipo !== filters.tipo)
           return false
 
@@ -623,7 +660,7 @@ const EmendasListPage = () => {
             <Input
               placeholder="Buscar..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
               className="pl-8 h-9"
             />
           </div>
@@ -702,6 +739,8 @@ const EmendasListPage = () => {
                 filters={filters}
                 onFilterChange={handleFilterChange}
                 onReset={handleResetFilters}
+                uniqueAuthors={uniqueAuthors}
+                uniqueParlamentares={uniqueParlamentares}
               />
               <div className="flex justify-between items-center mt-4 sm:hidden">
                 <Button size="sm" variant="ghost" onClick={savePreset}>
@@ -799,7 +838,6 @@ const EmendasListPage = () => {
                       <TableHead className="min-w-[140px] font-medium text-neutral-900 dark:text-neutral-200">
                         Situação Oficial
                       </TableHead>
-                      {/* Replaced Status Interno with Portaria - though previously it might have been implied or not present, ensuring it is Portaria now */}
                       <TableHead className="min-w-[140px] font-medium text-neutral-900 dark:text-neutral-200">
                         {renderHeader('Portaria', 'portaria')}
                       </TableHead>

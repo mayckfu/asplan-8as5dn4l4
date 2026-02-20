@@ -7,7 +7,6 @@ import {
   TipoEmenda,
 } from '@/lib/mock-data'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -22,6 +21,7 @@ import { MoneyInput } from '@/components/ui/money-input'
 
 export type FiltersState = {
   autor: string
+  parlamentar: string
   tipo: string
   tipoRecurso: string
   situacaoOficial: string
@@ -45,16 +45,17 @@ interface EmendasFiltersProps {
   filters: FiltersState
   onFilterChange: (newFilters: Partial<FiltersState>) => void
   onReset: () => void
+  uniqueAuthors: string[]
+  uniqueParlamentares: string[]
 }
 
 export const EmendasFilters = ({
   filters,
   onFilterChange,
   onReset,
+  uniqueAuthors,
+  uniqueParlamentares,
 }: EmendasFiltersProps) => {
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onFilterChange({ [e.target.name]: e.target.value })
-  }
   const handleSelectChange = (name: string) => (value: string) => {
     onFilterChange({ [name]: value })
   }
@@ -72,12 +73,40 @@ export const EmendasFilters = ({
   return (
     <div className="space-y-4 p-1">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Input
-          placeholder="Filtrar por Autor..."
-          name="autor"
+        <Select
           value={filters.autor}
-          onChange={handleInputChange}
-        />
+          onValueChange={handleSelectChange('autor')}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Autor Principal" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os Autores</SelectItem>
+            {uniqueAuthors.map((autor) => (
+              <SelectItem key={autor} value={autor}>
+                {autor}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={filters.parlamentar}
+          onValueChange={handleSelectChange('parlamentar')}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Parlamentar" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os Parlamentares</SelectItem>
+            {uniqueParlamentares.map((parlamentar) => (
+              <SelectItem key={parlamentar} value={parlamentar}>
+                {parlamentar}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         <Select value={filters.tipo} onValueChange={handleSelectChange('tipo')}>
           <SelectTrigger>
             <SelectValue placeholder="Tipo de Emenda" />
@@ -91,6 +120,7 @@ export const EmendasFilters = ({
             ))}
           </SelectContent>
         </Select>
+
         <Select
           value={filters.tipoRecurso}
           onValueChange={handleSelectChange('tipoRecurso')}
@@ -109,6 +139,7 @@ export const EmendasFilters = ({
             ))}
           </SelectContent>
         </Select>
+
         <Select
           value={filters.situacaoOficial}
           onValueChange={handleSelectChange('situacaoOficial')}
@@ -125,6 +156,7 @@ export const EmendasFilters = ({
             ))}
           </SelectContent>
         </Select>
+
         <Select
           value={filters.statusInterno}
           onValueChange={handleSelectChange('statusInterno')}
@@ -141,20 +173,24 @@ export const EmendasFilters = ({
             ))}
           </SelectContent>
         </Select>
+
         <DateRangePicker
           date={filters.periodo}
           onDateChange={handleDateChange}
         />
+
         <MoneyInput
           placeholder="Valor Mín."
           value={filters.valorMin}
           onChange={handleMoneyChange('valorMin')}
         />
+
         <MoneyInput
           placeholder="Valor Máx."
           value={filters.valorMax}
           onChange={handleMoneyChange('valorMax')}
         />
+
         <div className="flex items-center space-x-2">
           <Checkbox
             id="comPortaria"
