@@ -11,7 +11,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: '13.0.5'
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
@@ -51,11 +51,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'acoes_emendas_emenda_id_fkey'
-            columns: ['emenda_id']
+            foreignKeyName: "acoes_emendas_emenda_id_fkey"
+            columns: ["emenda_id"]
             isOneToOne: false
-            referencedRelation: 'emendas'
-            referencedColumns: ['id']
+            referencedRelation: "emendas"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -98,18 +98,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'anexos_emenda_id_fkey'
-            columns: ['emenda_id']
+            foreignKeyName: "anexos_emenda_id_fkey"
+            columns: ["emenda_id"]
             isOneToOne: false
-            referencedRelation: 'emendas'
-            referencedColumns: ['id']
+            referencedRelation: "emendas"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'anexos_uploader_fkey'
-            columns: ['uploader']
+            foreignKeyName: "anexos_uploader_fkey"
+            columns: ["uploader"]
             isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -146,11 +146,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'audit_logs_changed_by_fkey'
-            columns: ['changed_by']
+            foreignKeyName: "audit_logs_changed_by_fkey"
+            columns: ["changed_by"]
             isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -187,11 +187,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'backup_logs_initiated_by_fkey'
-            columns: ['initiated_by']
+            foreignKeyName: "backup_logs_initiated_by_fkey"
+            columns: ["initiated_by"]
             isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -199,7 +199,7 @@ export type Database = {
         Row: {
           active: boolean | null
           created_at: string | null
-          default_role: Database['public']['Enums']['user_role'] | null
+          default_role: Database["public"]["Enums"]["user_role"] | null
           descricao: string | null
           id: string
           nome: string
@@ -207,7 +207,7 @@ export type Database = {
         Insert: {
           active?: boolean | null
           created_at?: string | null
-          default_role?: Database['public']['Enums']['user_role'] | null
+          default_role?: Database["public"]["Enums"]["user_role"] | null
           descricao?: string | null
           id?: string
           nome: string
@@ -215,7 +215,7 @@ export type Database = {
         Update: {
           active?: boolean | null
           created_at?: string | null
-          default_role?: Database['public']['Enums']['user_role'] | null
+          default_role?: Database["public"]["Enums"]["user_role"] | null
           descricao?: string | null
           id?: string
           nome?: string
@@ -279,39 +279,39 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'despesas_autorizada_por_fkey'
-            columns: ['autorizada_por']
+            foreignKeyName: "despesas_autorizada_por_fkey"
+            columns: ["autorizada_por"]
             isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'despesas_destinacao_id_fkey'
-            columns: ['destinacao_id']
+            foreignKeyName: "despesas_destinacao_id_fkey"
+            columns: ["destinacao_id"]
             isOneToOne: false
-            referencedRelation: 'destinacoes_recursos'
-            referencedColumns: ['id']
+            referencedRelation: "destinacoes_recursos"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'despesas_emenda_id_fkey'
-            columns: ['emenda_id']
+            foreignKeyName: "despesas_emenda_id_fkey"
+            columns: ["emenda_id"]
             isOneToOne: false
-            referencedRelation: 'emendas'
-            referencedColumns: ['id']
+            referencedRelation: "emendas"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'despesas_registrada_por_fkey'
-            columns: ['registrada_por']
+            foreignKeyName: "despesas_registrada_por_fkey"
+            columns: ["registrada_por"]
             isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'despesas_responsavel_execucao_fkey'
-            columns: ['responsavel_execucao']
+            foreignKeyName: "despesas_responsavel_execucao_fkey"
+            columns: ["responsavel_execucao"]
             isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -354,11 +354,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'destinacoes_recursos_acao_id_fkey'
-            columns: ['acao_id']
+            foreignKeyName: "destinacoes_recursos_acao_id_fkey"
+            columns: ["acao_id"]
             isOneToOne: false
-            referencedRelation: 'acoes_emendas'
-            referencedColumns: ['id']
+            referencedRelation: "acoes_emendas"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -384,11 +384,11 @@ export type Database = {
           portaria: string | null
           segundo_autor: string | null
           segundo_parlamentar: string | null
-          situacao: Database['public']['Enums']['situacao_oficial']
+          situacao: Database["public"]["Enums"]["situacao_oficial"]
           situacao_recurso: string | null
-          status_interno: Database['public']['Enums']['status_interno']
-          tipo: Database['public']['Enums']['tipo_emenda_enum']
-          tipo_recurso: Database['public']['Enums']['tipo_recurso']
+          status_interno: Database["public"]["Enums"]["status_interno"]
+          tipo: Database["public"]["Enums"]["tipo_emenda_enum"]
+          tipo_recurso: Database["public"]["Enums"]["tipo_recurso"]
           updated_at: string | null
           valor_repasse: number | null
           valor_segundo_responsavel: number | null
@@ -415,11 +415,11 @@ export type Database = {
           portaria?: string | null
           segundo_autor?: string | null
           segundo_parlamentar?: string | null
-          situacao?: Database['public']['Enums']['situacao_oficial']
+          situacao?: Database["public"]["Enums"]["situacao_oficial"]
           situacao_recurso?: string | null
-          status_interno?: Database['public']['Enums']['status_interno']
-          tipo: Database['public']['Enums']['tipo_emenda_enum']
-          tipo_recurso: Database['public']['Enums']['tipo_recurso']
+          status_interno?: Database["public"]["Enums"]["status_interno"]
+          tipo: Database["public"]["Enums"]["tipo_emenda_enum"]
+          tipo_recurso: Database["public"]["Enums"]["tipo_recurso"]
           updated_at?: string | null
           valor_repasse?: number | null
           valor_segundo_responsavel?: number | null
@@ -446,11 +446,11 @@ export type Database = {
           portaria?: string | null
           segundo_autor?: string | null
           segundo_parlamentar?: string | null
-          situacao?: Database['public']['Enums']['situacao_oficial']
+          situacao?: Database["public"]["Enums"]["situacao_oficial"]
           situacao_recurso?: string | null
-          status_interno?: Database['public']['Enums']['status_interno']
-          tipo?: Database['public']['Enums']['tipo_emenda_enum']
-          tipo_recurso?: Database['public']['Enums']['tipo_recurso']
+          status_interno?: Database["public"]["Enums"]["status_interno"]
+          tipo?: Database["public"]["Enums"]["tipo_emenda_enum"]
+          tipo_recurso?: Database["public"]["Enums"]["tipo_recurso"]
           updated_at?: string | null
           valor_repasse?: number | null
           valor_segundo_responsavel?: number | null
@@ -485,20 +485,47 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'historico_emenda_id_fkey'
-            columns: ['emenda_id']
+            foreignKeyName: "historico_emenda_id_fkey"
+            columns: ["emenda_id"]
             isOneToOne: false
-            referencedRelation: 'emendas'
-            referencedColumns: ['id']
+            referencedRelation: "emendas"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'historico_feito_por_fkey'
-            columns: ['feito_por']
+            foreignKeyName: "historico_feito_por_fkey"
+            columns: ["feito_por"]
             isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
         ]
+      }
+      limites_exercicio: {
+        Row: {
+          ano: number
+          created_at: string | null
+          limite_capital: number
+          limite_mac: number
+          limite_pap: number
+          updated_at: string | null
+        }
+        Insert: {
+          ano: number
+          created_at?: string | null
+          limite_capital?: number
+          limite_mac?: number
+          limite_pap?: number
+          updated_at?: string | null
+        }
+        Update: {
+          ano?: number
+          created_at?: string | null
+          limite_capital?: number
+          limite_mac?: number
+          limite_pap?: number
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -527,18 +554,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'notifications_emenda_id_fkey'
-            columns: ['emenda_id']
+            foreignKeyName: "notifications_emenda_id_fkey"
+            columns: ["emenda_id"]
             isOneToOne: false
-            referencedRelation: 'emendas'
-            referencedColumns: ['id']
+            referencedRelation: "emendas"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'notifications_user_id_fkey'
-            columns: ['user_id']
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -578,11 +605,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'pendencias_emenda_id_fkey'
-            columns: ['emenda_id']
+            foreignKeyName: "pendencias_emenda_id_fkey"
+            columns: ["emenda_id"]
             isOneToOne: false
-            referencedRelation: 'emendas'
-            referencedColumns: ['id']
+            referencedRelation: "emendas"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -595,8 +622,8 @@ export type Database = {
           id: string
           inactivity_timeout: number
           name: string
-          role: Database['public']['Enums']['user_role']
-          status: Database['public']['Enums']['user_status']
+          role: Database["public"]["Enums"]["user_role"]
+          status: Database["public"]["Enums"]["user_status"]
           unidade: string | null
           updated_at: string | null
         }
@@ -608,8 +635,8 @@ export type Database = {
           id: string
           inactivity_timeout?: number
           name: string
-          role?: Database['public']['Enums']['user_role']
-          status?: Database['public']['Enums']['user_status']
+          role?: Database["public"]["Enums"]["user_role"]
+          status?: Database["public"]["Enums"]["user_status"]
           unidade?: string | null
           updated_at?: string | null
         }
@@ -621,18 +648,18 @@ export type Database = {
           id?: string
           inactivity_timeout?: number
           name?: string
-          role?: Database['public']['Enums']['user_role']
-          status?: Database['public']['Enums']['user_status']
+          role?: Database["public"]["Enums"]["user_role"]
+          status?: Database["public"]["Enums"]["user_status"]
           unidade?: string | null
           updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: 'profiles_cargo_id_fkey'
-            columns: ['cargo_id']
+            foreignKeyName: "profiles_cargo_id_fkey"
+            columns: ["cargo_id"]
             isOneToOne: false
-            referencedRelation: 'cargos'
-            referencedColumns: ['id']
+            referencedRelation: "cargos"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -672,11 +699,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'repasses_emenda_id_fkey'
-            columns: ['emenda_id']
+            foreignKeyName: "repasses_emenda_id_fkey"
+            columns: ["emenda_id"]
             isOneToOne: false
-            referencedRelation: 'emendas'
-            referencedColumns: ['id']
+            referencedRelation: "emendas"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -710,11 +737,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'security_notifications_user_id_fkey'
-            columns: ['user_id']
+            foreignKeyName: "security_notifications_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -725,7 +752,7 @@ export type Database = {
     Functions: {
       get_user_role: {
         Args: never
-        Returns: Database['public']['Enums']['user_role']
+        Returns: Database["public"]["Enums"]["user_role"]
       }
       log_security_notification: {
         Args: {
@@ -759,19 +786,19 @@ export type Database = {
           portaria: string | null
           segundo_autor: string | null
           segundo_parlamentar: string | null
-          situacao: Database['public']['Enums']['situacao_oficial']
+          situacao: Database["public"]["Enums"]["situacao_oficial"]
           situacao_recurso: string | null
-          status_interno: Database['public']['Enums']['status_interno']
-          tipo: Database['public']['Enums']['tipo_emenda_enum']
-          tipo_recurso: Database['public']['Enums']['tipo_recurso']
+          status_interno: Database["public"]["Enums"]["status_interno"]
+          tipo: Database["public"]["Enums"]["tipo_emenda_enum"]
+          tipo_recurso: Database["public"]["Enums"]["tipo_recurso"]
           updated_at: string | null
           valor_repasse: number | null
           valor_segundo_responsavel: number | null
           valor_total: number
         }[]
         SetofOptions: {
-          from: '*'
-          to: 'emendas'
+          from: "*"
+          to: "emendas"
           isOneToOne: false
           isSetofReturn: true
         }
@@ -779,37 +806,37 @@ export type Database = {
     }
     Enums: {
       situacao_oficial:
-        | 'PAGA'
-        | 'EMPENHADA_AGUARDANDO_FORMALIZACAO'
-        | 'FAVORAVEL'
-        | 'EM_ANALISE'
-        | 'LIBERADO_PAGAMENTO_FNS'
-        | 'OUTRA'
+        | "PAGA"
+        | "EMPENHADA_AGUARDANDO_FORMALIZACAO"
+        | "FAVORAVEL"
+        | "EM_ANALISE"
+        | "LIBERADO_PAGAMENTO_FNS"
+        | "OUTRA"
       status_interno:
-        | 'RASCUNHO'
-        | 'EM_EXECUCAO'
-        | 'PAGA_SEM_DOCUMENTOS'
-        | 'PAGA_COM_PENDENCIAS'
-        | 'CONCLUIDA'
-        | 'PROPOSTA_PAGA'
-        | 'EM_ANALISE_PAGAMENTO'
-        | 'APROVADA_PAGAMENTO'
-        | 'AUTORIZADA_AGUARDANDO_EMPENHO'
-        | 'AGUARDANDO_AUTORIZACAO_FNS'
-        | 'PORTARIA_PUBLICADA_AGUARDANDO_FNS'
-        | 'ENVIADA_PUBLICACAO_PORTARIA'
-        | 'PROPOSTA_APROVADA'
-        | 'CLASSIFICADA_AGUARDANDO_SECRETARIA'
-      tipo_emenda_enum: 'individual' | 'bancada' | 'comissao'
+        | "RASCUNHO"
+        | "EM_EXECUCAO"
+        | "PAGA_SEM_DOCUMENTOS"
+        | "PAGA_COM_PENDENCIAS"
+        | "CONCLUIDA"
+        | "PROPOSTA_PAGA"
+        | "EM_ANALISE_PAGAMENTO"
+        | "APROVADA_PAGAMENTO"
+        | "AUTORIZADA_AGUARDANDO_EMPENHO"
+        | "AGUARDANDO_AUTORIZACAO_FNS"
+        | "PORTARIA_PUBLICADA_AGUARDANDO_FNS"
+        | "ENVIADA_PUBLICACAO_PORTARIA"
+        | "PROPOSTA_APROVADA"
+        | "CLASSIFICADA_AGUARDANDO_SECRETARIA"
+      tipo_emenda_enum: "individual" | "bancada" | "comissao"
       tipo_recurso:
-        | 'CUSTEIO_MAC'
-        | 'CUSTEIO_PAP'
-        | 'EQUIPAMENTO'
-        | 'INCREMENTO_MAC'
-        | 'INCREMENTO_PAP'
-        | 'OUTRO'
-      user_role: 'ADMIN' | 'GESTOR' | 'ANALISTA' | 'CONSULTA'
-      user_status: 'ATIVO' | 'BLOQUEADO' | 'PENDENTE'
+        | "CUSTEIO_MAC"
+        | "CUSTEIO_PAP"
+        | "EQUIPAMENTO"
+        | "INCREMENTO_MAC"
+        | "INCREMENTO_PAP"
+        | "OUTRO"
+      user_role: "ADMIN" | "GESTOR" | "ANALISTA" | "CONSULTA"
+      user_status: "ATIVO" | "BLOQUEADO" | "PENDENTE"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -817,33 +844,33 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] &
-        DefaultSchema['Views'])
-    ? (DefaultSchema['Tables'] &
-        DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -852,23 +879,23 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -877,23 +904,23 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -902,79 +929,80 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema['Enums']
+    | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
-    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema['CompositeTypes']
+    | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
-    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
   public: {
     Enums: {
       situacao_oficial: [
-        'PAGA',
-        'EMPENHADA_AGUARDANDO_FORMALIZACAO',
-        'FAVORAVEL',
-        'EM_ANALISE',
-        'LIBERADO_PAGAMENTO_FNS',
-        'OUTRA',
+        "PAGA",
+        "EMPENHADA_AGUARDANDO_FORMALIZACAO",
+        "FAVORAVEL",
+        "EM_ANALISE",
+        "LIBERADO_PAGAMENTO_FNS",
+        "OUTRA",
       ],
       status_interno: [
-        'RASCUNHO',
-        'EM_EXECUCAO',
-        'PAGA_SEM_DOCUMENTOS',
-        'PAGA_COM_PENDENCIAS',
-        'CONCLUIDA',
-        'PROPOSTA_PAGA',
-        'EM_ANALISE_PAGAMENTO',
-        'APROVADA_PAGAMENTO',
-        'AUTORIZADA_AGUARDANDO_EMPENHO',
-        'AGUARDANDO_AUTORIZACAO_FNS',
-        'PORTARIA_PUBLICADA_AGUARDANDO_FNS',
-        'ENVIADA_PUBLICACAO_PORTARIA',
-        'PROPOSTA_APROVADA',
-        'CLASSIFICADA_AGUARDANDO_SECRETARIA',
+        "RASCUNHO",
+        "EM_EXECUCAO",
+        "PAGA_SEM_DOCUMENTOS",
+        "PAGA_COM_PENDENCIAS",
+        "CONCLUIDA",
+        "PROPOSTA_PAGA",
+        "EM_ANALISE_PAGAMENTO",
+        "APROVADA_PAGAMENTO",
+        "AUTORIZADA_AGUARDANDO_EMPENHO",
+        "AGUARDANDO_AUTORIZACAO_FNS",
+        "PORTARIA_PUBLICADA_AGUARDANDO_FNS",
+        "ENVIADA_PUBLICACAO_PORTARIA",
+        "PROPOSTA_APROVADA",
+        "CLASSIFICADA_AGUARDANDO_SECRETARIA",
       ],
-      tipo_emenda_enum: ['individual', 'bancada', 'comissao'],
+      tipo_emenda_enum: ["individual", "bancada", "comissao"],
       tipo_recurso: [
-        'CUSTEIO_MAC',
-        'CUSTEIO_PAP',
-        'EQUIPAMENTO',
-        'INCREMENTO_MAC',
-        'INCREMENTO_PAP',
-        'OUTRO',
+        "CUSTEIO_MAC",
+        "CUSTEIO_PAP",
+        "EQUIPAMENTO",
+        "INCREMENTO_MAC",
+        "INCREMENTO_PAP",
+        "OUTRO",
       ],
-      user_role: ['ADMIN', 'GESTOR', 'ANALISTA', 'CONSULTA'],
-      user_status: ['ATIVO', 'BLOQUEADO', 'PENDENTE'],
+      user_role: ["ADMIN", "GESTOR", "ANALISTA", "CONSULTA"],
+      user_status: ["ATIVO", "BLOQUEADO", "PENDENTE"],
     },
   },
 } as const
+
 
 // ====== DATABASE EXTENDED CONTEXT (auto-generated) ======
 // This section contains constraints, RLS policies, functions, triggers,
@@ -1014,6 +1042,8 @@ export const Constants = {
 //   FOREIGN KEY historico_emenda_id_fkey: FOREIGN KEY (emenda_id) REFERENCES emendas(id) ON DELETE CASCADE
 //   FOREIGN KEY historico_feito_por_fkey: FOREIGN KEY (feito_por) REFERENCES profiles(id) ON DELETE CASCADE
 //   PRIMARY KEY historico_pkey: PRIMARY KEY (id)
+// Table: limites_exercicio
+//   PRIMARY KEY limites_exercicio_pkey: PRIMARY KEY (ano)
 // Table: notifications
 //   FOREIGN KEY notifications_emenda_id_fkey: FOREIGN KEY (emenda_id) REFERENCES emendas(id) ON DELETE CASCADE
 //   PRIMARY KEY notifications_pkey: PRIMARY KEY (id)
@@ -1120,6 +1150,13 @@ export const Constants = {
 //     USING: (auth.role() = 'authenticated'::text)
 //   Policy "Write access for ADMIN, GESTOR, ANALISTA" (ALL, PERMISSIVE) roles={public}
 //     USING: (get_user_role() = ANY (ARRAY['ADMIN'::user_role, 'GESTOR'::user_role, 'ANALISTA'::user_role]))
+// Table: limites_exercicio
+//   Policy "Limites insert policy" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: (get_user_role() = 'ADMIN'::user_role)
+//   Policy "Limites select policy" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
+//   Policy "Limites update policy" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: (get_user_role() = 'ADMIN'::user_role)
 // Table: notifications
 //   Policy "Users can update their own notifications" (UPDATE, PERMISSIVE) roles={public}
 //     USING: (auth.uid() = user_id)
@@ -1195,7 +1232,7 @@ export const Constants = {
 //       RETURN NULL;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION get_user_role()
 //   CREATE OR REPLACE FUNCTION public.get_user_role()
 //    RETURNS user_role
@@ -1204,7 +1241,7 @@ export const Constants = {
 //   AS $function$
 //     SELECT role FROM public.profiles WHERE id = auth.uid();
 //   $function$
-//
+//   
 // FUNCTION handle_expanded_notifications()
 //   CREATE OR REPLACE FUNCTION public.handle_expanded_notifications()
 //    RETURNS trigger
@@ -1219,7 +1256,7 @@ export const Constants = {
 //   BEGIN
 //     notification_msg := '';
 //     related_emenda_id := NULL;
-//
+//   
 //     -- 1. Status Change in Emendas
 //     IF TG_TABLE_NAME = 'emendas' AND TG_OP = 'UPDATE' THEN
 //       IF OLD.status_interno IS DISTINCT FROM NEW.status_interno THEN
@@ -1227,14 +1264,14 @@ export const Constants = {
 //         related_emenda_id := NEW.id;
 //       END IF;
 //     END IF;
-//
+//   
 //     -- 2. New Attachment in Anexos
 //     IF TG_TABLE_NAME = 'anexos' AND TG_OP = 'INSERT' THEN
 //       SELECT numero_emenda INTO emenda_numero FROM public.emendas WHERE id = NEW.emenda_id;
 //       notification_msg := 'Novo anexo (' || NEW.filename || ') adicionado à emenda ' || emenda_numero;
 //       related_emenda_id := NEW.emenda_id;
 //     END IF;
-//
+//   
 //     -- 3. Pendency Resolved in Pendencias
 //     IF TG_TABLE_NAME = 'pendencias' AND TG_OP = 'UPDATE' THEN
 //       IF OLD.resolvida = FALSE AND NEW.resolvida = TRUE THEN
@@ -1243,7 +1280,7 @@ export const Constants = {
 //          related_emenda_id := NEW.emenda_id;
 //       END IF;
 //     END IF;
-//
+//   
 //     -- Insert notifications for all active users if a message was generated
 //     IF notification_msg != '' AND related_emenda_id IS NOT NULL THEN
 //       FOR user_record IN SELECT id FROM public.profiles WHERE status = 'ATIVO' LOOP
@@ -1251,11 +1288,11 @@ export const Constants = {
 //         VALUES (user_record.id, related_emenda_id, notification_msg, FALSE, NOW());
 //       END LOOP;
 //     END IF;
-//
+//   
 //     RETURN NULL;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION handle_new_user()
 //   CREATE OR REPLACE FUNCTION public.handle_new_user()
 //    RETURNS trigger
@@ -1269,7 +1306,7 @@ export const Constants = {
 //   BEGIN
 //     -- Try to get name from metadata, default to 'Novo Usuário' or email prefix
 //     user_name := COALESCE(NEW.raw_user_meta_data->>'name', split_part(NEW.email, '@', 1));
-//
+//   
 //     INSERT INTO public.profiles (id, email, name, role, status)
 //     VALUES (
 //       NEW.id,
@@ -1279,11 +1316,11 @@ export const Constants = {
 //       default_status
 //     )
 //     ON CONFLICT (id) DO NOTHING;
-//
+//   
 //     RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION log_security_notification(text, text, text, uuid)
 //   CREATE OR REPLACE FUNCTION public.log_security_notification(p_type text, p_message text, p_severity text, p_user_id uuid DEFAULT NULL::uuid)
 //    RETURNS void
@@ -1295,7 +1332,7 @@ export const Constants = {
 //       VALUES (p_type, p_message, p_severity, p_user_id);
 //   END;
 //   $function$
-//
+//   
 // FUNCTION prevent_profile_sensitive_updates()
 //   CREATE OR REPLACE FUNCTION public.prevent_profile_sensitive_updates()
 //    RETURNS trigger
@@ -1315,7 +1352,7 @@ export const Constants = {
 //     RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION protect_profile_role_status()
 //   CREATE OR REPLACE FUNCTION public.protect_profile_role_status()
 //    RETURNS trigger
@@ -1327,15 +1364,15 @@ export const Constants = {
 //     IF public.get_user_role()::text = 'ADMIN' THEN
 //       RETURN NEW;
 //     END IF;
-//
+//   
 //     -- Otherwise, enforce that role and status cannot be changed by the user
 //     NEW.role = OLD.role;
 //     NEW.status = OLD.status;
-//
+//     
 //     RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION search_emendas_global(text)
 //   CREATE OR REPLACE FUNCTION public.search_emendas_global(search_term text)
 //    RETURNS SETOF emendas
@@ -1357,7 +1394,7 @@ export const Constants = {
 //       REPLACE(COALESCE(portaria, ''), '.', '') ILIKE '%' || REPLACE(search_term, '.', '') || '%'
 //     LIMIT 20;
 //   $function$
-//
+//   
 // FUNCTION sync_emenda_pendencias()
 //   CREATE OR REPLACE FUNCTION public.sync_emenda_pendencias()
 //    RETURNS trigger
@@ -1380,24 +1417,24 @@ export const Constants = {
 //       ELSIF TG_TABLE_NAME = 'despesas' THEN
 //           target_emenda_id := COALESCE(NEW.emenda_id, OLD.emenda_id);
 //       END IF;
-//
+//   
 //       IF target_emenda_id IS NULL THEN
 //           RETURN NULL;
 //       END IF;
-//
+//   
 //       -- Fetch Emenda Data
 //       SELECT * INTO v_emenda FROM public.emendas WHERE id = target_emenda_id;
-//
+//       
 //       -- Check Repasses (Any record exists)
 //       SELECT EXISTS(SELECT 1 FROM public.repasses WHERE emenda_id = target_emenda_id) INTO v_has_repasses;
-//
+//   
 //       -- Check Despesas (Any record exists)
 //       SELECT EXISTS(SELECT 1 FROM public.despesas WHERE emenda_id = target_emenda_id) INTO v_has_despesas;
-//
+//   
 //       -- Check Anexos (Ofício de Envio) - Robust case-insensitive check
 //       SELECT EXISTS(
-//           SELECT 1 FROM public.anexos
-//           WHERE emenda_id = target_emenda_id
+//           SELECT 1 FROM public.anexos 
+//           WHERE emenda_id = target_emenda_id 
 //           AND (
 //               tipo = 'OFICIO' OR
 //               tipo ILIKE '%ofício de envio%' OR
@@ -1406,88 +1443,88 @@ export const Constants = {
 //               filename ILIKE '%oficio de envio%'
 //           )
 //       ) INTO v_has_oficio;
-//
+//       
 //       -- 1. Valor do Repasse (Checklist Item)
 //       IF (v_emenda.valor_repasse IS NOT NULL AND v_emenda.valor_repasse > 0) OR v_has_repasses THEN
 //           UPDATE public.pendencias SET resolvida = true WHERE emenda_id = target_emenda_id AND target_id = 'valor_repasse';
 //       ELSE
 //           INSERT INTO public.pendencias (emenda_id, descricao, target_type, target_id, resolvida)
 //           VALUES (target_emenda_id, 'Definir Valor do Repasse', 'field', 'valor_repasse', false)
-//           ON CONFLICT (emenda_id, target_id) DO UPDATE
+//           ON CONFLICT (emenda_id, target_id) DO UPDATE 
 //           SET resolvida = false
 //           WHERE public.pendencias.emenda_id = target_emenda_id AND public.pendencias.target_id = 'valor_repasse' AND public.pendencias.dispensada = false;
 //       END IF;
-//
+//   
 //       -- 2. Destino do Recurso (Checklist Item)
 //       IF v_emenda.destino_recurso IS NOT NULL AND TRIM(v_emenda.destino_recurso) <> '' THEN
 //           UPDATE public.pendencias SET resolvida = true WHERE emenda_id = target_emenda_id AND target_id = 'destino_recurso';
 //       ELSE
 //           INSERT INTO public.pendencias (emenda_id, descricao, target_type, target_id, resolvida)
 //           VALUES (target_emenda_id, 'Informar Destino do Recurso', 'field', 'destino_recurso', false)
-//           ON CONFLICT (emenda_id, target_id) DO UPDATE
+//           ON CONFLICT (emenda_id, target_id) DO UPDATE 
 //           SET resolvida = false
 //           WHERE public.pendencias.emenda_id = target_emenda_id AND public.pendencias.target_id = 'destino_recurso' AND public.pendencias.dispensada = false;
 //       END IF;
-//
+//   
 //       -- 3. Ofício de Envio (Checklist Item)
 //       IF v_has_oficio THEN
 //           UPDATE public.pendencias SET resolvida = true WHERE emenda_id = target_emenda_id AND target_id = 'OFICIO';
 //       ELSE
 //           INSERT INTO public.pendencias (emenda_id, descricao, target_type, target_id, resolvida)
 //           VALUES (target_emenda_id, 'Anexar Ofício de Envio', 'anexo', 'OFICIO', false)
-//           ON CONFLICT (emenda_id, target_id) DO UPDATE
+//           ON CONFLICT (emenda_id, target_id) DO UPDATE 
 //           SET resolvida = false
 //           WHERE public.pendencias.emenda_id = target_emenda_id AND public.pendencias.target_id = 'OFICIO' AND public.pendencias.dispensada = false;
 //       END IF;
-//
+//   
 //       -- 4. Objeto da Emenda (Checklist Item)
 //       IF v_emenda.objeto_emenda IS NOT NULL AND TRIM(v_emenda.objeto_emenda) <> '' THEN
 //           UPDATE public.pendencias SET resolvida = true WHERE emenda_id = target_emenda_id AND target_id = 'objeto_emenda';
 //       ELSE
 //           INSERT INTO public.pendencias (emenda_id, descricao, target_type, target_id, resolvida)
 //           VALUES (target_emenda_id, 'Definir Objeto da Emenda', 'field', 'objeto_emenda', false)
-//           ON CONFLICT (emenda_id, target_id) DO UPDATE
+//           ON CONFLICT (emenda_id, target_id) DO UPDATE 
 //           SET resolvida = false
 //           WHERE public.pendencias.emenda_id = target_emenda_id AND public.pendencias.target_id = 'objeto_emenda' AND public.pendencias.dispensada = false;
 //       END IF;
-//
+//       
 //       -- 5. Número da Proposta (Checklist Item)
 //       IF v_emenda.numero_proposta IS NOT NULL AND TRIM(v_emenda.numero_proposta) <> '' THEN
 //           UPDATE public.pendencias SET resolvida = true WHERE emenda_id = target_emenda_id AND target_id = 'numero_proposta';
 //       ELSE
 //           INSERT INTO public.pendencias (emenda_id, descricao, target_type, target_id, resolvida)
 //           VALUES (target_emenda_id, 'Informar Número da Proposta', 'field', 'numero_proposta', false)
-//           ON CONFLICT (emenda_id, target_id) DO UPDATE
+//           ON CONFLICT (emenda_id, target_id) DO UPDATE 
 //           SET resolvida = false
 //           WHERE public.pendencias.emenda_id = target_emenda_id AND public.pendencias.target_id = 'numero_proposta' AND public.pendencias.dispensada = false;
 //       END IF;
-//
+//   
 //       -- 6. Portaria (Checklist Item)
 //       IF v_emenda.portaria IS NOT NULL AND TRIM(v_emenda.portaria) <> '' THEN
 //           UPDATE public.pendencias SET resolvida = true WHERE emenda_id = target_emenda_id AND target_id = 'portaria';
 //       ELSE
 //           INSERT INTO public.pendencias (emenda_id, descricao, target_type, target_id, resolvida)
 //           VALUES (target_emenda_id, 'Informar Portaria', 'field', 'portaria', false)
-//           ON CONFLICT (emenda_id, target_id) DO UPDATE
+//           ON CONFLICT (emenda_id, target_id) DO UPDATE 
 //           SET resolvida = false
 //           WHERE public.pendencias.emenda_id = target_emenda_id AND public.pendencias.target_id = 'portaria' AND public.pendencias.dispensada = false;
 //       END IF;
-//
+//   
 //       -- 7. Despesas (Checklist Item)
 //       IF v_has_despesas THEN
 //           UPDATE public.pendencias SET resolvida = true WHERE emenda_id = target_emenda_id AND target_id = 'despesas';
 //       ELSE
 //           INSERT INTO public.pendencias (emenda_id, descricao, target_type, target_id, resolvida)
 //           VALUES (target_emenda_id, 'Registrar Despesas', 'tab', 'despesas', false)
-//           ON CONFLICT (emenda_id, target_id) DO UPDATE
+//           ON CONFLICT (emenda_id, target_id) DO UPDATE 
 //           SET resolvida = false
 //           WHERE public.pendencias.emenda_id = target_emenda_id AND public.pendencias.target_id = 'despesas' AND public.pendencias.dispensada = false;
 //       END IF;
-//
+//   
 //       RETURN NULL;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION trigger_critical_security_alert()
 //   CREATE OR REPLACE FUNCTION public.trigger_critical_security_alert()
 //    RETURNS trigger
@@ -1508,7 +1545,7 @@ export const Constants = {
 //       RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION update_updated_at_column()
 //   CREATE OR REPLACE FUNCTION public.update_updated_at_column()
 //    RETURNS trigger
@@ -1519,7 +1556,7 @@ export const Constants = {
 //       RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 
 // --- TRIGGERS ---
 // Table: acoes_emendas
@@ -1539,6 +1576,8 @@ export const Constants = {
 //   audit_emendas: CREATE TRIGGER audit_emendas AFTER INSERT OR DELETE OR UPDATE ON public.emendas FOR EACH ROW EXECUTE FUNCTION audit_trigger_func()
 //   sync_pendencias_on_emenda: CREATE TRIGGER sync_pendencias_on_emenda AFTER INSERT OR UPDATE ON public.emendas FOR EACH ROW EXECUTE FUNCTION sync_emenda_pendencias()
 //   trg_notify_emenda_status: CREATE TRIGGER trg_notify_emenda_status AFTER UPDATE ON public.emendas FOR EACH ROW EXECUTE FUNCTION handle_expanded_notifications()
+// Table: limites_exercicio
+//   update_limites_exercicio_updated_at: CREATE TRIGGER update_limites_exercicio_updated_at BEFORE UPDATE ON public.limites_exercicio FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
 // Table: pendencias
 //   trg_notify_pendency_resolved: CREATE TRIGGER trg_notify_pendency_resolved AFTER UPDATE ON public.pendencias FOR EACH ROW EXECUTE FUNCTION handle_expanded_notifications()
 // Table: profiles
@@ -1555,3 +1594,4 @@ export const Constants = {
 //   CREATE INDEX idx_emendas_created_at ON public.emendas USING btree (created_at)
 // Table: pendencias
 //   CREATE UNIQUE INDEX idx_pendencias_emenda_target ON public.pendencias USING btree (emenda_id, target_id)
+
