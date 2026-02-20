@@ -263,7 +263,7 @@ const EmendasListPage = () => {
     if (q !== searchTerm) {
       setSearchTerm(q)
     }
-  }, [searchParams])
+  }, [searchParams, searchTerm])
 
   const uniqueAuthors = useMemo(() => {
     const authors = new Set(localAmendments.map((a) => a.autor).filter(Boolean))
