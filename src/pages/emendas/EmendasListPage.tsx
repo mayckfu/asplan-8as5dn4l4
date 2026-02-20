@@ -18,7 +18,7 @@ import {
   ArrowUp,
   ArrowDown,
 } from 'lucide-react'
-import { parse, format } from 'date-fns'
+import { parse, format, parseISO, getMonth } from 'date-fns'
 import { Amendment, SituacaoOficial, TipoEmenda } from '@/lib/mock-data'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -89,6 +89,7 @@ import { supabase } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Progress } from '@/components/ui/progress'
+import { PeriodSelector } from '@/components/PeriodSelector'
 
 const ITEMS_PER_PAGE = 10
 
@@ -224,6 +225,10 @@ const EmendasListPage = () => {
     direction: 'asc',
   })
 
+  const yearParam =
+    searchParams.get('year') || new Date().getFullYear().toString()
+  const monthParam = searchParams.get('month') || 'all'
+
   // Security: Check Roles
   const canEdit = checkPermission(['ADMIN', 'GESTOR', 'ANALISTA'])
   const canDelete = checkPermission(['ADMIN', 'GESTOR'])
@@ -233,10 +238,16 @@ const EmendasListPage = () => {
     setIsLoading(true)
     setError(null)
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('emendas')
         .select('*')
         .order('created_at', { ascending: false })
+
+      if (yearParam && yearParam !== 'all') {
+        query = query.eq('ano_exercicio', parseInt(yearParam, 10))
+      }
+
+      const { data, error } = await query
 
       if (error) throw error
 
@@ -252,7 +263,7 @@ const EmendasListPage = () => {
     } finally {
       setIsLoading(false)
     }
-  }, [toast])
+  }, [toast, yearParam])
 
   useEffect(() => {
     fetchAmendments()
@@ -363,7 +374,10 @@ const EmendasListPage = () => {
   }
 
   const handleResetFilters = useCallback(() => {
-    setSearchParams({ page: '1' }, { replace: true })
+    setSearchParams(
+      { year: new Date().getFullYear().toString(), page: '1' },
+      { replace: true },
+    )
     setSearchTerm('')
   }, [setSearchParams])
 
@@ -465,6 +479,16 @@ const EmendasListPage = () => {
         pendencias: getPendencias(amendment),
       }))
       .filter((amendment) => {
+        // Month Filter
+        if (monthParam !== 'all') {
+          if (!amendment.created_at) return false
+          const month = parseInt(monthParam, 10)
+          const amendmentDate = parseISO(amendment.created_at)
+          if (getMonth(amendmentDate) + 1 !== month) {
+            return false
+          }
+        }
+
         // Text Search (Global Search functionality)
         if (searchTerm) {
           const searchLower = searchTerm.toLowerCase()
@@ -574,7 +598,7 @@ const EmendasListPage = () => {
     }
 
     return result
-  }, [filters, localAmendments, searchTerm, sortConfig])
+  }, [filters, localAmendments, searchTerm, sortConfig, monthParam])
 
   const totalPages = Math.ceil(filteredAmendments.length / ITEMS_PER_PAGE)
   const paginatedData = filteredAmendments.slice(
@@ -650,21 +674,41 @@ const EmendasListPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-200">
           Lista de Emendas
         </h1>
-        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <div className="relative max-w-sm w-full sm:w-64">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              className="pl-8 h-9"
-            />
-          </div>
-          <div className="flex gap-2 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 w-full lg:w-auto">
+          <PeriodSelector
+            year={yearParam}
+            month={monthParam}
+            onYearChange={(year) => {
+              const newParams = new URLSearchParams(searchParams)
+              newParams.set('year', year)
+              newParams.set('page', '1')
+              setSearchParams(newParams, { replace: true })
+            }}
+            onMonthChange={(month) => {
+              const newParams = new URLSearchParams(searchParams)
+              if (month === 'all') {
+                newParams.delete('month')
+              } else {
+                newParams.set('month', month)
+              }
+              newParams.set('page', '1')
+              setSearchParams(newParams, { replace: true })
+            }}
+          />
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="pl-8 h-9"
+              />
+            </div>
             <Button
               size="sm"
               variant="outline"
@@ -849,7 +893,10 @@ const EmendasListPage = () => {
                   <TableBody>
                     {paginatedData.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center py-8">
+                        <TableCell
+                          colSpan={8}
+                          className="text-center py-8 text-muted-foreground"
+                        >
                           Nenhuma emenda encontrada.
                         </TableCell>
                       </TableRow>
