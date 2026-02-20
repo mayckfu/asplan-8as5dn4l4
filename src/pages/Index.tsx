@@ -10,6 +10,7 @@ import { PeriodSelector } from '@/components/PeriodSelector'
 import { KPICards } from '@/components/KPICards'
 import { MonthlyFinancialChart } from '@/components/dashboard/MonthlyFinancialChart'
 import { ParliamentaryDistributionChart } from '@/components/dashboard/ParliamentaryDistributionChart'
+import { OfficialLimitCard } from '@/components/dashboard/OfficialLimitCard'
 import { useToast } from '@/components/ui/use-toast'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
@@ -17,7 +18,7 @@ import { useAuth } from '@/contexts/AuthContext'
 const Index = () => {
   const { toast } = useToast()
   const navigate = useNavigate()
-  const { session, isAuthenticated } = useAuth()
+  const { session, isAuthenticated, isAdmin } = useAuth()
 
   const [isLoading, setIsLoading] = useState(true)
   const [isRefetching, setIsRefetching] = useState(false)
@@ -26,22 +27,21 @@ const Index = () => {
   const [detailedAmendments, setDetailedAmendments] = useState<
     DetailedAmendment[]
   >([])
+  const [limitData, setLimitData] = useState<any>(null)
 
-  // Filters State with persistence
   const [selectedYear, setSelectedYear] = useState<string>(() => {
     const saved = localStorage.getItem('asplan_dashboard_year')
     return saved || new Date().getFullYear().toString()
   })
   const [selectedMonth, setSelectedMonth] = useState<string>('all')
 
-  // Persist year selection
   useEffect(() => {
     localStorage.setItem('asplan_dashboard_year', selectedYear)
   }, [selectedYear])
 
   const fetchData = useCallback(
     async (forceLoading = false) => {
-      if (!session && !isAuthenticated) return // Protected route handles redirect, but guard here
+      if (!session && !isAuthenticated) return
 
       if (forceLoading) setIsLoading(true)
       else setIsRefetching(true)
@@ -49,28 +49,38 @@ const Index = () => {
       setError(null)
 
       try {
-        // Filter by Fiscal Year (ano_exercicio)
         let query = supabase.from('emendas').select('*')
 
         if (selectedYear) {
           query = query.eq('ano_exercicio', parseInt(selectedYear))
         }
 
-        const { data: emendasData, error: emendasError } = await query
+        const limitQuery = (supabase as any)
+          .from('limites_exercicio')
+          .select('*')
+          .eq('ano', parseInt(selectedYear))
+          .maybeSingle()
 
-        if (emendasError) {
+        const [emendasRes, limitDataRes] = await Promise.all([
+          query,
+          limitQuery,
+        ])
+
+        if (emendasRes.error) {
           if (
-            emendasError.code === '42501' ||
-            emendasError.message.includes('policy')
+            emendasRes.error.code === '42501' ||
+            emendasRes.error.message.includes('policy')
           ) {
             throw new Error(
               'Acesso negado. Você não tem permissão para visualizar estes dados.',
             )
           }
-          throw emendasError
+          throw emendasRes.error
         }
 
-        // Even if no data, we should set state to empty arrays to clear the dashboard
+        setLimitData(limitDataRes.data || null)
+        const emendasData = emendasRes.data
+
         if (!emendasData || emendasData.length === 0) {
           setAmendments([])
           setDetailedAmendments([])
@@ -81,7 +91,6 @@ const Index = () => {
 
         const emendaIds = emendasData.map((e) => e.id)
 
-        // Parallel fetching for performance
         const [repassesRes, despesasRes, anexosRes, pendenciasRes] =
           await Promise.all([
             supabase.from('repasses').select('*').in('emenda_id', emendaIds),
@@ -169,7 +178,6 @@ const Index = () => {
     [selectedYear, session, isAuthenticated, toast],
   )
 
-  // Initial fetch and Realtime Subscriptions
   useEffect(() => {
     if (isAuthenticated) {
       fetchData(true)
@@ -191,6 +199,11 @@ const Index = () => {
           { event: '*', schema: 'public', table: 'despesas' },
           () => fetchData(),
         )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'limites_exercicio' },
+          () => fetchData(),
+        )
         .subscribe()
 
       return () => {
@@ -202,7 +215,6 @@ const Index = () => {
   const { periodFilteredData } = useMemo(() => {
     const month = selectedMonth === 'all' ? null : parseInt(selectedMonth)
 
-    // Helper: Filter by month
     const filterByMonth = (dateString: string) => {
       if (!dateString) return false
       const date = parseISO(dateString)
@@ -212,11 +224,7 @@ const Index = () => {
       return true
     }
 
-    // Apply Period Filters (Year is already applied by API, this applies Month)
-    // We use this dataset for all charts and summary cards
     const periodFilteredAmendments = amendments
-
-    // For detailed view, we need repasses and despesas filtered by month
     const allRepasses = detailedAmendments.flatMap((a) => a.repasses)
     const allDespesas = detailedAmendments.flatMap((a) => a.despesas)
 
@@ -227,17 +235,36 @@ const Index = () => {
       filterByMonth(d.data),
     )
 
-    const periodData = {
-      amendments: periodFilteredAmendments,
-      repasses: periodFilteredRepasses,
-      despesas: periodFilteredDespesas,
-      detailedAmendments: detailedAmendments,
-    }
-
     return {
-      periodFilteredData: periodData,
+      periodFilteredData: {
+        amendments: periodFilteredAmendments,
+        repasses: periodFilteredRepasses,
+        despesas: periodFilteredDespesas,
+        detailedAmendments: detailedAmendments,
+      },
     }
   }, [amendments, detailedAmendments, selectedMonth])
+
+  const consumedTotals = useMemo(() => {
+    const mac = amendments
+      .filter(
+        (a) =>
+          a.tipo_recurso === 'INCREMENTO_MAC' ||
+          a.tipo_recurso === 'CUSTEIO_MAC',
+      )
+      .reduce((sum, a) => sum + a.valor_total, 0)
+    const pap = amendments
+      .filter(
+        (a) =>
+          a.tipo_recurso === 'INCREMENTO_PAP' ||
+          a.tipo_recurso === 'CUSTEIO_PAP',
+      )
+      .reduce((sum, a) => sum + a.valor_total, 0)
+    const capital = amendments
+      .filter((a) => a.tipo_recurso === 'EQUIPAMENTO')
+      .reduce((sum, a) => sum + a.valor_total, 0)
+    return { mac, pap, capital }
+  }, [amendments])
 
   const dashboardData = useMemo(() => {
     const {
@@ -247,12 +274,10 @@ const Index = () => {
     } = periodFilteredData
 
     const totalValor = fAmendments.reduce((sum, a) => sum + a.valor_total, 0)
-    // Only count filtered despesas (by month if selected)
     const totalGasto = fDespesas.reduce((sum, d) => sum + d.valor, 0)
     const activeLegislators = new Set(fAmendments.map((a) => a.parlamentar))
       .size
 
-    // Chart: Budget Distribution by Parliamentarian (supporting co-authorship)
     const budgetByParlamentar = fAmendments.reduce(
       (acc, amendment) => {
         const primary = amendment.parlamentar || 'Não Informado'
@@ -362,6 +387,14 @@ const Index = () => {
             onMonthChange={setSelectedMonth}
           />
         </div>
+
+        <OfficialLimitCard
+          year={selectedYear}
+          limitData={limitData}
+          consumed={consumedTotals}
+          isAdmin={isAdmin}
+          onUpdate={() => fetchData(true)}
+        />
 
         <KPICards
           totalValue={dashboardData.kpiValues.totalValue}
