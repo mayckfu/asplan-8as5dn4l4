@@ -454,69 +454,76 @@ const EmendaDetailPage = () => {
         defaultValue="technical"
         className="w-full"
       >
-        <div className="w-full overflow-x-auto pb-2 scrollbar-none">
-          <TabsList className="inline-flex w-full min-w-max md:w-full md:grid md:grid-cols-7 p-1 h-auto bg-muted/50 rounded-lg">
-            <TabsTrigger
-              value="technical"
-              className="px-2 py-2.5 gap-2 data-[state=active]:text-indigo-600 data-[state=active]:bg-indigo-50/50"
-            >
-              <Info className="h-4 w-4 text-indigo-500/70" />
-              <span className="hidden lg:inline">Dados Técnicos</span>
-              <span className="lg:hidden">Geral</span>
-            </TabsTrigger>
+        <div className="relative w-full">
+          <div className="w-full overflow-x-auto pb-2 scrollbar-none snap-x flex">
+            <TabsList className="inline-flex min-w-max md:w-full md:grid md:grid-cols-7 p-1 h-auto bg-muted/50 rounded-lg gap-1">
+              <TabsTrigger
+                value="technical"
+                className="px-3 py-2.5 gap-2 data-[state=active]:text-indigo-600 data-[state=active]:bg-indigo-50/50 dark:data-[state=active]:bg-indigo-950/30 dark:data-[state=active]:text-indigo-400 snap-center"
+              >
+                <Info className="h-4 w-4 text-indigo-500/70" />
+                <span className="hidden lg:inline">Dados Técnicos</span>
+                <span className="lg:hidden">Geral</span>
+              </TabsTrigger>
 
-            <TabsTrigger
-              value="planning"
-              className="px-2 py-2.5 gap-2 data-[state=active]:text-amber-600 data-[state=active]:bg-amber-50/50"
-            >
-              <Target className="h-4 w-4 text-amber-500/70" />
-              <span className="hidden lg:inline">Ações e Planejamento</span>
-              <span className="lg:hidden">Ações</span>
-            </TabsTrigger>
+              <TabsTrigger
+                value="planning"
+                className="px-3 py-2.5 gap-2 data-[state=active]:text-amber-600 data-[state=active]:bg-amber-50/50 dark:data-[state=active]:bg-amber-950/30 dark:data-[state=active]:text-amber-400 snap-center"
+              >
+                <Target className="h-4 w-4 text-amber-500/70" />
+                <span className="hidden lg:inline">Ações e Planejamento</span>
+                <span className="lg:hidden">Ações</span>
+              </TabsTrigger>
 
-            <TabsTrigger
-              value="despesas"
-              className="px-2 py-2.5 gap-2 data-[state=active]:text-rose-600 data-[state=active]:bg-rose-50/50"
-            >
-              <Receipt className="h-4 w-4 text-rose-500/70" />
-              Despesas
-            </TabsTrigger>
+              <TabsTrigger
+                value="despesas"
+                className="px-3 py-2.5 gap-2 data-[state=active]:text-rose-600 data-[state=active]:bg-rose-50/50 dark:data-[state=active]:bg-rose-950/30 dark:data-[state=active]:text-rose-400 snap-center"
+              >
+                <Receipt className="h-4 w-4 text-rose-500/70" />
+                Despesas
+              </TabsTrigger>
 
-            <TabsTrigger
-              value="repasses"
-              className="px-2 py-2.5 gap-2 data-[state=active]:text-emerald-600 data-[state=active]:bg-emerald-50/50"
-            >
-              <Banknote className="h-4 w-4 text-emerald-500/70" />
-              Repasses
-            </TabsTrigger>
+              <TabsTrigger
+                value="repasses"
+                className="px-3 py-2.5 gap-2 data-[state=active]:text-emerald-600 data-[state=active]:bg-emerald-50/50 dark:data-[state=active]:bg-emerald-950/30 dark:data-[state=active]:text-emerald-400 snap-center"
+              >
+                <Banknote className="h-4 w-4 text-emerald-500/70" />
+                Repasses
+              </TabsTrigger>
 
-            <TabsTrigger
-              value="anexos"
-              className="px-2 py-2.5 gap-2 data-[state=active]:text-slate-600 data-[state=active]:bg-slate-50/50"
-            >
-              <Paperclip className="h-4 w-4 text-slate-500/70" />
-              Anexos
-            </TabsTrigger>
+              <TabsTrigger
+                value="anexos"
+                className="px-3 py-2.5 gap-2 data-[state=active]:text-slate-600 data-[state=active]:bg-slate-50/50 dark:data-[state=active]:bg-slate-900/30 dark:data-[state=active]:text-slate-300 snap-center"
+              >
+                <Paperclip className="h-4 w-4 text-slate-500/70" />
+                Anexos
+              </TabsTrigger>
 
-            <TabsTrigger
-              value="checklist"
-              className="px-2 py-2.5 gap-2 relative data-[state=active]:text-orange-600 data-[state=active]:bg-orange-50/50"
-            >
-              <AlertCircle className="h-4 w-4 text-orange-500/70" />
-              Pendências
-              {pendingCount > 0 && (
-                <span className="absolute top-1 right-1 flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
-                </span>
-              )}
-            </TabsTrigger>
+              <TabsTrigger
+                value="checklist"
+                className="px-3 py-2.5 gap-2 relative data-[state=active]:text-orange-600 data-[state=active]:bg-orange-50/50 dark:data-[state=active]:bg-orange-950/30 dark:data-[state=active]:text-orange-400 snap-center"
+              >
+                <AlertCircle className="h-4 w-4 text-orange-500/70" />
+                Pendências
+                {pendingCount > 0 && (
+                  <span className="absolute top-1 right-1 flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                  </span>
+                )}
+              </TabsTrigger>
 
-            <TabsTrigger value="audit" className="px-2 py-2.5 gap-2">
-              <FileText className="h-4 w-4 text-muted-foreground" />
-              Auditoria
-            </TabsTrigger>
-          </TabsList>
+              <TabsTrigger
+                value="audit"
+                className="px-3 py-2.5 gap-2 snap-center"
+              >
+                <FileText className="h-4 w-4 text-muted-foreground" />
+                Auditoria
+              </TabsTrigger>
+            </TabsList>
+          </div>
+          {/* Visual indicator for horizontal scroll on mobile */}
+          <div className="absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden" />
         </div>
 
         {/* 
@@ -593,6 +600,30 @@ const EmendaDetailPage = () => {
           <AuditReportTab data={[emendaData]} />
         </TabsContent>
       </Tabs>
+
+      {/* Mobile-only Pendências Alert at bottom of scrollable area */}
+      {pendingCount > 0 && (
+        <div className="md:hidden mt-8 p-4 rounded-xl border border-orange-200 bg-orange-50 dark:bg-orange-950/20 dark:border-orange-900 flex flex-col gap-3">
+          <div className="flex items-center gap-2 text-orange-800 dark:text-orange-400 font-bold">
+            <AlertCircle className="h-5 w-5" />
+            <span>{pendingCount} Pendência(s) Encontrada(s)</span>
+          </div>
+          <p className="text-sm text-orange-700 dark:text-orange-500">
+            Verifique a aba de Pendências para resolver as pendências desta
+            emenda e garantir a correta execução.
+          </p>
+          <Button
+            variant="outline"
+            className="bg-white hover:bg-orange-50 text-orange-700 border-orange-200 w-full"
+            onClick={() => {
+              setActiveTab('checklist')
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }}
+          >
+            Visualizar Pendências
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
