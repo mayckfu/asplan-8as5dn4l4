@@ -13,6 +13,8 @@ import {
   ShieldCheck,
   Shield,
   Activity,
+  Search,
+  Calendar,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -104,33 +106,79 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="min-h-screen w-full grid lg:grid-cols-2">
+    <div className="min-h-screen w-full grid lg:grid-cols-2 font-sans">
       {/* Left Panel - Branding (Desktop Only) */}
       <div className="hidden lg:flex flex-col justify-between bg-gov-gradient p-12 text-white relative overflow-hidden">
-        {/* Radial Pattern Overlay */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.3)_1px,transparent_1px)] bg-[size:24px_24px] opacity-30 pointer-events-none" />
+        {/* Radial Pattern Overlay & Gradients */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.2)_1px,transparent_1px)] bg-[size:24px_24px] opacity-40 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30 pointer-events-none" />
 
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/20 bg-white/10 text-sm font-medium mb-8 backdrop-blur-sm shadow-sm">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/30 bg-white/10 text-sm font-medium mb-10 backdrop-blur-md shadow-sm">
             <ShieldCheck className="h-4 w-4" />
             <span>Plataforma Oficial de Gestão</span>
           </div>
-          <h1 className="text-4xl xl:text-5xl font-bold tracking-tight mb-6 leading-tight max-w-xl">
+          <h1 className="text-4xl xl:text-5xl font-extrabold tracking-tight mb-4 leading-tight max-w-xl text-white drop-shadow-sm">
             Inteligência na gestão de emendas.
           </h1>
-          <p className="text-lg xl:text-xl text-white/90 max-w-md leading-relaxed">
+          <p className="text-lg text-white/90 max-w-md leading-relaxed font-medium">
             Centralize informações, controle limites anuais e acompanhe
             propostas em tempo real.
           </p>
+
+          {/* Feature Cards - Glassmorphism */}
+          <div className="mt-12 space-y-4 max-w-lg">
+            <div className="flex items-start gap-4 p-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-lg transition-transform hover:translate-x-1">
+              <div className="p-3 bg-white/20 rounded-xl shadow-inner">
+                <Search className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h4 className="text-lg font-bold text-white tracking-tight">
+                  Transparência
+                </h4>
+                <p className="text-white/80 mt-1 leading-relaxed text-sm">
+                  Total visibilidade na aplicação dos recursos.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4 p-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-lg transition-transform hover:translate-x-1">
+              <div className="p-3 bg-white/20 rounded-xl shadow-inner">
+                <Calendar className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h4 className="text-lg font-bold text-white tracking-tight">
+                  Controle de Prazos
+                </h4>
+                <p className="text-white/80 mt-1 leading-relaxed text-sm">
+                  Gestão eficiente de calendários e limites.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4 p-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-lg transition-transform hover:translate-x-1">
+              <div className="p-3 bg-white/20 rounded-xl shadow-inner">
+                <Shield className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h4 className="text-lg font-bold text-white tracking-tight">
+                  Segurança de Dados
+                </h4>
+                <p className="text-white/80 mt-1 leading-relaxed text-sm">
+                  Auditoria completa e proteção institucional.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="relative z-10 flex items-center gap-4 text-sm text-white/80 mt-12">
-          <div className="flex gap-3 items-center opacity-80">
+          <div className="flex gap-3 items-center opacity-90">
             <Shield className="h-5 w-5" />
             <Eye className="h-5 w-5" />
             <Activity className="h-5 w-5" />
           </div>
-          <span className="font-medium tracking-wide uppercase text-xs">
+          <span className="font-bold tracking-widest uppercase text-xs">
             Segurança & Auditoria
           </span>
         </div>
@@ -138,11 +186,11 @@ const LoginPage = () => {
 
       {/* Right Panel - Form */}
       <div className="flex items-center justify-center p-6 sm:p-12 bg-background relative">
-        <div className="w-full max-w-md space-y-8">
+        <div className="w-full max-w-md space-y-8 animate-fade-in-up">
           <div className="space-y-3 text-center lg:text-left">
             <h2 className="text-3xl font-bold tracking-tight">
               <span className="text-foreground">Controle de </span>
-              <span className="text-asplan-primary">Emendas</span>
+              <span className="text-primary">Emendas</span>
             </h2>
             <div className="space-y-1 mt-6">
               <h3 className="text-xl font-semibold text-foreground">
@@ -161,13 +209,15 @@ const LoginPage = () => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>E-mail funcional</FormLabel>
+                    <FormLabel className="text-foreground font-semibold">
+                      E-mail funcional
+                    </FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
                         <Input
                           placeholder="usuario@institucional.gov.br"
-                          className="pl-10 h-11"
+                          className="pl-10 h-11 bg-background"
                           {...field}
                           autoComplete="email"
                         />
@@ -184,10 +234,12 @@ const LoginPage = () => {
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex items-center justify-between">
-                      <FormLabel>Senha</FormLabel>
+                      <FormLabel className="text-foreground font-semibold">
+                        Senha
+                      </FormLabel>
                       <Link
                         to="/forgot-password"
-                        className="text-sm font-medium text-asplan-primary hover:text-asplan-deep hover:underline transition-colors"
+                        className="text-sm font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
                       >
                         Esqueceu a senha?
                       </Link>
@@ -198,7 +250,7 @@ const LoginPage = () => {
                         <Input
                           type={showPassword ? 'text' : 'password'}
                           placeholder="••••••••"
-                          className="pl-10 pr-10 h-11"
+                          className="pl-10 pr-10 h-11 bg-background"
                           {...field}
                           autoComplete="current-password"
                         />
@@ -233,11 +285,10 @@ const LoginPage = () => {
                       <Checkbox
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        className="data-[state=checked]:bg-asplan-primary data-[state=checked]:border-asplan-primary"
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel className="cursor-pointer font-normal text-muted-foreground">
+                      <FormLabel className="cursor-pointer font-medium text-muted-foreground hover:text-foreground transition-colors">
                         Lembrar usuário
                       </FormLabel>
                     </div>
@@ -247,7 +298,7 @@ const LoginPage = () => {
 
               <Button
                 type="submit"
-                className="w-full h-11 text-base font-medium bg-asplan-primary hover:bg-asplan-deep transition-all duration-200 mt-6 shadow-sm hover:shadow"
+                className="w-full h-11 text-base font-bold transition-all duration-200 mt-6 shadow-md hover:shadow-lg"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -265,8 +316,10 @@ const LoginPage = () => {
             </form>
           </Form>
 
-          <div className="pt-8 text-center text-xs text-muted-foreground space-y-1.5">
-            <p className="font-medium">Sistema Interno</p>
+          <div className="pt-8 text-center text-xs text-muted-foreground space-y-1.5 border-t border-border">
+            <p className="font-semibold uppercase tracking-wider text-[10px]">
+              Sistema Interno
+            </p>
             <p className="opacity-80">
               Versão 1.0.0 &bull; Ambiente de Produção Seguro
             </p>
