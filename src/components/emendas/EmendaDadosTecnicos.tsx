@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { DetailedAmendment, TipoEmenda, TipoRecurso } from '@/lib/mock-data'
 import { Edit2, Save, X, Info } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 import { MoneyInput } from '@/components/ui/money-input'
 import { cn, formatCurrencyBRL } from '@/lib/utils'
 import { formatDisplayDate } from '@/lib/date-utils'
@@ -65,6 +66,7 @@ export const EmendaDadosTecnicos = forwardRef<
   EmendaDadosTecnicosProps
 >(({ emenda, onEmendaChange }, ref) => {
   const { checkPermission } = useAuth()
+  const { isPrivacyMode } = usePrivacy()
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState<Partial<DetailedAmendment>>({})
   const containerRef = useRef<HTMLDivElement>(null)
@@ -264,7 +266,7 @@ export const EmendaDadosTecnicos = forwardRef<
 
             <ReadOnlyField
               label="Valor Total"
-              value={formatCurrencyBRL(emenda.valor_total || 0)}
+              value={formatCurrencyBRL(emenda.valor_total || 0, isPrivacyMode)}
             />
             <ReadOnlyField
               label="Tipo de Recurso"

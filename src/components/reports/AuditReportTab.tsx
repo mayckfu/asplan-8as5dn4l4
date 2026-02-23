@@ -29,12 +29,15 @@ import {
 } from 'lucide-react'
 import { formatCurrencyBRL, cn, formatPercent } from '@/lib/utils'
 import { ExpandableText } from '@/components/ui/expandable-text'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 
 interface AuditReportTabProps {
   data: DetailedAmendment[]
 }
 
 export const AuditReportTab = ({ data }: AuditReportTabProps) => {
+  const { isPrivacyMode } = usePrivacy()
+
   // We want to flatten all Actions from all Amendments to show them in the list
   const allActions = data.flatMap((emenda) =>
     emenda.acoes.map((acao) => {
@@ -107,7 +110,11 @@ export const AuditReportTab = ({ data }: AuditReportTabProps) => {
                 </TableRow>
               ) : (
                 allActions.map((action) => (
-                  <AuditActionRow key={action.id} action={action} />
+                  <AuditActionRow
+                    key={action.id}
+                    action={action}
+                    isPrivacyMode={isPrivacyMode}
+                  />
                 ))
               )}
             </TableBody>
@@ -120,12 +127,14 @@ export const AuditReportTab = ({ data }: AuditReportTabProps) => {
 
 const AuditActionRow = ({
   action,
+  isPrivacyMode,
 }: {
   action: ActionWithDestinations & {
     portaria: string
     emenda_numero: string
     relatedExpenses: any[]
   }
+  isPrivacyMode: boolean
 }) => {
   const [isExpanded, setIsExpanded] = useState(false)
 
@@ -226,10 +235,10 @@ const AuditActionRow = ({
           </div>
         </TableCell>
         <TableCell className="text-right align-middle text-sm font-medium text-muted-foreground">
-          {formatCurrencyBRL(totalPlanned)}
+          {formatCurrencyBRL(totalPlanned, isPrivacyMode)}
         </TableCell>
         <TableCell className="text-right align-middle font-bold text-sm">
-          {formatCurrencyBRL(totalExecuted)}
+          {formatCurrencyBRL(totalExecuted, isPrivacyMode)}
         </TableCell>
         <TableCell className="text-right align-middle text-sm">
           <span
@@ -238,7 +247,7 @@ const AuditActionRow = ({
               balance < 0 ? 'text-red-600' : 'text-emerald-600',
             )}
           >
-            {formatCurrencyBRL(balance)}
+            {formatCurrencyBRL(balance, isPrivacyMode)}
           </span>
         </TableCell>
         <TableCell className="text-right align-middle text-sm font-medium text-muted-foreground">
@@ -274,6 +283,7 @@ const AuditActionRow = ({
                   )}
                   icon={<User className="h-4 w-4" />}
                   colorClass="text-blue-600"
+                  isPrivacyMode={isPrivacyMode}
                 />
 
                 {/* Materials Column */}
@@ -286,6 +296,7 @@ const AuditActionRow = ({
                   )}
                   icon={<Box className="h-4 w-4" />}
                   colorClass="text-emerald-600"
+                  isPrivacyMode={isPrivacyMode}
                 />
 
                 {/* Distribution Column */}
@@ -299,6 +310,7 @@ const AuditActionRow = ({
                   )}
                   icon={<Gift className="h-4 w-4" />}
                   colorClass="text-amber-600"
+                  isPrivacyMode={isPrivacyMode}
                 />
 
                 {/* Equipment Column */}
@@ -312,6 +324,7 @@ const AuditActionRow = ({
                     )}
                     icon={<Monitor className="h-4 w-4" />}
                     colorClass="text-purple-600"
+                    isPrivacyMode={isPrivacyMode}
                   />
                 )}
               </div>
@@ -330,6 +343,7 @@ const CategoryCard = ({
   expenses,
   icon,
   colorClass,
+  isPrivacyMode,
 }: {
   title: string
   planned: number
@@ -337,6 +351,7 @@ const CategoryCard = ({
   expenses: any[]
   icon: React.ReactNode
   colorClass: string
+  isPrivacyMode: boolean
 }) => {
   const balance = planned - executed
   return (
@@ -353,17 +368,17 @@ const CategoryCard = ({
         <div className="flex flex-col">
           <span className="text-[10px] text-muted-foreground">Planejado</span>
           <span className="text-xs font-medium">
-            {formatCurrencyBRL(planned)}
+            {formatCurrencyBRL(planned, isPrivacyMode)}
           </span>
         </div>
         <div className="flex flex-col items-end">
           <span className="text-[10px] text-muted-foreground">Executado</span>
           <span className={cn('text-sm font-bold', colorClass)}>
-            {formatCurrencyBRL(executed)}
+            {formatCurrencyBRL(executed, isPrivacyMode)}
           </span>
         </div>
       </div>
-      <ExpenseList expenses={expenses} />
+      <ExpenseList expenses={expenses} isPrivacyMode={isPrivacyMode} />
       {balance !== 0 && (
         <div className="mt-3 pt-2 border-t text-right">
           <span className="text-[10px] text-muted-foreground mr-2">Saldo:</span>
@@ -373,7 +388,7 @@ const CategoryCard = ({
               balance < 0 ? 'text-red-600' : 'text-emerald-600',
             )}
           >
-            {formatCurrencyBRL(balance)}
+            {formatCurrencyBRL(balance, isPrivacyMode)}
           </span>
         </div>
       )}
@@ -381,7 +396,13 @@ const CategoryCard = ({
   )
 }
 
-const ExpenseList = ({ expenses }: { expenses: any[] }) => {
+const ExpenseList = ({
+  expenses,
+  isPrivacyMode,
+}: {
+  expenses: any[]
+  isPrivacyMode: boolean
+}) => {
   if (expenses.length === 0) {
     return (
       <div className="text-xs text-muted-foreground/50 italic py-2 text-center">
@@ -397,7 +418,7 @@ const ExpenseList = ({ expenses }: { expenses: any[] }) => {
             <ExpandableText text={expense.descricao} limit={80} />
           </div>
           <span className="text-xs font-medium italic text-muted-foreground whitespace-nowrap">
-            {formatCurrencyBRL(expense.valor)}
+            {formatCurrencyBRL(expense.valor, isPrivacyMode)}
           </span>
         </li>
       ))}

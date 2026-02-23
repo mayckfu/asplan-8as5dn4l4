@@ -85,6 +85,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { useToast } from '@/components/ui/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 import { supabase } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -207,6 +208,7 @@ const EmendasListPage = () => {
   const navigate = useNavigate()
   const { toast } = useToast()
   const { checkPermission } = useAuth()
+  const { isPrivacyMode } = usePrivacy()
   const [searchParams, setSearchParams] = useSearchParams()
   const [presets, setPresets] = useState<Record<string, string>>(() =>
     JSON.parse(localStorage.getItem('emendas_presets') || '{}'),
@@ -839,7 +841,10 @@ const EmendasListPage = () => {
                             Valor Total
                           </span>
                           <span className="font-bold tabular-nums text-neutral-900 dark:text-neutral-100">
-                            {formatCurrencyBRL(amendment.valor_total)}
+                            {formatCurrencyBRL(
+                              amendment.valor_total,
+                              isPrivacyMode,
+                            )}
                           </span>
                         </div>
                         <div className="mt-3 flex gap-2">
@@ -971,7 +976,10 @@ const EmendasListPage = () => {
                             <TableCell className="align-top">
                               <div className="space-y-1.5 w-full max-w-[140px]">
                                 <div className="font-semibold tabular-nums text-neutral-900 dark:text-neutral-200">
-                                  {formatCurrencyBRL(amendment.valor_total)}
+                                  {formatCurrencyBRL(
+                                    amendment.valor_total,
+                                    isPrivacyMode,
+                                  )}
                                 </div>
                                 <div className="space-y-1">
                                   <Progress
@@ -982,6 +990,7 @@ const EmendasListPage = () => {
                                     <span>
                                       {formatCurrencyBRL(
                                         amendment.total_repassado || 0,
+                                        isPrivacyMode,
                                       )}
                                     </span>
                                     <span>{percentRepassed.toFixed(0)}%</span>

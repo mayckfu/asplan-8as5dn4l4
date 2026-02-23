@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator'
 import { Despesa } from '@/lib/mock-data'
 import { StatusBadge } from '@/components/StatusBadge'
 import { formatCurrencyBRL } from '@/lib/utils'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 
 interface ExpenseDossierDrawerProps {
   expense: Despesa | null
@@ -38,6 +39,8 @@ export const ExpenseDossierDrawer = ({
   isOpen,
   onOpenChange,
 }: ExpenseDossierDrawerProps) => {
+  const { isPrivacyMode } = usePrivacy()
+
   if (!expense) return null
 
   return (
@@ -59,7 +62,7 @@ export const ExpenseDossierDrawer = ({
             <div className="grid grid-cols-2 gap-4">
               <DetailItem label="Valor">
                 <span className="tabular-nums">
-                  {formatCurrencyBRL(expense.valor)}
+                  {formatCurrencyBRL(expense.valor, isPrivacyMode)}
                 </span>
               </DetailItem>
               <DetailItem label="Data">

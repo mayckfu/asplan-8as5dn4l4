@@ -9,6 +9,8 @@ import {
   Check,
   User as UserIcon,
   Timer,
+  Eye,
+  EyeOff,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -24,6 +26,7 @@ import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNotification } from '@/contexts/NotificationContext'
 import { useSession } from '@/contexts/SessionContext'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { formatNotificationDate } from '@/lib/date-utils'
 import {
@@ -40,6 +43,7 @@ export const Header = () => {
   const { notifications, unreadCount, markAsRead, markAllAsRead } =
     useNotification()
   const { timeLeft, isWarning } = useSession()
+  const { isPrivacyMode, togglePrivacyMode } = usePrivacy()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
 
   const handleNotificationClick = async (id: string, emendaId: string) => {
@@ -128,6 +132,29 @@ export const Header = () => {
           <Search className="h-5 w-5" />
           <span className="sr-only">Buscar</span>
         </Button>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={togglePrivacyMode}
+              className="relative text-muted-foreground hover:text-brand-700 hover:bg-brand-50"
+              aria-label={
+                isPrivacyMode ? 'Mostrar valores' : 'Esconder valores'
+              }
+            >
+              {isPrivacyMode ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{isPrivacyMode ? 'Mostrar valores' : 'Esconder valores'}</p>
+          </TooltipContent>
+        </Tooltip>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

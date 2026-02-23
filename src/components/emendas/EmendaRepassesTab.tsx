@@ -44,6 +44,7 @@ import { formatCurrencyBRL } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/components/ui/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 import { formatDisplayDate } from '@/lib/date-utils'
 import { RepasseForm } from './RepasseForm'
 import { supabase } from '@/lib/supabase/client'
@@ -64,6 +65,7 @@ export const EmendaRepassesTab = forwardRef<
 >(({ repasses, onRepassesChange, emendaId }, ref) => {
   const { toast } = useToast()
   const { checkPermission } = useAuth()
+  const { isPrivacyMode } = usePrivacy()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [selectedRepasse, setSelectedRepasse] = useState<Repasse | null>(null)
@@ -233,7 +235,7 @@ export const EmendaRepassesTab = forwardRef<
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right tabular-nums font-semibold">
-                      {formatCurrencyBRL(repasse.valor)}
+                      {formatCurrencyBRL(repasse.valor, isPrivacyMode)}
                     </TableCell>
                     <TableCell className="text-right">
                       {canEdit && (

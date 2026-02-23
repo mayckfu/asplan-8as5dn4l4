@@ -12,6 +12,7 @@ import { Search, Loader2, FileText, Hash } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { useDebounce } from '@/hooks/use-debounce'
 import { formatCurrencyBRL } from '@/lib/utils'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 
 interface SearchResult {
   id: string
@@ -34,6 +35,7 @@ export const GlobalSearch = ({
   onOpenChange: (open: boolean) => void
 }) => {
   const navigate = useNavigate()
+  const { isPrivacyMode } = usePrivacy()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -132,7 +134,7 @@ export const GlobalSearch = ({
                       {result.parlamentar}
                     </span>
                     <span className="text-xs text-muted-foreground tabular-nums shrink-0">
-                      {formatCurrencyBRL(result.valor_total)}
+                      {formatCurrencyBRL(result.valor_total, isPrivacyMode)}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">

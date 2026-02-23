@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn, formatCurrencyBRL, formatPercent } from '@/lib/utils'
 import { ArrowRight, Wallet, PieChart, Box } from 'lucide-react'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 
 interface FinancialSummaryCardProps {
   title: string
@@ -56,6 +57,7 @@ export const FinancialSummaryCard = ({
   to,
 }: FinancialSummaryCardProps) => {
   const navigate = useNavigate()
+  const { isPrivacyMode } = usePrivacy()
 
   const executionPercentage = useMemo(() => {
     return totalValue > 0 ? (paidValue / totalValue) * 100 : 0
@@ -161,15 +163,18 @@ export const FinancialSummaryCard = ({
 
         {/* Refined Grid for Values - Prevents Clipping */}
         <div className="grid grid-cols-3 gap-2 sm:gap-3">
-          <SummaryItem label="Previsto" value={formatCurrencyBRL(totalValue)} />
+          <SummaryItem
+            label="Previsto"
+            value={formatCurrencyBRL(totalValue, isPrivacyMode)}
+          />
           <SummaryItem
             label="Liquidado"
-            value={formatCurrencyBRL(paidValue)}
+            value={formatCurrencyBRL(paidValue, isPrivacyMode)}
             colorClass={theme.paidColor}
           />
           <SummaryItem
             label="Pendente"
-            value={formatCurrencyBRL(pendingValue)}
+            value={formatCurrencyBRL(pendingValue, isPrivacyMode)}
             colorClass={theme.pendingColor}
           />
         </div>

@@ -15,9 +15,11 @@ import { Amendment } from '@/lib/mock-data'
 import { formatCurrencyBRL } from '@/lib/utils'
 import { StatusBadge } from '@/components/StatusBadge'
 import { supabase } from '@/lib/supabase/client'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 
 const PropostasPapPage = () => {
   const navigate = useNavigate()
+  const { isPrivacyMode } = usePrivacy()
   const [papAmendments, setPapAmendments] = useState<Amendment[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -110,7 +112,7 @@ const PropostasPapPage = () => {
                     <TableCell>{amendment.numero_emenda}</TableCell>
                     <TableCell>{amendment.numero_proposta}</TableCell>
                     <TableCell className="text-right tabular-nums">
-                      {formatCurrencyBRL(amendment.valor_total)}
+                      {formatCurrencyBRL(amendment.valor_total, isPrivacyMode)}
                     </TableCell>
                     <TableCell>
                       <StatusBadge status={amendment.situacao} />

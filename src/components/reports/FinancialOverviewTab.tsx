@@ -9,7 +9,6 @@ import {
   Cell,
   Legend,
   Tooltip,
-  ResponsiveContainer,
 } from 'recharts'
 import {
   Card,
@@ -24,6 +23,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart'
 import { formatCurrencyBRL } from '@/lib/utils'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 
 interface FinancialOverviewTabProps {
   consolidatedByTipoRecurso: { name: string; value: number }[]
@@ -44,6 +44,8 @@ export function FinancialOverviewTab({
   executionStatus,
   COLORS,
 }: FinancialOverviewTabProps) {
+  const { isPrivacyMode } = usePrivacy()
+
   return (
     <div className="grid gap-6 md:grid-cols-2">
       <Card className="col-span-1 rounded-xl shadow-sm border-border/50">
@@ -78,7 +80,9 @@ export function FinancialOverviewTab({
               <Tooltip
                 content={
                   <ChartTooltipContent
-                    formatter={(value) => formatCurrencyBRL(Number(value))}
+                    formatter={(value) =>
+                      formatCurrencyBRL(Number(value), isPrivacyMode)
+                    }
                     className="tabular-nums"
                   />
                 }
@@ -120,7 +124,9 @@ export function FinancialOverviewTab({
               <Tooltip
                 content={
                   <ChartTooltipContent
-                    formatter={(value) => formatCurrencyBRL(Number(value))}
+                    formatter={(value) =>
+                      formatCurrencyBRL(Number(value), isPrivacyMode)
+                    }
                     className="tabular-nums"
                   />
                 }
@@ -168,10 +174,12 @@ export function FinancialOverviewTab({
               />
               <YAxis
                 tickFormatter={(v) =>
-                  new Intl.NumberFormat('pt-BR', {
-                    notation: 'compact',
-                    compactDisplay: 'short',
-                  }).format(v)
+                  isPrivacyMode
+                    ? '••••••'
+                    : new Intl.NumberFormat('pt-BR', {
+                        notation: 'compact',
+                        compactDisplay: 'short',
+                      }).format(v)
                 }
                 axisLine={false}
                 tickLine={false}
@@ -179,7 +187,9 @@ export function FinancialOverviewTab({
               <Tooltip
                 content={
                   <ChartTooltipContent
-                    formatter={(value) => formatCurrencyBRL(Number(value))}
+                    formatter={(value) =>
+                      formatCurrencyBRL(Number(value), isPrivacyMode)
+                    }
                     className="tabular-nums"
                   />
                 }

@@ -2,6 +2,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { formatCurrencyBRL, formatPercent, cn } from '@/lib/utils'
 import { TrendingUp, Users, Wallet, ArrowUpRight } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 
 interface KPICardsProps {
   totalValue: number
@@ -14,6 +15,7 @@ export function KPICards({
   executedValue,
   activeLegislators,
 }: KPICardsProps) {
+  const { isPrivacyMode } = usePrivacy()
   const executionPercentage =
     totalValue > 0 ? (executedValue / totalValue) * 100 : 0
 
@@ -35,7 +37,7 @@ export function KPICards({
                 <ArrowUpRight className="h-4 w-4" />
               </p>
               <h2 className="text-4xl font-bold tabular-nums mt-2 tracking-tight">
-                {formatCurrencyBRL(totalValue)}
+                {formatCurrencyBRL(totalValue, isPrivacyMode)}
               </h2>
             </div>
             <p className="text-xs text-brand-100/80 mt-1">
@@ -61,7 +63,7 @@ export function KPICards({
               </p>
             </div>
             <h2 className="text-3xl font-bold tabular-nums text-brand-900">
-              {formatCurrencyBRL(executedValue)}
+              {formatCurrencyBRL(executedValue, isPrivacyMode)}
             </h2>
             <div className="mt-4 space-y-2">
               <div className="flex justify-between text-xs">

@@ -59,6 +59,7 @@ import {
   SelectLabel,
 } from '@/components/ui/select'
 import { useAuth } from '@/contexts/AuthContext'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 import { formatDateToDB, formatDisplayDate } from '@/lib/date-utils'
 import { supabase } from '@/lib/supabase/client'
 
@@ -90,6 +91,7 @@ export const EmendaDespesasTab = forwardRef<
   ) => {
     const { toast } = useToast()
     const { user, checkPermission } = useAuth()
+    const { isPrivacyMode } = usePrivacy()
     const [dossierExpense, setDossierExpense] = useState<Despesa | null>(null)
     const [isFormOpen, setIsFormOpen] = useState(false)
     const [isDeleteOpen, setIsDeleteOpen] = useState(false)
@@ -301,7 +303,7 @@ export const EmendaDespesasTab = forwardRef<
                           />
                         </TableCell>
                         <TableCell className="text-right tabular-nums">
-                          {formatCurrencyBRL(despesa.valor || 0)}
+                          {formatCurrencyBRL(despesa.valor || 0, isPrivacyMode)}
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>

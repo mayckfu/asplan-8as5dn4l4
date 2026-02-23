@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { formatCurrencyBRL } from '@/lib/utils'
 import { Progress } from '@/components/ui/progress'
 import { EmendaActionForm } from './EmendaActionForm'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 
 interface EmendaPlanejamentoTabProps {
   emenda: DetailedAmendment
@@ -18,6 +19,7 @@ export const EmendaPlanejamentoTab = ({
   onUpdate,
 }: EmendaPlanejamentoTabProps) => {
   const { checkPermission } = useAuth()
+  const { isPrivacyMode } = usePrivacy()
   const [isActionOpen, setIsActionOpen] = useState(false)
 
   const canEdit = checkPermission(['ADMIN', 'GESTOR', 'ANALISTA'])
@@ -38,8 +40,8 @@ export const EmendaPlanejamentoTab = ({
             Resumo do Planejamento
           </h3>
           <span className="text-sm font-medium tabular-nums">
-            {formatCurrencyBRL(totalDestinado)} /{' '}
-            {formatCurrencyBRL(emenda.valor_total)}
+            {formatCurrencyBRL(totalDestinado, isPrivacyMode)} /{' '}
+            {formatCurrencyBRL(emenda.valor_total, isPrivacyMode)}
           </span>
         </div>
         <div className="space-y-1">

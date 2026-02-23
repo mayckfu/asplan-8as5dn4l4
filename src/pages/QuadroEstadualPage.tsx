@@ -42,9 +42,11 @@ import { EmendaForm } from '@/components/emendas/EmendaForm'
 import { useToast } from '@/components/ui/use-toast'
 import { Link } from 'react-router-dom'
 import { StatusBadge } from '@/components/StatusBadge'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 
 const QuadroEstadualPage = () => {
   const { toast } = useToast()
+  const { isPrivacyMode } = usePrivacy()
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState<Amendment[]>([])
   const [selectedYear, setSelectedYear] = useState<string>(
@@ -250,7 +252,7 @@ const QuadroEstadualPage = () => {
                     Valor Total Acumulado
                   </p>
                   <h2 className="text-3xl font-bold text-brand-900 mt-1 tabular-nums break-words">
-                    {formatCurrencyBRL(totalValue)}
+                    {formatCurrencyBRL(totalValue, isPrivacyMode)}
                   </h2>
                 </div>
                 <div className="h-12 w-12 rounded-full bg-brand-100 flex items-center justify-center print:hidden shrink-0 ml-4">
@@ -351,7 +353,7 @@ const QuadroEstadualPage = () => {
                               TipoEmenda[item.tipo]}
                           </TableCell>
                           <TableCell className="text-right tabular-nums font-medium">
-                            {formatCurrencyBRL(item.valor_total)}
+                            {formatCurrencyBRL(item.valor_total, isPrivacyMode)}
                           </TableCell>
                           <TableCell>{item.portaria || '—'}</TableCell>
                           <TableCell className="text-sm text-muted-foreground print:text-black">
@@ -428,7 +430,7 @@ const QuadroEstadualPage = () => {
                           Valor Total
                         </span>
                         <span className="text-lg font-bold text-brand-700 tabular-nums">
-                          {formatCurrencyBRL(item.valor_total)}
+                          {formatCurrencyBRL(item.valor_total, isPrivacyMode)}
                         </span>
                       </div>
                     </div>

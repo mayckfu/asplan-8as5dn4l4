@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useAuth } from '@/contexts/AuthContext'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 import { Badge } from '@/components/ui/badge'
 
 interface EmendaDetailHeaderProps {
@@ -38,6 +39,7 @@ export const EmendaDetailHeader = ({
   onStatusInternoChange,
 }: EmendaDetailHeaderProps) => {
   const { checkPermission } = useAuth()
+  const { isPrivacyMode } = usePrivacy()
   const canEdit = checkPermission(['ADMIN', 'GESTOR', 'ANALISTA'])
 
   const totalRepassado = emenda.repasses.reduce((acc, r) => acc + r.valor, 0)
@@ -228,7 +230,7 @@ export const EmendaDetailHeader = ({
               Valor Total
             </span>
             <span className="text-lg md:text-xl font-bold text-slate-900 dark:text-slate-100">
-              {formatCurrencyBRL(emenda.valor_total)}
+              {formatCurrencyBRL(emenda.valor_total, isPrivacyMode)}
             </span>
           </div>
 
@@ -240,7 +242,7 @@ export const EmendaDetailHeader = ({
               Repassado
             </span>
             <span className="text-lg md:text-xl font-bold text-emerald-800 dark:text-emerald-300">
-              {formatCurrencyBRL(totalRepassado)}
+              {formatCurrencyBRL(totalRepassado, isPrivacyMode)}
             </span>
           </div>
 
@@ -252,7 +254,7 @@ export const EmendaDetailHeader = ({
               Gasto (Executado)
             </span>
             <span className="text-lg md:text-xl font-bold text-blue-800 dark:text-blue-300">
-              {formatCurrencyBRL(totalGasto)}
+              {formatCurrencyBRL(totalGasto, isPrivacyMode)}
             </span>
           </div>
 

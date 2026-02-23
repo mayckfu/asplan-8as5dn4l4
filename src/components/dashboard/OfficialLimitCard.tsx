@@ -16,6 +16,7 @@ import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/use-toast'
 import { CreditCard, Settings, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 
 interface OfficialLimitCardProps {
   year: string
@@ -42,6 +43,7 @@ export function OfficialLimitCard({
   const [pap, setPap] = useState(0)
   const [capital, setCapital] = useState(0)
   const { toast } = useToast()
+  const { isPrivacyMode } = usePrivacy()
 
   useEffect(() => {
     if (isOpen) {
@@ -103,7 +105,7 @@ export function OfficialLimitCard({
                 : 'bg-emerald-100 text-emerald-700',
             )}
           >
-            Saldo: {formatCurrencyBRL(remaining)}
+            Saldo: {formatCurrencyBRL(remaining, isPrivacyMode)}
           </span>
         </div>
         <div className="h-2 w-full bg-neutral-200 rounded-full overflow-hidden mt-1">
@@ -116,13 +118,13 @@ export function OfficialLimitCard({
           <span>
             Limite:{' '}
             <strong className="text-neutral-800">
-              {formatCurrencyBRL(limit)}
+              {formatCurrencyBRL(limit, isPrivacyMode)}
             </strong>
           </span>
           <span>
             Consumo:{' '}
             <strong className="text-neutral-800">
-              {formatCurrencyBRL(consumedVal)}
+              {formatCurrencyBRL(consumedVal, isPrivacyMode)}
             </strong>
           </span>
         </div>
