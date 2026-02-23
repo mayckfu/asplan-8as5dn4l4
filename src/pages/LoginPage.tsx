@@ -3,16 +3,18 @@ import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Loader2, LogIn } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+  Loader2,
+  LogIn,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  Shield,
+  Activity,
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   Form,
@@ -41,6 +43,7 @@ const LoginPage = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const from = location.state?.from?.pathname || '/'
 
@@ -101,36 +104,80 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-900 p-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center text-asplan-primary">
-            Controle de Emendas
-          </CardTitle>
-          <CardDescription className="text-center">
-            Entre com suas credenciais para acessar o sistema
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+    <div className="min-h-screen w-full grid lg:grid-cols-2">
+      {/* Left Panel - Branding (Desktop Only) */}
+      <div className="hidden lg:flex flex-col justify-between bg-gov-gradient p-12 text-white relative overflow-hidden">
+        {/* Radial Pattern Overlay */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.3)_1px,transparent_1px)] bg-[size:24px_24px] opacity-30 pointer-events-none" />
+
+        <div className="relative z-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/20 bg-white/10 text-sm font-medium mb-8 backdrop-blur-sm shadow-sm">
+            <ShieldCheck className="h-4 w-4" />
+            <span>Plataforma Oficial de Gestão</span>
+          </div>
+          <h1 className="text-4xl xl:text-5xl font-bold tracking-tight mb-6 leading-tight max-w-xl">
+            Inteligência na gestão de emendas.
+          </h1>
+          <p className="text-lg xl:text-xl text-white/90 max-w-md leading-relaxed">
+            Centralize informações, controle limites anuais e acompanhe
+            propostas em tempo real.
+          </p>
+        </div>
+
+        <div className="relative z-10 flex items-center gap-4 text-sm text-white/80 mt-12">
+          <div className="flex gap-3 items-center opacity-80">
+            <Shield className="h-5 w-5" />
+            <Eye className="h-5 w-5" />
+            <Activity className="h-5 w-5" />
+          </div>
+          <span className="font-medium tracking-wide uppercase text-xs">
+            Segurança & Auditoria
+          </span>
+        </div>
+      </div>
+
+      {/* Right Panel - Form */}
+      <div className="flex items-center justify-center p-6 sm:p-12 bg-background relative">
+        <div className="w-full max-w-md space-y-8">
+          <div className="space-y-3 text-center lg:text-left">
+            <h2 className="text-3xl font-bold tracking-tight">
+              <span className="text-foreground">Controle de </span>
+              <span className="text-asplan-primary">Emendas</span>
+            </h2>
+            <div className="space-y-1 mt-6">
+              <h3 className="text-xl font-semibold text-foreground">
+                Acesso ao Sistema
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Informe suas credenciais institucionais para continuar.
+              </p>
+            </div>
+          </div>
+
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>E-mail funcional</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="seu.email@asplan.gov"
-                        {...field}
-                        autoComplete="email"
-                      />
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                        <Input
+                          placeholder="usuario@institucional.gov.br"
+                          className="pl-10 h-11"
+                          {...field}
+                          autoComplete="email"
+                        />
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="password"
@@ -140,66 +187,92 @@ const LoginPage = () => {
                       <FormLabel>Senha</FormLabel>
                       <Link
                         to="/forgot-password"
-                        className="text-sm font-medium text-asplan-primary hover:underline"
+                        className="text-sm font-medium text-asplan-primary hover:text-asplan-deep hover:underline transition-colors"
                       >
-                        Esqueceu sua senha?
+                        Esqueceu a senha?
                       </Link>
                     </div>
                     <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="••••••"
-                        {...field}
-                        autoComplete="current-password"
-                      />
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                        <Input
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="••••••••"
+                          className="pl-10 pr-10 h-11"
+                          {...field}
+                          autoComplete="current-password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground focus:outline-none transition-colors"
+                          tabIndex={-1}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-5 w-5" />
+                          ) : (
+                            <Eye className="h-5 w-5" />
+                          )}
+                          <span className="sr-only">
+                            {showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                          </span>
+                        </button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="rememberMe"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormItem className="flex flex-row items-center space-x-2 space-y-0 mt-2">
                     <FormControl>
                       <Checkbox
                         checked={field.value}
                         onCheckedChange={field.onChange}
+                        className="data-[state=checked]:bg-asplan-primary data-[state=checked]:border-asplan-primary"
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>Lembrar-me</FormLabel>
+                      <FormLabel className="cursor-pointer font-normal text-muted-foreground">
+                        Lembrar usuário
+                      </FormLabel>
                     </div>
                   </FormItem>
                 )}
               />
+
               <Button
                 type="submit"
-                className="w-full bg-asplan-primary hover:bg-asplan-deep"
+                className="w-full h-11 text-base font-medium bg-asplan-primary hover:bg-asplan-deep transition-all duration-200 mt-6 shadow-sm hover:shadow"
                 disabled={isLoading}
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Entrando...
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Autenticando...
                   </>
                 ) : (
                   <>
-                    <LogIn className="mr-2 h-4 w-4" />
-                    Entrar
+                    <LogIn className="mr-2 h-5 w-5" />
+                    Acessar Painel
                   </>
                 )}
               </Button>
             </form>
           </Form>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-xs text-muted-foreground text-center">
-            Secretaria de Saúde - Gestão de Emendas
-          </p>
-        </CardFooter>
-      </Card>
+
+          <div className="pt-8 text-center text-xs text-muted-foreground space-y-1.5">
+            <p className="font-medium">Sistema Interno</p>
+            <p className="opacity-80">
+              Versão 1.0.0 &bull; Ambiente de Produção Seguro
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
