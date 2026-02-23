@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import {
-  Bar,
-  BarChart,
+  Area,
+  AreaChart,
   CartesianGrid,
   XAxis,
   YAxis,
@@ -10,6 +10,8 @@ import {
   Cell,
   Legend,
   Tooltip,
+  ComposedChart,
+  Line,
 } from 'recharts'
 import {
   Card,
@@ -30,6 +32,7 @@ interface FinancialOverviewTabProps {
   consolidatedByTipoRecurso: { name: string; value: number }[]
   consolidatedBySituacao: { name: string; value: number }[]
   executionStatus: { name: string; value: number }[]
+  executionByMonth: { name: string; planejado: number; executado: number }[]
   COLORS: string[]
 }
 
@@ -43,6 +46,7 @@ export function FinancialOverviewTab({
   consolidatedByTipoRecurso,
   consolidatedBySituacao,
   executionStatus,
+  executionByMonth,
   COLORS,
 }: FinancialOverviewTabProps) {
   const { isPrivacyMode } = usePrivacy()
@@ -56,12 +60,9 @@ export function FinancialOverviewTab({
     [consolidatedBySituacao],
   )
 
-  const PREMIUM_CARD_CLASS =
-    'rounded-2xl border border-border/40 shadow-lg bg-card/80 backdrop-blur-sm transition-all duration-300 hover:shadow-xl'
-
   return (
     <div className="grid gap-6 md:grid-cols-2">
-      <Card className={PREMIUM_CARD_CLASS}>
+      <Card className="glass-card animate-in fade-in slide-in-from-bottom-4 duration-500">
         <CardHeader>
           <CardTitle>Consolidado por Tipo de Recurso</CardTitle>
           <CardDescription>Distribuição do valor total orçado</CardDescription>
@@ -99,7 +100,6 @@ export function FinancialOverviewTab({
                     formatter={(value) =>
                       formatCurrencyBRL(Number(value), isPrivacyMode)
                     }
-                    className="tabular-nums"
                   />
                 }
               />
@@ -109,7 +109,7 @@ export function FinancialOverviewTab({
         </CardContent>
       </Card>
 
-      <Card className={PREMIUM_CARD_CLASS}>
+      <Card className="glass-card animate-in fade-in slide-in-from-bottom-4 duration-500 delay-75">
         <CardHeader>
           <CardTitle>Status de Execução Geral</CardTitle>
           <CardDescription>
@@ -149,7 +149,6 @@ export function FinancialOverviewTab({
                     formatter={(value) =>
                       formatCurrencyBRL(Number(value), isPrivacyMode)
                     }
-                    className="tabular-nums"
                   />
                 }
               />
@@ -159,7 +158,132 @@ export function FinancialOverviewTab({
         </CardContent>
       </Card>
 
-      <Card className={`col-span-1 md:col-span-2 ${PREMIUM_CARD_CLASS}`}>
+      <Card className="col-span-1 md:col-span-2 glass-card animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold">
+            Análise de Tendência Mensal
+          </CardTitle>
+          <CardDescription>
+            Comparativo entre valor planejado e execução ao longo do tempo
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer
+            config={{
+              planejado: { label: 'Planejado', color: 'hsl(var(--primary))' },
+              executado: { label: 'Executado', color: '#00C49F' },
+            }}
+            className="w-full h-[350px]"
+          >
+            <ComposedChart
+              data={executionByMonth}
+              margin={{ top: 20, right: 20, bottom: 20, left: 0 }}
+            >
+              <defs>
+                <linearGradient id="gradPlanejado" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="5%"
+                    stopColor="var(--color-planejado)"
+                    stopOpacity={0.35}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--color-planejado)"
+                    stopOpacity={0}
+                  />
+                </linearGradient>
+                <linearGradient id="gradExecutado" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="5%"
+                    stopColor="var(--color-executado)"
+                    stopOpacity={0.35}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--color-executado)"
+                    stopOpacity={0}
+                  />
+                </linearGradient>
+              </defs>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                opacity={0.2}
+              />
+              <XAxis
+                dataKey="name"
+                axisLine={false}
+                tickLine={false}
+                tickMargin={10}
+                fontSize={12}
+                className="font-medium"
+              />
+              <YAxis
+                tickFormatter={(v) =>
+                  isPrivacyMode
+                    ? '••••••'
+                    : new Intl.NumberFormat('pt-BR', {
+                        notation: 'compact',
+                      }).format(v)
+                }
+                axisLine={false}
+                tickLine={false}
+                fontSize={12}
+                className="font-medium"
+              />
+              <Tooltip
+                cursor={{
+                  stroke: 'rgba(150,150,150,0.3)',
+                  strokeWidth: 2,
+                  strokeDasharray: '4 4',
+                }}
+                content={
+                  <ChartTooltipContent
+                    formatter={(value) =>
+                      formatCurrencyBRL(Number(value), isPrivacyMode)
+                    }
+                  />
+                }
+              />
+              <Legend verticalAlign="top" height={36} iconType="circle" />
+              <Area
+                type="monotone"
+                dataKey="planejado"
+                stroke="var(--color-planejado)"
+                strokeWidth={3}
+                fill="url(#gradPlanejado)"
+                activeDot={{
+                  r: 6,
+                  strokeWidth: 0,
+                  style: {
+                    filter: 'drop-shadow(0 0 8px var(--color-planejado))',
+                  },
+                }}
+                animationDuration={1500}
+              />
+              <Line
+                type="monotone"
+                dataKey="executado"
+                stroke="var(--color-executado)"
+                strokeWidth={3}
+                dot={{ r: 4, fill: 'var(--background)', strokeWidth: 2 }}
+                activeDot={{
+                  r: 6,
+                  strokeWidth: 0,
+                  style: {
+                    filter: 'drop-shadow(0 0 8px var(--color-executado))',
+                  },
+                }}
+                animationDuration={1500}
+              />
+            </ComposedChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
+
+      <Card
+        className={`col-span-1 md:col-span-2 glass-card animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150`}
+      >
         <CardHeader>
           <CardTitle>Situação Oficial das Emendas</CardTitle>
           <CardDescription>
@@ -168,34 +292,28 @@ export function FinancialOverviewTab({
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="w-full h-[350px]">
-            <BarChart data={situacaoDataWithColors} margin={{ top: 20 }}>
+            <AreaChart
+              data={situacaoDataWithColors}
+              margin={{ top: 20, right: 20, bottom: 40, left: 0 }}
+            >
               <defs>
-                {situacaoDataWithColors.map((entry, index) => (
-                  <linearGradient
-                    key={`grad-sit-${index}`}
-                    id={`colorSituacao-${index}`}
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop
-                      offset="5%"
-                      stopColor={entry.baseColor}
-                      stopOpacity={0.9}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor={entry.baseColor}
-                      stopOpacity={0.3}
-                    />
-                  </linearGradient>
-                ))}
+                <linearGradient id="colorSituacao" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="5%"
+                    stopColor="hsl(var(--primary))"
+                    stopOpacity={0.4}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="hsl(var(--primary))"
+                    stopOpacity={0}
+                  />
+                </linearGradient>
               </defs>
               <CartesianGrid
                 strokeDasharray="3 3"
                 vertical={false}
-                opacity={0.5}
+                opacity={0.2}
               />
               <XAxis
                 dataKey="name"
@@ -206,6 +324,7 @@ export function FinancialOverviewTab({
                 angle={-15}
                 textAnchor="end"
                 fontSize={12}
+                className="font-medium"
               />
               <YAxis
                 tickFormatter={(v) =>
@@ -218,33 +337,66 @@ export function FinancialOverviewTab({
                 }
                 axisLine={false}
                 tickLine={false}
+                fontSize={12}
+                className="font-medium"
               />
               <Tooltip
+                cursor={{
+                  stroke: 'rgba(150,150,150,0.3)',
+                  strokeWidth: 2,
+                  strokeDasharray: '4 4',
+                }}
                 content={
                   <ChartTooltipContent
                     formatter={(value) =>
                       formatCurrencyBRL(Number(value), isPrivacyMode)
                     }
-                    className="tabular-nums"
                   />
                 }
-                cursor={{ fill: 'rgba(0,0,0,0.03)' }}
               />
-              <Bar
+              <Area
+                type="monotone"
                 dataKey="value"
-                radius={[4, 4, 0, 0]}
-                maxBarSize={60}
+                stroke="hsl(var(--primary))"
+                strokeWidth={3}
+                fill="url(#colorSituacao)"
+                dot={(props: any) => {
+                  const { cx, cy, payload } = props
+                  if (cx == null || cy == null) return null
+                  return (
+                    <circle
+                      key={`dot-${payload.name}`}
+                      cx={cx}
+                      cy={cy}
+                      r={4}
+                      fill={payload.baseColor}
+                      stroke="var(--background)"
+                      strokeWidth={1.5}
+                    />
+                  )
+                }}
+                activeDot={(props: any) => {
+                  const { cx, cy, payload } = props
+                  if (cx == null || cy == null) return null
+                  return (
+                    <circle
+                      key={`activedot-${payload.name}`}
+                      cx={cx}
+                      cy={cy}
+                      r={7}
+                      fill={payload.baseColor}
+                      stroke="var(--background)"
+                      strokeWidth={2}
+                      style={{
+                        filter: `drop-shadow(0 0 10px ${payload.baseColor})`,
+                      }}
+                    />
+                  )
+                }}
                 animationDuration={1500}
                 animationEasing="ease-out"
-              >
-                {situacaoDataWithColors.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={`url(#colorSituacao-${index})`}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
+              />
+            </AreaChart>
           </ChartContainer>
         </CardContent>
       </Card>

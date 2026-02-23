@@ -1,13 +1,13 @@
 import { useMemo } from 'react'
 import {
-  Bar,
-  BarChart,
+  Area,
+  AreaChart,
+  ComposedChart,
   CartesianGrid,
   XAxis,
   YAxis,
   Tooltip,
   Legend,
-  Cell,
 } from 'recharts'
 import {
   Card,
@@ -62,12 +62,9 @@ export function LegislatorPerformanceTab({
     [executionByParlamentarAndResponsavel],
   )
 
-  const PREMIUM_CARD_CLASS =
-    'rounded-2xl border border-border/40 shadow-lg bg-card/80 backdrop-blur-sm transition-all duration-300 hover:shadow-xl'
-
   return (
     <div className="grid gap-6">
-      <Card className={PREMIUM_CARD_CLASS}>
+      <Card className="glass-card animate-in fade-in slide-in-from-bottom-4 duration-700">
         <CardHeader>
           <CardTitle>Top Parlamentares por Volume de Recursos</CardTitle>
           <CardDescription>
@@ -76,41 +73,47 @@ export function LegislatorPerformanceTab({
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="w-full h-[450px]">
-            <BarChart
+            <AreaChart
               data={dataWithColors}
-              layout="vertical"
-              margin={{ left: 0, right: 20 }}
+              margin={{ top: 20, right: 20, bottom: 80, left: 0 }}
             >
               <defs>
-                {dataWithColors.map((entry, index) => (
-                  <linearGradient
-                    key={`grad-parl-${index}`}
-                    id={`colorParl-${index}`}
-                    x1="0"
-                    y1="0"
-                    x2="1"
-                    y2="0"
-                  >
-                    <stop
-                      offset="5%"
-                      stopColor={entry.baseColor}
-                      stopOpacity={0.9}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor={entry.baseColor}
-                      stopOpacity={0.4}
-                    />
-                  </linearGradient>
-                ))}
+                <linearGradient id="colorParl" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="5%"
+                    stopColor="hsl(var(--primary))"
+                    stopOpacity={0.35}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="hsl(var(--primary))"
+                    stopOpacity={0}
+                  />
+                </linearGradient>
               </defs>
               <CartesianGrid
                 strokeDasharray="3 3"
-                horizontal={true}
-                opacity={0.5}
+                vertical={false}
+                opacity={0.2}
               />
               <XAxis
-                type="number"
+                dataKey="name"
+                axisLine={false}
+                tickLine={false}
+                tickMargin={20}
+                angle={-45}
+                textAnchor="end"
+                height={100}
+                fontSize={12}
+                className="font-medium"
+                tickFormatter={(val) => {
+                  const parts = val.split(' ')
+                  return parts.length > 2
+                    ? `${parts[0]} ${parts[parts.length - 1]}`
+                    : val
+                }}
+              />
+              <YAxis
                 tickFormatter={(v) =>
                   isPrivacyMode
                     ? '••••••'
@@ -121,52 +124,71 @@ export function LegislatorPerformanceTab({
                 }
                 axisLine={false}
                 tickLine={false}
-              />
-              <YAxis
-                type="category"
-                dataKey="name"
-                width={160}
-                axisLine={false}
-                tickLine={false}
                 fontSize={12}
-                tickFormatter={(val) => {
-                  const parts = val.split(' ')
-                  return parts.length > 2
-                    ? `${parts[0]} ${parts[parts.length - 1]}`
-                    : val
-                }}
+                className="font-medium"
               />
               <Tooltip
+                cursor={{
+                  stroke: 'rgba(150,150,150,0.3)',
+                  strokeWidth: 2,
+                  strokeDasharray: '4 4',
+                }}
                 content={
                   <ChartTooltipContent
                     formatter={(value) =>
                       formatCurrencyBRL(Number(value), isPrivacyMode)
                     }
-                    className="tabular-nums"
                   />
                 }
-                cursor={{ fill: 'rgba(0,0,0,0.03)' }}
               />
-              <Bar
+              <Area
+                type="monotone"
                 dataKey="value"
-                radius={[0, 4, 4, 0]}
-                barSize={20}
+                stroke="hsl(var(--primary))"
+                strokeWidth={3}
+                fill="url(#colorParl)"
+                dot={(props: any) => {
+                  const { cx, cy, payload } = props
+                  if (cx == null || cy == null) return null
+                  return (
+                    <circle
+                      key={`dot-${payload.name}`}
+                      cx={cx}
+                      cy={cy}
+                      r={4}
+                      fill={payload.baseColor}
+                      stroke="var(--background)"
+                      strokeWidth={1.5}
+                    />
+                  )
+                }}
+                activeDot={(props: any) => {
+                  const { cx, cy, payload } = props
+                  if (cx == null || cy == null) return null
+                  return (
+                    <circle
+                      key={`activedot-${payload.name}`}
+                      cx={cx}
+                      cy={cy}
+                      r={7}
+                      fill={payload.baseColor}
+                      stroke="var(--background)"
+                      strokeWidth={2}
+                      style={{
+                        filter: `drop-shadow(0 0 10px ${payload.baseColor})`,
+                      }}
+                    />
+                  )
+                }}
                 animationDuration={1500}
                 animationEasing="ease-out"
-              >
-                {dataWithColors.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={`url(#colorParl-${index})`}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
+              />
+            </AreaChart>
           </ChartContainer>
         </CardContent>
       </Card>
 
-      <Card className={PREMIUM_CARD_CLASS}>
+      <Card className="glass-card animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
         <CardHeader>
           <CardTitle>Execução Detalhada por Parlamentar</CardTitle>
           <CardDescription>
@@ -175,41 +197,39 @@ export function LegislatorPerformanceTab({
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="w-full h-[500px]">
-            <BarChart
+            <ComposedChart
               data={execDataWithColors}
-              layout="vertical"
-              margin={{ left: 0, right: 20 }}
+              margin={{ top: 20, right: 20, bottom: 80, left: 0 }}
             >
               <defs>
-                {execDataWithColors.map((entry, index) => (
-                  <linearGradient
-                    key={`grad-exec-${index}`}
-                    id={`colorExecPar-${index}`}
-                    x1="0"
-                    y1="0"
-                    x2="1"
-                    y2="0"
-                  >
-                    <stop
-                      offset="5%"
-                      stopColor={entry.baseColor}
-                      stopOpacity={0.85}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor={entry.baseColor}
-                      stopOpacity={0.35}
-                    />
-                  </linearGradient>
-                ))}
+                <linearGradient id="colorExecPar" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#00C49F" stopOpacity={0.35} />
+                  <stop offset="95%" stopColor="#00C49F" stopOpacity={0} />
+                </linearGradient>
               </defs>
               <CartesianGrid
                 strokeDasharray="3 3"
-                horizontal={true}
-                opacity={0.5}
+                vertical={false}
+                opacity={0.2}
               />
               <XAxis
-                type="number"
+                dataKey="parlamentar"
+                axisLine={false}
+                tickLine={false}
+                tickMargin={20}
+                angle={-45}
+                textAnchor="end"
+                height={100}
+                fontSize={12}
+                className="font-medium"
+                tickFormatter={(val) => {
+                  const parts = val.split(' ')
+                  return parts.length > 2
+                    ? `${parts[0]} ${parts[parts.length - 1]}`
+                    : val
+                }}
+              />
+              <YAxis
                 tickFormatter={(v) =>
                   isPrivacyMode
                     ? '••••••'
@@ -220,49 +240,68 @@ export function LegislatorPerformanceTab({
                 }
                 axisLine={false}
                 tickLine={false}
-              />
-              <YAxis
-                type="category"
-                dataKey="parlamentar"
-                width={160}
-                axisLine={false}
-                tickLine={false}
                 fontSize={12}
-                tickFormatter={(val) => {
-                  const parts = val.split(' ')
-                  return parts.length > 2
-                    ? `${parts[0]} ${parts[parts.length - 1]}`
-                    : val
-                }}
+                className="font-medium"
               />
               <Tooltip
+                cursor={{
+                  stroke: 'rgba(150,150,150,0.3)',
+                  strokeWidth: 2,
+                  strokeDasharray: '4 4',
+                }}
                 content={
                   <ChartTooltipContent
                     formatter={(value) =>
                       formatCurrencyBRL(Number(value), isPrivacyMode)
                     }
-                    className="tabular-nums"
                   />
                 }
-                cursor={{ fill: 'rgba(0,0,0,0.03)' }}
               />
-              <Legend verticalAlign="top" height={36} />
-              <Bar
+              <Legend verticalAlign="top" height={36} iconType="circle" />
+              <Area
+                type="monotone"
                 dataKey="totalExecuted"
                 name="Total Executado"
-                radius={[0, 4, 4, 0]}
-                barSize={20}
+                stroke="#00C49F"
+                strokeWidth={3}
+                fill="url(#colorExecPar)"
+                dot={(props: any) => {
+                  const { cx, cy, payload } = props
+                  if (cx == null || cy == null) return null
+                  return (
+                    <circle
+                      key={`dot-${payload.parlamentar}`}
+                      cx={cx}
+                      cy={cy}
+                      r={4}
+                      fill={payload.baseColor}
+                      stroke="var(--background)"
+                      strokeWidth={1.5}
+                    />
+                  )
+                }}
+                activeDot={(props: any) => {
+                  const { cx, cy, payload } = props
+                  if (cx == null || cy == null) return null
+                  return (
+                    <circle
+                      key={`activedot-${payload.parlamentar}`}
+                      cx={cx}
+                      cy={cy}
+                      r={7}
+                      fill={payload.baseColor}
+                      stroke="var(--background)"
+                      strokeWidth={2}
+                      style={{
+                        filter: `drop-shadow(0 0 10px ${payload.baseColor})`,
+                      }}
+                    />
+                  )
+                }}
                 animationDuration={1500}
                 animationEasing="ease-out"
-              >
-                {execDataWithColors.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={`url(#colorExecPar-${index})`}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
+              />
+            </ComposedChart>
           </ChartContainer>
         </CardContent>
       </Card>

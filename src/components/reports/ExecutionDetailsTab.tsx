@@ -1,13 +1,5 @@
 import { useMemo } from 'react'
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Cell,
-} from 'recharts'
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts'
 import {
   Card,
   CardContent,
@@ -58,49 +50,50 @@ export function ExecutionDetailsTab({
     [executionByUnidade],
   )
 
-  const PREMIUM_CARD_CLASS =
-    'rounded-2xl border border-border/40 shadow-lg bg-card/80 backdrop-blur-sm transition-all duration-300 hover:shadow-xl'
-
   return (
     <div className="grid gap-6 md:grid-cols-2">
-      <Card className={PREMIUM_CARD_CLASS}>
+      <Card className="glass-card animate-in fade-in slide-in-from-bottom-4 duration-700">
         <CardHeader>
           <CardTitle>Execução por Responsável</CardTitle>
           <CardDescription>Quem está registrando mais despesas</CardDescription>
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="w-full h-[400px]">
-            <BarChart
+            <AreaChart
               data={respDataWithColors}
-              layout="vertical"
-              margin={{ left: 10, right: 10 }}
+              margin={{ top: 20, right: 20, bottom: 80, left: 0 }}
             >
               <defs>
-                {respDataWithColors.map((entry, index) => (
-                  <linearGradient
-                    key={`grad-resp-${index}`}
-                    id={`colorResp-${index}`}
-                    x1="0"
-                    y1="0"
-                    x2="1"
-                    y2="0"
-                  >
-                    <stop
-                      offset="5%"
-                      stopColor={entry.baseColor}
-                      stopOpacity={0.9}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor={entry.baseColor}
-                      stopOpacity={0.4}
-                    />
-                  </linearGradient>
-                ))}
+                <linearGradient id="colorResp" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="5%"
+                    stopColor="hsl(var(--primary))"
+                    stopOpacity={0.35}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="hsl(var(--primary))"
+                    stopOpacity={0}
+                  />
+                </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" opacity={0.5} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                opacity={0.2}
+              />
               <XAxis
-                type="number"
+                dataKey="name"
+                axisLine={false}
+                tickLine={false}
+                tickMargin={20}
+                angle={-45}
+                textAnchor="end"
+                height={80}
+                fontSize={12}
+                className="font-medium"
+              />
+              <YAxis
                 tickFormatter={(v) =>
                   isPrivacyMode
                     ? '••••••'
@@ -111,83 +104,107 @@ export function ExecutionDetailsTab({
                 }
                 axisLine={false}
                 tickLine={false}
-              />
-              <YAxis
-                type="category"
-                dataKey="name"
-                width={110}
-                axisLine={false}
-                tickLine={false}
                 fontSize={12}
+                className="font-medium"
               />
               <Tooltip
+                cursor={{
+                  stroke: 'rgba(150,150,150,0.3)',
+                  strokeWidth: 2,
+                  strokeDasharray: '4 4',
+                }}
                 content={
                   <ChartTooltipContent
                     formatter={(value) =>
                       formatCurrencyBRL(Number(value), isPrivacyMode)
                     }
-                    className="tabular-nums"
                   />
                 }
-                cursor={{ fill: 'rgba(0,0,0,0.03)' }}
               />
-              <Bar
+              <Area
+                type="monotone"
                 dataKey="value"
-                radius={[0, 4, 4, 0]}
-                barSize={20}
+                stroke="hsl(var(--primary))"
+                strokeWidth={3}
+                fill="url(#colorResp)"
+                dot={(props: any) => {
+                  const { cx, cy, payload } = props
+                  if (cx == null || cy == null) return null
+                  return (
+                    <circle
+                      key={`dot-${payload.name}`}
+                      cx={cx}
+                      cy={cy}
+                      r={4}
+                      fill={payload.baseColor}
+                      stroke="var(--background)"
+                      strokeWidth={1.5}
+                    />
+                  )
+                }}
+                activeDot={(props: any) => {
+                  const { cx, cy, payload } = props
+                  if (cx == null || cy == null) return null
+                  return (
+                    <circle
+                      key={`activedot-${payload.name}`}
+                      cx={cx}
+                      cy={cy}
+                      r={7}
+                      fill={payload.baseColor}
+                      stroke="var(--background)"
+                      strokeWidth={2}
+                      style={{
+                        filter: `drop-shadow(0 0 10px ${payload.baseColor})`,
+                      }}
+                    />
+                  )
+                }}
                 animationDuration={1500}
                 animationEasing="ease-out"
-              >
-                {respDataWithColors.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={`url(#colorResp-${index})`}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
+              />
+            </AreaChart>
           </ChartContainer>
         </CardContent>
       </Card>
 
-      <Card className={PREMIUM_CARD_CLASS}>
+      <Card className="glass-card animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
         <CardHeader>
           <CardTitle>Execução por Unidade</CardTitle>
           <CardDescription>Destino operacional dos recursos</CardDescription>
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="w-full h-[400px]">
-            <BarChart
+            <AreaChart
               data={uniDataWithColors}
-              layout="vertical"
-              margin={{ left: 10, right: 10 }}
+              margin={{ top: 20, right: 20, bottom: 80, left: 0 }}
             >
               <defs>
-                {uniDataWithColors.map((entry, index) => (
-                  <linearGradient
-                    key={`grad-uni-${index}`}
-                    id={`colorUni-${index}`}
-                    x1="0"
-                    y1="0"
-                    x2="1"
-                    y2="0"
-                  >
-                    <stop
-                      offset="5%"
-                      stopColor={entry.baseColor}
-                      stopOpacity={0.9}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor={entry.baseColor}
-                      stopOpacity={0.4}
-                    />
-                  </linearGradient>
-                ))}
+                <linearGradient id="colorUni" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#00C49F" stopOpacity={0.35} />
+                  <stop offset="95%" stopColor="#00C49F" stopOpacity={0} />
+                </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" opacity={0.5} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                opacity={0.2}
+              />
               <XAxis
-                type="number"
+                dataKey="name"
+                axisLine={false}
+                tickLine={false}
+                tickMargin={20}
+                angle={-45}
+                textAnchor="end"
+                height={80}
+                fontSize={12}
+                className="font-medium"
+                tickFormatter={(val) =>
+                  val.length > 15 ? `${val.substring(0, 15)}...` : val
+                }
+              />
+              <YAxis
                 tickFormatter={(v) =>
                   isPrivacyMode
                     ? '••••••'
@@ -198,44 +215,66 @@ export function ExecutionDetailsTab({
                 }
                 axisLine={false}
                 tickLine={false}
-              />
-              <YAxis
-                type="category"
-                dataKey="name"
-                width={110}
-                axisLine={false}
-                tickLine={false}
                 fontSize={12}
-                tickFormatter={(val) =>
-                  val.length > 15 ? `${val.substring(0, 15)}...` : val
-                }
+                className="font-medium"
               />
               <Tooltip
+                cursor={{
+                  stroke: 'rgba(150,150,150,0.3)',
+                  strokeWidth: 2,
+                  strokeDasharray: '4 4',
+                }}
                 content={
                   <ChartTooltipContent
                     formatter={(value) =>
                       formatCurrencyBRL(Number(value), isPrivacyMode)
                     }
-                    className="tabular-nums"
                   />
                 }
-                cursor={{ fill: 'rgba(0,0,0,0.03)' }}
               />
-              <Bar
+              <Area
+                type="monotone"
                 dataKey="value"
-                radius={[0, 4, 4, 0]}
-                barSize={20}
+                stroke="#00C49F"
+                strokeWidth={3}
+                fill="url(#colorUni)"
+                dot={(props: any) => {
+                  const { cx, cy, payload } = props
+                  if (cx == null || cy == null) return null
+                  return (
+                    <circle
+                      key={`dot-${payload.name}`}
+                      cx={cx}
+                      cy={cy}
+                      r={4}
+                      fill={payload.baseColor}
+                      stroke="var(--background)"
+                      strokeWidth={1.5}
+                    />
+                  )
+                }}
+                activeDot={(props: any) => {
+                  const { cx, cy, payload } = props
+                  if (cx == null || cy == null) return null
+                  return (
+                    <circle
+                      key={`activedot-${payload.name}`}
+                      cx={cx}
+                      cy={cy}
+                      r={7}
+                      fill={payload.baseColor}
+                      stroke="var(--background)"
+                      strokeWidth={2}
+                      style={{
+                        filter: `drop-shadow(0 0 10px ${payload.baseColor})`,
+                      }}
+                    />
+                  )
+                }}
                 animationDuration={1500}
                 animationEasing="ease-out"
-              >
-                {uniDataWithColors.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={`url(#colorUni-${index})`}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
+              />
+            </AreaChart>
           </ChartContainer>
         </CardContent>
       </Card>

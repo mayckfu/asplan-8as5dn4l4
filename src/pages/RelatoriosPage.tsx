@@ -56,6 +56,21 @@ const COLORS = [
   '#FF8042',
 ]
 
+const monthNames = [
+  'Jan',
+  'Fev',
+  'Mar',
+  'Abr',
+  'Mai',
+  'Jun',
+  'Jul',
+  'Ago',
+  'Set',
+  'Out',
+  'Nov',
+  'Dez',
+]
+
 const RelatoriosPage = () => {
   const [filters, setFilters] = useState<ReportFiltersState>(() => {
     const savedYear = localStorage.getItem('asplan_dashboard_year')
@@ -218,6 +233,60 @@ const RelatoriosPage = () => {
     return { totalValue, totalExecuted, activeLegislators }
   }, [filteredData, allDespesas])
 
+  // Get trend data ignoring month filter so the whole year is visible
+  const executionByMonth = useMemo(() => {
+    const dataWithoutMonthFilter = allData.filter((amendment) => {
+      if (
+        filters.autor &&
+        !amendment.autor.toLowerCase().includes(filters.autor.toLowerCase())
+      )
+        return false
+      if (filters.tipo !== 'all' && amendment.tipo !== filters.tipo)
+        return false
+      if (
+        filters.tipoRecurso !== 'all' &&
+        amendment.tipo_recurso !== filters.tipoRecurso
+      )
+        return false
+      if (filters.situacao !== 'all' && amendment.situacao !== filters.situacao)
+        return false
+      if (
+        filters.statusInterno !== 'all' &&
+        amendment.status_interno !== filters.statusInterno
+      )
+        return false
+      if (filters.valorMin && amendment.valor_total < filters.valorMin)
+        return false
+      if (filters.valorMax && amendment.valor_total > filters.valorMax)
+        return false
+      return true
+    })
+
+    const monthsData = monthNames.map((name, i) => ({
+      name,
+      monthIndex: i,
+      planejado: 0,
+      executado: 0,
+    }))
+
+    dataWithoutMonthFilter.forEach((e) => {
+      if (!e.created_at) return
+      const d = new Date(e.created_at)
+      monthsData[d.getMonth()].planejado += e.valor_total
+    })
+
+    const despesasWithoutMonthFilter = dataWithoutMonthFilter.flatMap(
+      (a) => a.despesas,
+    )
+    despesasWithoutMonthFilter.forEach((d) => {
+      if (!d.data) return
+      const date = new Date(d.data + 'T00:00:00')
+      monthsData[date.getMonth()].executado += d.valor
+    })
+
+    return monthsData
+  }, [allData, filters])
+
   const consolidatedByParlamentar = useMemo(() => {
     const data = filteredData.reduce(
       (acc, item) => {
@@ -253,7 +322,9 @@ const RelatoriosPage = () => {
       },
       {} as Record<string, number>,
     )
-    return Object.entries(data).map(([name, value]) => ({ name, value }))
+    return Object.entries(data)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
   }, [filteredData])
 
   const executionByResponsavel = useMemo(() => {
@@ -439,6 +510,7 @@ const RelatoriosPage = () => {
               consolidatedByTipoRecurso={consolidatedByTipoRecurso}
               consolidatedBySituacao={consolidatedBySituacao}
               executionStatus={executionStatus}
+              executionByMonth={executionByMonth}
               COLORS={COLORS}
             />
           </TabsContent>
