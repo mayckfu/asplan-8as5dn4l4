@@ -55,3 +55,14 @@ export function abbreviateName(name: string): string {
   // Return format: F. Reis
   return `${first.charAt(0)}. ${last}`
 }
+
+export function stringToColor(str: string): string {
+  if (!str) return 'hsl(0, 0%, 50%)'
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  const hue = Math.abs(hash) % 360
+  // Returns a vibrant color with good contrast
+  return `hsl(${hue}, 75%, 55%)`
+}

@@ -218,10 +218,11 @@ const RelatoriosPage = () => {
     return { totalValue, totalExecuted, activeLegislators }
   }, [filteredData, allDespesas])
 
-  const consolidatedByAutor = useMemo(() => {
+  const consolidatedByParlamentar = useMemo(() => {
     const data = filteredData.reduce(
       (acc, item) => {
-        acc[item.autor] = (acc[item.autor] || 0) + item.valor_total
+        const name = item.parlamentar || 'Não informado'
+        acc[name] = (acc[name] || 0) + item.valor_total
         return acc
       },
       {} as Record<string, number>,
@@ -344,7 +345,7 @@ const RelatoriosPage = () => {
   }
 
   return (
-    <div className="space-y-6 pb-12 animate-fade-in">
+    <div className="space-y-6 pb-12 animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
@@ -380,7 +381,7 @@ const RelatoriosPage = () => {
       />
 
       {filteredData.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed rounded-xl">
+        <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed rounded-xl animate-in fade-in zoom-in-95 duration-500">
           <div className="p-4 rounded-full bg-muted/50 mb-4">
             <LayoutDashboard className="h-8 w-8 text-muted-foreground" />
           </div>
@@ -399,20 +400,32 @@ const RelatoriosPage = () => {
         </div>
       ) : (
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 max-w-[800px] mb-6">
-            <TabsTrigger value="overview" className="gap-2">
+          <TabsList className="grid w-full grid-cols-4 max-w-[800px] mb-6 shadow-sm rounded-xl p-1 bg-muted/50 backdrop-blur-sm">
+            <TabsTrigger
+              value="overview"
+              className="gap-2 rounded-lg data-[state=active]:shadow-sm transition-all duration-300"
+            >
               <LayoutDashboard className="h-4 w-4" />
               <span className="hidden sm:inline">Visão Geral</span>
             </TabsTrigger>
-            <TabsTrigger value="legislators" className="gap-2">
+            <TabsTrigger
+              value="legislators"
+              className="gap-2 rounded-lg data-[state=active]:shadow-sm transition-all duration-300"
+            >
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Parlamentares</span>
             </TabsTrigger>
-            <TabsTrigger value="execution" className="gap-2">
+            <TabsTrigger
+              value="execution"
+              className="gap-2 rounded-lg data-[state=active]:shadow-sm transition-all duration-300"
+            >
               <TrendingUp className="h-4 w-4" />
               <span className="hidden sm:inline">Execução</span>
             </TabsTrigger>
-            <TabsTrigger value="audit" className="gap-2">
+            <TabsTrigger
+              value="audit"
+              className="gap-2 rounded-lg data-[state=active]:shadow-sm transition-all duration-300"
+            >
               <FileSearch className="h-4 w-4" />
               <span className="hidden sm:inline">Auditoria</span>
             </TabsTrigger>
@@ -420,7 +433,7 @@ const RelatoriosPage = () => {
 
           <TabsContent
             value="overview"
-            className="space-y-6 animate-fade-in-up"
+            className="space-y-6 animate-in fade-in zoom-in-[0.98] duration-500"
           >
             <FinancialOverviewTab
               consolidatedByTipoRecurso={consolidatedByTipoRecurso}
@@ -432,10 +445,10 @@ const RelatoriosPage = () => {
 
           <TabsContent
             value="legislators"
-            className="space-y-6 animate-fade-in-up"
+            className="space-y-6 animate-in fade-in zoom-in-[0.98] duration-500"
           >
             <LegislatorPerformanceTab
-              consolidatedByAutor={consolidatedByAutor}
+              consolidatedByParlamentar={consolidatedByParlamentar}
               executionByParlamentarAndResponsavel={
                 executionByParlamentarAndResponsavel
               }
@@ -444,7 +457,7 @@ const RelatoriosPage = () => {
 
           <TabsContent
             value="execution"
-            className="space-y-6 animate-fade-in-up"
+            className="space-y-6 animate-in fade-in zoom-in-[0.98] duration-500"
           >
             <ExecutionDetailsTab
               executionByResponsavel={executionByResponsavel}
@@ -452,7 +465,10 @@ const RelatoriosPage = () => {
             />
           </TabsContent>
 
-          <TabsContent value="audit" className="space-y-6 animate-fade-in-up">
+          <TabsContent
+            value="audit"
+            className="space-y-6 animate-in fade-in zoom-in-[0.98] duration-500"
+          >
             <AuditReportTab data={filteredData} />
           </TabsContent>
         </Tabs>
