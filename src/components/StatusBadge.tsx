@@ -68,6 +68,7 @@ const statusColors: Record<string, string> = {
   PROPOSTA_APROVADA: 'bg-green-700 text-white border-green-800',
   CLASSIFICADA_AGUARDANDO_SECRETARIA:
     'bg-yellow-700 text-white border-yellow-800',
+  ANALISE_TECNICA_MERITO: 'bg-cyan-700 text-white border-cyan-800',
 
   // Others
   Pendente: 'bg-amber-600 text-white border-amber-700',

@@ -35,6 +35,7 @@ export const StatusInterno = {
   PROPOSTA_APROVADA: 'Proposta Aprovada',
   CLASSIFICADA_AGUARDANDO_SECRETARIA:
     'Proposta Classificada aguardando autorização Secretaria',
+  ANALISE_TECNICA_MERITO: 'Proposta enviada para Análise Técnica de Mérito',
 } as const
 
 export const AuditCategories = {
