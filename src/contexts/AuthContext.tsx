@@ -58,30 +58,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [])
 
   useEffect(() => {
-    // Check active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      if (session?.user) {
-        fetchProfile(session.user.id)
-      } else {
+    // Strictly synchronous callback for onAuthStateChange
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+      setSession(currentSession)
+      if (!currentSession) {
+        setUser(null)
         setIsLoading(false)
       }
     })
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      if (session?.user) {
-        fetchProfile(session.user.id)
-      } else {
+    // Check active session on initial mount
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession)
+      if (!currentSession) {
         setUser(null)
         setIsLoading(false)
       }
     })
 
     return () => subscription.unsubscribe()
-  }, [fetchProfile])
+  }, [])
+
+  useEffect(() => {
+    // Fetch profile automatically when session user is available
+    if (session?.user?.id) {
+      setIsLoading(true)
+      fetchProfile(session.user.id)
+    }
+  }, [session?.user?.id, fetchProfile])
 
   const login = async (
     email: string,
@@ -93,6 +99,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (!password) {
         throw new Error('Senha é obrigatória')
       }
+
+      // customStorage securely respects this flag to decide storage persistence mechanism
+      localStorage.setItem('asplan_remember_me', rememberMe ? 'true' : 'false')
 
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -127,6 +136,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await supabase.auth.signOut()
       setUser(null)
       setSession(null)
+      localStorage.removeItem('asplan_remember_me')
       toast({
         title: 'Logout',
         description: 'Você saiu do sistema.',

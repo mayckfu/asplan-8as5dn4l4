@@ -41,7 +41,7 @@ type LoginFormValues = z.infer<typeof loginSchema>
 const STORAGE_EMAIL_KEY = 'asplan_saved_email'
 
 const LoginPage = () => {
-  const { login, isAuthenticated } = useAuth()
+  const { login, isAuthenticated, isLoading: isAuthLoading } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [isLoading, setIsLoading] = useState(false)
@@ -51,6 +51,7 @@ const LoginPage = () => {
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
+    mode: 'onChange',
     defaultValues: {
       email: '',
       password: '',
@@ -58,12 +59,14 @@ const LoginPage = () => {
     },
   })
 
+  const { isValid } = form.formState
+
   // Check for saved email on mount
   useEffect(() => {
     const savedEmail = localStorage.getItem(STORAGE_EMAIL_KEY)
     if (savedEmail) {
-      form.setValue('email', savedEmail)
-      form.setValue('rememberMe', true)
+      form.setValue('email', savedEmail, { shouldValidate: true })
+      form.setValue('rememberMe', true, { shouldValidate: true })
     }
   }, [form])
 
@@ -76,7 +79,7 @@ const LoginPage = () => {
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true)
 
-    // Handle "Remember Me" persistence
+    // Handle "Remember Me" persistence for the email address UI
     if (data.rememberMe) {
       localStorage.setItem(STORAGE_EMAIL_KEY, data.email)
     } else {
@@ -97,12 +100,31 @@ const LoginPage = () => {
       } catch (err) {
         console.error('Failed to log security notification', err)
       }
+      setIsLoading(false)
     }
+    // If success, the AuthContext and onAuthStateChange will trigger isAuthenticated -> navigate
+  }
 
-    setIsLoading(false)
-    if (success) {
-      navigate(from, { replace: true })
-    }
+  // Show a secure visual state while verifying the background session
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-background relative overflow-hidden">
+        <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,rgba(0,94,162,0.08)_1px,transparent_1px)] dark:bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+        <div className="relative z-10 flex flex-col items-center gap-4 animate-fade-in-up">
+          <div className="p-4 bg-asplan-primary/10 rounded-full border border-asplan-primary/20">
+            <Loader2 className="h-8 w-8 animate-spin text-asplan-primary" />
+          </div>
+          <div className="flex flex-col items-center gap-1 text-center">
+            <h2 className="text-xl font-bold tracking-tight text-foreground">
+              Ambiente Seguro
+            </h2>
+            <p className="text-sm font-medium text-muted-foreground">
+              Verificando sessão e credenciais...
+            </p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -228,6 +250,7 @@ const LoginPage = () => {
                 <form
                   onSubmit={form.handleSubmit(onSubmit)}
                   className="space-y-5"
+                  autoComplete="off"
                 >
                   <FormField
                     control={form.control}
@@ -326,8 +349,8 @@ const LoginPage = () => {
 
                   <Button
                     type="submit"
-                    className="w-full h-11 text-base font-bold transition-all duration-200 mt-6 shadow-md hover:shadow-lg bg-asplan-primary hover:bg-asplan-deep text-white"
-                    disabled={isLoading}
+                    className="w-full h-11 text-base font-bold transition-all duration-200 mt-6 shadow-md hover:shadow-lg bg-asplan-primary hover:bg-asplan-deep text-white disabled:opacity-70 disabled:cursor-not-allowed"
+                    disabled={isLoading || !isValid}
                   >
                     {isLoading ? (
                       <>
