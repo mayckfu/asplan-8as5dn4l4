@@ -110,10 +110,27 @@ const LoginPage = () => {
       {/* Global Continuous Background Texture */}
       <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,rgba(0,94,162,0.08)_1px,transparent_1px)] dark:bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
 
+      {/* Visual Bridge crossing the split */}
+      <div className="hidden lg:flex absolute left-1/2 top-1/3 -translate-x-1/2 z-30 items-center justify-center pointer-events-none opacity-80 mix-blend-overlay">
+        <div className="h-[1px] w-24 bg-gradient-to-r from-transparent to-white/40"></div>
+        <div className="w-12 h-12 flex items-center justify-center rounded-full border border-white/20 bg-white/5 backdrop-blur-sm shadow-lg">
+          <div className="w-2 h-2 rounded-full bg-asplan-primary shadow-[0_0_10px_rgba(0,94,162,0.8)]"></div>
+        </div>
+        <div className="h-[1px] w-24 bg-gradient-to-l from-transparent to-asplan-primary/30 dark:to-white/20"></div>
+      </div>
+
+      <div className="hidden lg:flex absolute left-1/2 top-2/3 -translate-x-1/2 z-30 items-center justify-center pointer-events-none opacity-50 mix-blend-overlay">
+        <div className="h-[1px] w-16 bg-gradient-to-r from-transparent to-white/30"></div>
+        <div className="w-8 h-8 flex items-center justify-center rounded-full border border-white/10 bg-white/5 backdrop-blur-sm">
+          <div className="w-1.5 h-1.5 rounded-full bg-asplan-action/80 shadow-[0_0_8px_rgba(0,149,218,0.6)]"></div>
+        </div>
+        <div className="h-[1px] w-16 bg-gradient-to-l from-transparent to-asplan-primary/20 dark:to-white/10"></div>
+      </div>
+
       {/* Left Panel - Branding (Desktop Only) */}
       <div className="hidden lg:flex w-1/2 flex-col justify-between bg-gov-gradient p-12 text-white relative z-10 overflow-hidden shadow-2xl">
         {/* Radial Pattern Overlay & Gradients specific to left panel */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.15)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.15)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none mix-blend-overlay" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/10 to-black/40 pointer-events-none" />
 
         <div className="relative z-10">
@@ -190,11 +207,11 @@ const LoginPage = () => {
       {/* Right Panel - Form */}
       <div className="flex w-full lg:w-1/2 items-center justify-center p-6 sm:p-12 relative z-10">
         {/* Gradient Transition from center divider */}
-        <div className="hidden lg:block absolute left-0 top-0 bottom-0 w-[500px] bg-[radial-gradient(ellipse_at_left_center,rgba(0,94,162,0.15),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_left_center,rgba(0,94,162,0.25),transparent_70%)] pointer-events-none" />
+        <div className="hidden lg:block absolute left-0 top-0 bottom-0 w-[500px] bg-[radial-gradient(ellipse_at_left_center,rgba(0,94,162,0.12),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_left_center,rgba(0,94,162,0.20),transparent_70%)] pointer-events-none" />
 
         <div className="w-full max-w-md space-y-8 animate-fade-in-up relative z-20">
           <div className="space-y-3 text-center lg:text-left">
-            <h2 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground">
+            <h2 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground drop-shadow-sm">
               Acesse sua conta
             </h2>
             <p className="text-base text-muted-foreground font-medium mt-2">
@@ -202,124 +219,131 @@ const LoginPage = () => {
             </p>
           </div>
 
-          <div className="bg-card/60 dark:bg-card/80 backdrop-blur-md p-6 sm:p-8 rounded-2xl shadow-float border border-border/50">
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-5"
-              >
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-foreground font-semibold">
-                        E-mail funcional
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative group">
-                          <Mail className="absolute left-3 top-3 h-5 w-5 text-muted-foreground group-focus-within:text-asplan-primary transition-colors" />
-                          <Input
-                            placeholder="usuario@institucional.gov.br"
-                            className="pl-10 h-11 bg-background/50 focus-visible:ring-asplan-primary focus-visible:border-asplan-primary transition-all"
-                            {...field}
-                            autoComplete="email"
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          <div className="bg-card/40 dark:bg-card/30 backdrop-blur-xl p-6 sm:p-8 rounded-2xl shadow-float border border-white/20 dark:border-white/10 relative overflow-hidden">
+            {/* Inner subtle glow for glassmorphism */}
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-white/10 to-transparent dark:from-white/5 dark:to-transparent pointer-events-none" />
 
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className="flex items-center justify-between">
-                        <FormLabel className="text-foreground font-semibold">
-                          Senha
-                        </FormLabel>
-                        <Link
-                          to="/forgot-password"
-                          className="text-sm font-semibold text-asplan-action hover:text-asplan-primary transition-colors"
-                        >
-                          Esqueceu a senha?
-                        </Link>
-                      </div>
-                      <FormControl>
-                        <div className="relative group">
-                          <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground group-focus-within:text-asplan-primary transition-colors" />
-                          <Input
-                            type={showPassword ? 'text' : 'password'}
-                            placeholder="••••••••"
-                            className="pl-10 pr-10 h-11 bg-background/50 focus-visible:ring-asplan-primary focus-visible:border-asplan-primary transition-all"
-                            {...field}
-                            autoComplete="current-password"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-3 text-muted-foreground hover:text-asplan-primary focus:outline-none transition-colors"
-                            tabIndex={-1}
-                          >
-                            {showPassword ? (
-                              <EyeOff className="h-5 w-5" />
-                            ) : (
-                              <Eye className="h-5 w-5" />
-                            )}
-                            <span className="sr-only">
-                              {showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                            </span>
-                          </button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="rememberMe"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center space-x-2 space-y-0 mt-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          className="data-[state=checked]:bg-asplan-primary data-[state=checked]:border-asplan-primary border-input"
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel className="cursor-pointer font-medium text-muted-foreground hover:text-foreground transition-colors">
-                          Lembrar usuário
-                        </FormLabel>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-
-                <Button
-                  type="submit"
-                  className="w-full h-11 text-base font-bold transition-all duration-200 mt-6 shadow-md hover:shadow-lg bg-asplan-primary hover:bg-asplan-deep text-white"
-                  disabled={isLoading}
+            <div className="relative z-10">
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-5"
                 >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Autenticando...
-                    </>
-                  ) : (
-                    <>
-                      <LogIn className="mr-2 h-5 w-5" />
-                      Acessar Painel
-                    </>
-                  )}
-                </Button>
-              </form>
-            </Form>
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-foreground font-semibold">
+                          E-mail funcional
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative group">
+                            <Mail className="absolute left-3 top-3 h-5 w-5 text-muted-foreground group-focus-within:text-asplan-primary transition-colors" />
+                            <Input
+                              placeholder="usuario@institucional.gov.br"
+                              className="pl-10 h-11 bg-background/50 focus-visible:ring-asplan-primary focus-visible:border-asplan-primary transition-all"
+                              {...field}
+                              autoComplete="email"
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex items-center justify-between">
+                          <FormLabel className="text-foreground font-semibold">
+                            Senha
+                          </FormLabel>
+                          <Link
+                            to="/forgot-password"
+                            className="text-sm font-semibold text-asplan-action hover:text-asplan-primary transition-colors"
+                          >
+                            Esqueceu a senha?
+                          </Link>
+                        </div>
+                        <FormControl>
+                          <div className="relative group">
+                            <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground group-focus-within:text-asplan-primary transition-colors" />
+                            <Input
+                              type={showPassword ? 'text' : 'password'}
+                              placeholder="••••••••"
+                              className="pl-10 pr-10 h-11 bg-background/50 focus-visible:ring-asplan-primary focus-visible:border-asplan-primary transition-all"
+                              {...field}
+                              autoComplete="current-password"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-3 top-3 text-muted-foreground hover:text-asplan-primary focus:outline-none transition-colors"
+                              tabIndex={-1}
+                            >
+                              {showPassword ? (
+                                <EyeOff className="h-5 w-5" />
+                              ) : (
+                                <Eye className="h-5 w-5" />
+                              )}
+                              <span className="sr-only">
+                                {showPassword
+                                  ? 'Ocultar senha'
+                                  : 'Mostrar senha'}
+                              </span>
+                            </button>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="rememberMe"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center space-x-2 space-y-0 mt-4">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            className="data-[state=checked]:bg-asplan-primary data-[state=checked]:border-asplan-primary border-input"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="cursor-pointer font-medium text-muted-foreground hover:text-foreground transition-colors">
+                            Lembrar usuário
+                          </FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button
+                    type="submit"
+                    className="w-full h-11 text-base font-bold transition-all duration-200 mt-6 shadow-md hover:shadow-lg bg-asplan-primary hover:bg-asplan-deep text-white"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Autenticando...
+                      </>
+                    ) : (
+                      <>
+                        <LogIn className="mr-2 h-5 w-5" />
+                        Acessar Painel
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </Form>
+            </div>
           </div>
 
           <div className="pt-8 text-center text-xs text-muted-foreground space-y-1.5 border-t border-border/50">
