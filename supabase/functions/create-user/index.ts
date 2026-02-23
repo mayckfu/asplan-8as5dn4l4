@@ -22,21 +22,17 @@ Deno.serve(async (req: Request) => {
     }
 
     const token = authHeader.replace('Bearer ', '')
-    const {
-      data: { user: requestUser },
-      error: userError,
-    } = await supabaseAdmin.auth.getUser(token)
+    const { data: { user: requestUser }, error: userError } = await supabaseAdmin.auth.getUser(token)
 
     if (userError || !requestUser) {
       throw new Error('Invalid token')
     }
 
-    const { data: requestUserProfile, error: profileError } =
-      await supabaseAdmin
-        .from('profiles')
-        .select('role')
-        .eq('id', requestUser.id)
-        .single()
+    const { data: requestUserProfile, error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .select('role')
+      .eq('id', requestUser.id)
+      .single()
 
     if (profileError || requestUserProfile?.role !== 'ADMIN') {
       // Log unauthorized attempt
@@ -44,16 +40,13 @@ Deno.serve(async (req: Request) => {
         p_type: 'UNAUTHORIZED_ACCESS',
         p_message: `Usuário ${requestUser.email} tentou criar um novo usuário sem permissão de ADMIN.`,
         p_severity: 'WARNING',
-        p_user_id: requestUser.id,
+        p_user_id: requestUser.id
       })
-
-      return new Response(
-        JSON.stringify({ error: 'Forbidden: Requires ADMIN role' }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 403,
-        },
-      )
+      
+      return new Response(JSON.stringify({ error: 'Forbidden: Requires ADMIN role' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 403,
+      })
     }
 
     // 3. Parse request body
@@ -108,3 +101,4 @@ Deno.serve(async (req: Request) => {
     })
   }
 })
+
