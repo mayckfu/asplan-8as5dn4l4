@@ -106,19 +106,22 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="min-h-screen w-full grid lg:grid-cols-2 font-sans">
+    <div className="min-h-screen w-full flex font-sans bg-background relative overflow-hidden">
+      {/* Global Continuous Background Texture */}
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,rgba(0,94,162,0.08)_1px,transparent_1px)] dark:bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+
       {/* Left Panel - Branding (Desktop Only) */}
-      <div className="hidden lg:flex flex-col justify-between bg-gov-gradient p-12 text-white relative overflow-hidden">
-        {/* Radial Pattern Overlay & Gradients */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.2)_1px,transparent_1px)] bg-[size:24px_24px] opacity-40 pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30 pointer-events-none" />
+      <div className="hidden lg:flex w-1/2 flex-col justify-between bg-gov-gradient p-12 text-white relative z-10 overflow-hidden shadow-2xl">
+        {/* Radial Pattern Overlay & Gradients specific to left panel */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.15)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/10 to-black/40 pointer-events-none" />
 
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/30 bg-white/10 text-sm font-medium mb-10 backdrop-blur-md shadow-sm">
-            <ShieldCheck className="h-4 w-4" />
-            <span>Plataforma Oficial de Gestão</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 bg-white/10 text-sm font-semibold mb-10 backdrop-blur-md shadow-sm">
+            <ShieldCheck className="h-4 w-4 text-brand-200" />
+            <span className="text-white">Plataforma Oficial de Gestão</span>
           </div>
-          <h1 className="text-4xl xl:text-5xl font-extrabold tracking-tight mb-4 leading-tight max-w-xl text-white drop-shadow-sm">
+          <h1 className="text-4xl xl:text-5xl font-extrabold tracking-tight mb-4 leading-tight max-w-xl text-white drop-shadow-md">
             Inteligência na gestão de emendas.
           </h1>
           <p className="text-lg text-white/90 max-w-md leading-relaxed font-medium">
@@ -128,9 +131,9 @@ const LoginPage = () => {
 
           {/* Feature Cards - Glassmorphism */}
           <div className="mt-12 space-y-4 max-w-lg">
-            <div className="flex items-start gap-4 p-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-lg transition-transform hover:translate-x-1">
-              <div className="p-3 bg-white/20 rounded-xl shadow-inner">
-                <Search className="h-6 w-6 text-white" />
+            <div className="flex items-start gap-4 p-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-lg transition-all hover:bg-white/15 hover:translate-x-1">
+              <div className="p-3 bg-asplan-primary/40 rounded-xl shadow-inner border border-white/10">
+                <Search className="h-6 w-6 text-brand-100" />
               </div>
               <div>
                 <h4 className="text-lg font-bold text-white tracking-tight">
@@ -142,9 +145,9 @@ const LoginPage = () => {
               </div>
             </div>
 
-            <div className="flex items-start gap-4 p-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-lg transition-transform hover:translate-x-1">
-              <div className="p-3 bg-white/20 rounded-xl shadow-inner">
-                <Calendar className="h-6 w-6 text-white" />
+            <div className="flex items-start gap-4 p-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-lg transition-all hover:bg-white/15 hover:translate-x-1">
+              <div className="p-3 bg-asplan-primary/40 rounded-xl shadow-inner border border-white/10">
+                <Calendar className="h-6 w-6 text-brand-100" />
               </div>
               <div>
                 <h4 className="text-lg font-bold text-white tracking-tight">
@@ -156,9 +159,9 @@ const LoginPage = () => {
               </div>
             </div>
 
-            <div className="flex items-start gap-4 p-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-lg transition-transform hover:translate-x-1">
-              <div className="p-3 bg-white/20 rounded-xl shadow-inner">
-                <Shield className="h-6 w-6 text-white" />
+            <div className="flex items-start gap-4 p-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-lg transition-all hover:bg-white/15 hover:translate-x-1">
+              <div className="p-3 bg-asplan-primary/40 rounded-xl shadow-inner border border-white/10">
+                <Shield className="h-6 w-6 text-brand-100" />
               </div>
               <div>
                 <h4 className="text-lg font-bold text-white tracking-tight">
@@ -178,145 +181,148 @@ const LoginPage = () => {
             <Eye className="h-5 w-5" />
             <Activity className="h-5 w-5" />
           </div>
-          <span className="font-bold tracking-widest uppercase text-xs">
+          <span className="font-bold tracking-widest uppercase text-xs text-brand-100">
             Segurança & Auditoria
           </span>
         </div>
       </div>
 
       {/* Right Panel - Form */}
-      <div className="flex items-center justify-center p-6 sm:p-12 bg-background relative">
-        <div className="w-full max-w-md space-y-8 animate-fade-in-up">
+      <div className="flex w-full lg:w-1/2 items-center justify-center p-6 sm:p-12 relative z-10">
+        {/* Gradient Transition from center divider */}
+        <div className="hidden lg:block absolute left-0 top-0 bottom-0 w-[500px] bg-[radial-gradient(ellipse_at_left_center,rgba(0,94,162,0.15),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_left_center,rgba(0,94,162,0.25),transparent_70%)] pointer-events-none" />
+
+        <div className="w-full max-w-md space-y-8 animate-fade-in-up relative z-20">
           <div className="space-y-3 text-center lg:text-left">
-            <h2 className="text-3xl font-bold tracking-tight">
-              <span className="text-foreground">Controle de </span>
-              <span className="text-primary">Emendas</span>
+            <h2 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground">
+              Acesse sua conta
             </h2>
-            <div className="space-y-1 mt-6">
-              <h3 className="text-xl font-semibold text-foreground">
-                Acesso ao Sistema
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Informe suas credenciais institucionais para continuar.
-              </p>
-            </div>
+            <p className="text-base text-muted-foreground font-medium mt-2">
+              Informe suas credenciais institucionais para continuar.
+            </p>
           </div>
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-foreground font-semibold">
-                      E-mail funcional
-                    </FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                        <Input
-                          placeholder="usuario@institucional.gov.br"
-                          className="pl-10 h-11 bg-background"
-                          {...field}
-                          autoComplete="email"
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex items-center justify-between">
-                      <FormLabel className="text-foreground font-semibold">
-                        Senha
-                      </FormLabel>
-                      <Link
-                        to="/forgot-password"
-                        className="text-sm font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
-                      >
-                        Esqueceu a senha?
-                      </Link>
-                    </div>
-                    <FormControl>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                        <Input
-                          type={showPassword ? 'text' : 'password'}
-                          placeholder="••••••••"
-                          className="pl-10 pr-10 h-11 bg-background"
-                          {...field}
-                          autoComplete="current-password"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground focus:outline-none transition-colors"
-                          tabIndex={-1}
-                        >
-                          {showPassword ? (
-                            <EyeOff className="h-5 w-5" />
-                          ) : (
-                            <Eye className="h-5 w-5" />
-                          )}
-                          <span className="sr-only">
-                            {showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                          </span>
-                        </button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="rememberMe"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center space-x-2 space-y-0 mt-2">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="cursor-pointer font-medium text-muted-foreground hover:text-foreground transition-colors">
-                        Lembrar usuário
-                      </FormLabel>
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              <Button
-                type="submit"
-                className="w-full h-11 text-base font-bold transition-all duration-200 mt-6 shadow-md hover:shadow-lg"
-                disabled={isLoading}
+          <div className="bg-card/60 dark:bg-card/80 backdrop-blur-md p-6 sm:p-8 rounded-2xl shadow-float border border-border/50">
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-5"
               >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Autenticando...
-                  </>
-                ) : (
-                  <>
-                    <LogIn className="mr-2 h-5 w-5" />
-                    Acessar Painel
-                  </>
-                )}
-              </Button>
-            </form>
-          </Form>
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-foreground font-semibold">
+                        E-mail funcional
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative group">
+                          <Mail className="absolute left-3 top-3 h-5 w-5 text-muted-foreground group-focus-within:text-asplan-primary transition-colors" />
+                          <Input
+                            placeholder="usuario@institucional.gov.br"
+                            className="pl-10 h-11 bg-background/50 focus-visible:ring-asplan-primary focus-visible:border-asplan-primary transition-all"
+                            {...field}
+                            autoComplete="email"
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-          <div className="pt-8 text-center text-xs text-muted-foreground space-y-1.5 border-t border-border">
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex items-center justify-between">
+                        <FormLabel className="text-foreground font-semibold">
+                          Senha
+                        </FormLabel>
+                        <Link
+                          to="/forgot-password"
+                          className="text-sm font-semibold text-asplan-action hover:text-asplan-primary transition-colors"
+                        >
+                          Esqueceu a senha?
+                        </Link>
+                      </div>
+                      <FormControl>
+                        <div className="relative group">
+                          <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground group-focus-within:text-asplan-primary transition-colors" />
+                          <Input
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="••••••••"
+                            className="pl-10 pr-10 h-11 bg-background/50 focus-visible:ring-asplan-primary focus-visible:border-asplan-primary transition-all"
+                            {...field}
+                            autoComplete="current-password"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-3 text-muted-foreground hover:text-asplan-primary focus:outline-none transition-colors"
+                            tabIndex={-1}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-5 w-5" />
+                            ) : (
+                              <Eye className="h-5 w-5" />
+                            )}
+                            <span className="sr-only">
+                              {showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                            </span>
+                          </button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="rememberMe"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center space-x-2 space-y-0 mt-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          className="data-[state=checked]:bg-asplan-primary data-[state=checked]:border-asplan-primary border-input"
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="cursor-pointer font-medium text-muted-foreground hover:text-foreground transition-colors">
+                          Lembrar usuário
+                        </FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                <Button
+                  type="submit"
+                  className="w-full h-11 text-base font-bold transition-all duration-200 mt-6 shadow-md hover:shadow-lg bg-asplan-primary hover:bg-asplan-deep text-white"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Autenticando...
+                    </>
+                  ) : (
+                    <>
+                      <LogIn className="mr-2 h-5 w-5" />
+                      Acessar Painel
+                    </>
+                  )}
+                </Button>
+              </form>
+            </Form>
+          </div>
+
+          <div className="pt-8 text-center text-xs text-muted-foreground space-y-1.5 border-t border-border/50">
             <p className="font-semibold uppercase tracking-wider text-[10px]">
               Sistema Interno
             </p>
