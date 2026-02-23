@@ -1,5 +1,5 @@
 import { useMemo, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -23,12 +23,26 @@ const PropostasMacPage = () => {
   const [macAmendments, setMacAmendments] = useState<Amendment[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  const [selectedYear] = useState(() => {
-    return (
-      localStorage.getItem('asplan_dashboard_year') ||
-      new Date().getFullYear().toString()
-    )
-  })
+  const [searchParams, setSearchParams] = useSearchParams()
+  const urlYear = searchParams.get('year')
+
+  useEffect(() => {
+    if (!urlYear) {
+      const savedYear =
+        localStorage.getItem('asplan_dashboard_year') ||
+        new Date().getFullYear().toString()
+      const newParams = new URLSearchParams(searchParams)
+      newParams.set('year', savedYear)
+      setSearchParams(newParams, { replace: true })
+    } else {
+      localStorage.setItem('asplan_dashboard_year', urlYear)
+    }
+  }, [urlYear, searchParams, setSearchParams])
+
+  const selectedYear =
+    urlYear ||
+    localStorage.getItem('asplan_dashboard_year') ||
+    new Date().getFullYear().toString()
 
   useEffect(() => {
     const fetchMacAmendments = async () => {

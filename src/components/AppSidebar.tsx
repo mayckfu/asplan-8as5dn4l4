@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import {
   Home,
   FileText,
@@ -25,9 +25,15 @@ import { Button } from '@/components/ui/button'
 
 export const AppSidebar = () => {
   const { pathname } = useLocation()
+  const [searchParams] = useSearchParams()
   const { state } = useSidebar()
   const { user, isAdmin, logout } = useAuth()
   const isExpanded = state === 'expanded'
+
+  const yearParam =
+    searchParams.get('year') ||
+    localStorage.getItem('asplan_dashboard_year') ||
+    new Date().getFullYear().toString()
 
   const navLinks = [
     { href: '/', label: 'Dashboard', icon: Home, visible: true },
@@ -51,6 +57,21 @@ export const AppSidebar = () => {
       visible: isAdmin,
     },
   ]
+
+  const getHref = (baseHref: string) => {
+    const preserveYearRoutes = [
+      '/',
+      '/emendas',
+      '/quadro-estadual',
+      '/relatorios',
+      '/propostas/mac',
+      '/propostas/pap',
+    ]
+    if (preserveYearRoutes.includes(baseHref)) {
+      return `${baseHref}?year=${yearParam}`
+    }
+    return baseHref
+  }
 
   const userInitials = user?.name
     ? user.name
@@ -125,7 +146,7 @@ export const AppSidebar = () => {
                     )}
                   >
                     <Link
-                      to={href}
+                      to={getHref(href)}
                       className="flex items-center w-full z-10 relative"
                     >
                       <Icon

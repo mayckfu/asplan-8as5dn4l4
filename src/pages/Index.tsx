@@ -12,7 +12,7 @@ import { MonthlyFinancialChart } from '@/components/dashboard/MonthlyFinancialCh
 import { ParliamentaryDistributionChart } from '@/components/dashboard/ParliamentaryDistributionChart'
 import { OfficialLimitCard } from '@/components/dashboard/OfficialLimitCard'
 import { useToast } from '@/components/ui/use-toast'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 
 const Index = () => {
@@ -29,15 +29,44 @@ const Index = () => {
   >([])
   const [limitData, setLimitData] = useState<any>(null)
 
-  const [selectedYear, setSelectedYear] = useState<string>(() => {
-    const saved = localStorage.getItem('asplan_dashboard_year')
-    return saved || new Date().getFullYear().toString()
-  })
-  const [selectedMonth, setSelectedMonth] = useState<string>('all')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const urlYear = searchParams.get('year')
 
   useEffect(() => {
-    localStorage.setItem('asplan_dashboard_year', selectedYear)
-  }, [selectedYear])
+    if (!urlYear) {
+      const savedYear =
+        localStorage.getItem('asplan_dashboard_year') ||
+        new Date().getFullYear().toString()
+      const newParams = new URLSearchParams(searchParams)
+      newParams.set('year', savedYear)
+      setSearchParams(newParams, { replace: true })
+    } else {
+      localStorage.setItem('asplan_dashboard_year', urlYear)
+    }
+  }, [urlYear, searchParams, setSearchParams])
+
+  const selectedYear =
+    urlYear ||
+    localStorage.getItem('asplan_dashboard_year') ||
+    new Date().getFullYear().toString()
+
+  const setSelectedYear = (year: string) => {
+    const newParams = new URLSearchParams(searchParams)
+    newParams.set('year', year)
+    setSearchParams(newParams, { replace: true })
+  }
+
+  const selectedMonth = searchParams.get('month') || 'all'
+
+  const setSelectedMonth = (month: string) => {
+    const newParams = new URLSearchParams(searchParams)
+    if (month === 'all') {
+      newParams.delete('month')
+    } else {
+      newParams.set('month', month)
+    }
+    setSearchParams(newParams, { replace: true })
+  }
 
   const fetchData = useCallback(
     async (forceLoading = false) => {

@@ -230,8 +230,25 @@ const EmendasListPage = () => {
     direction: 'asc',
   })
 
-  const yearParam =
-    searchParams.get('year') || new Date().getFullYear().toString()
+  const urlYear = searchParams.get('year')
+
+  useEffect(() => {
+    if (!urlYear) {
+      const savedYear =
+        localStorage.getItem('asplan_dashboard_year') ||
+        new Date().getFullYear().toString()
+      const newParams = new URLSearchParams(searchParams)
+      newParams.set('year', savedYear)
+      setSearchParams(newParams, { replace: true })
+    } else {
+      localStorage.setItem('asplan_dashboard_year', urlYear)
+    }
+  }, [urlYear, searchParams, setSearchParams])
+
+  const effectiveYearParam =
+    urlYear ||
+    localStorage.getItem('asplan_dashboard_year') ||
+    new Date().getFullYear().toString()
   const monthParam = searchParams.get('month') || 'all'
 
   // Security: Check Roles
@@ -248,8 +265,8 @@ const EmendasListPage = () => {
         .select('*')
         .order('created_at', { ascending: false })
 
-      if (yearParam && yearParam !== 'all') {
-        query = query.eq('ano_exercicio', parseInt(yearParam, 10))
+      if (effectiveYearParam && effectiveYearParam !== 'all') {
+        query = query.eq('ano_exercicio', parseInt(effectiveYearParam, 10))
       }
 
       const { data, error } = await query
@@ -268,7 +285,7 @@ const EmendasListPage = () => {
     } finally {
       setIsLoading(false)
     }
-  }, [toast, yearParam])
+  }, [toast, effectiveYearParam])
 
   useEffect(() => {
     fetchAmendments()
@@ -685,7 +702,7 @@ const EmendasListPage = () => {
         </h1>
         <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 w-full lg:w-auto">
           <PeriodSelector
-            year={yearParam}
+            year={effectiveYearParam}
             month={monthParam}
             onYearChange={(year) => {
               const newParams = new URLSearchParams(searchParams)

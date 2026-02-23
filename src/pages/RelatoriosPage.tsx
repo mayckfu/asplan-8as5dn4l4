@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   Loader2,
   FileDown,
@@ -72,21 +73,35 @@ const monthNames = [
 ]
 
 const RelatoriosPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const urlYear = searchParams.get('year')
+
   const [filters, setFilters] = useState<ReportFiltersState>(() => {
     const savedYear = localStorage.getItem('asplan_dashboard_year')
     return {
       ...initialFilters,
-      year: savedYear || currentYear,
+      year: urlYear || savedYear || currentYear,
+      month: searchParams.get('month') || 'all',
     }
   })
   const [allData, setAllData] = useState<DetailedAmendment[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    if (filters.year) {
-      localStorage.setItem('asplan_dashboard_year', filters.year)
+    if (!urlYear) {
+      const newParams = new URLSearchParams(searchParams)
+      newParams.set('year', filters.year)
+      setSearchParams(newParams, { replace: true })
+    } else if (urlYear !== filters.year) {
+      setFilters((prev) => ({ ...prev, year: urlYear }))
+      localStorage.setItem('asplan_dashboard_year', urlYear)
     }
-  }, [filters.year])
+
+    const urlMonth = searchParams.get('month') || 'all'
+    if (urlMonth !== filters.month) {
+      setFilters((prev) => ({ ...prev, month: urlMonth }))
+    }
+  }, [urlYear, searchParams, setSearchParams, filters.year, filters.month])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -397,11 +412,30 @@ const RelatoriosPage = () => {
   }, [filteredData])
 
   const handleFilterChange = (newFilters: Partial<ReportFiltersState>) => {
+    if (newFilters.year !== undefined && newFilters.year !== filters.year) {
+      const newParams = new URLSearchParams(searchParams)
+      newParams.set('year', newFilters.year)
+      setSearchParams(newParams, { replace: true })
+    }
+    if (newFilters.month !== undefined && newFilters.month !== filters.month) {
+      const newParams = new URLSearchParams(searchParams)
+      if (newFilters.month === 'all') {
+        newParams.delete('month')
+      } else {
+        newParams.set('month', newFilters.month)
+      }
+      setSearchParams(newParams, { replace: true })
+    }
     setFilters((prev) => ({ ...prev, ...newFilters }))
   }
 
   const handleResetFilters = () => {
-    setFilters(initialFilters)
+    const currentYearStr = new Date().getFullYear().toString()
+    setFilters({ ...initialFilters, year: currentYearStr })
+    const newParams = new URLSearchParams(searchParams)
+    newParams.set('year', currentYearStr)
+    newParams.delete('month')
+    setSearchParams(newParams, { replace: true })
   }
 
   if (isLoading) {

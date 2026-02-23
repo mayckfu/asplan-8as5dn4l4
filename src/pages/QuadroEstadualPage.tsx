@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   Printer,
   FileDown,
@@ -49,9 +50,34 @@ const QuadroEstadualPage = () => {
   const { isPrivacyMode } = usePrivacy()
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState<Amendment[]>([])
-  const [selectedYear, setSelectedYear] = useState<string>(
-    new Date().getFullYear().toString(),
-  )
+
+  const [searchParams, setSearchParams] = useSearchParams()
+  const urlYear = searchParams.get('year')
+
+  useEffect(() => {
+    if (!urlYear) {
+      const savedYear =
+        localStorage.getItem('asplan_dashboard_year') ||
+        new Date().getFullYear().toString()
+      const newParams = new URLSearchParams(searchParams)
+      newParams.set('year', savedYear)
+      setSearchParams(newParams, { replace: true })
+    } else {
+      localStorage.setItem('asplan_dashboard_year', urlYear)
+    }
+  }, [urlYear, searchParams, setSearchParams])
+
+  const selectedYear =
+    urlYear ||
+    localStorage.getItem('asplan_dashboard_year') ||
+    new Date().getFullYear().toString()
+
+  const setSelectedYear = (year: string) => {
+    const newParams = new URLSearchParams(searchParams)
+    newParams.set('year', year)
+    setSearchParams(newParams, { replace: true })
+  }
+
   const [selectedAuthor, setSelectedAuthor] = useState<string>('all')
   const [isCreateOpen, setIsCreateOpen] = useState(false)
 
