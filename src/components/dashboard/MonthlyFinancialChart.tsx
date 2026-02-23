@@ -104,7 +104,7 @@ export function MonthlyFinancialChart({
                 />
               }
             />
-            <Legend
+            <ChartLegend
               content={<ChartLegendContent />}
               verticalAlign="bottom"
               height={36}
