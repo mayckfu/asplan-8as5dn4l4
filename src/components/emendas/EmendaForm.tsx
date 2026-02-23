@@ -38,7 +38,7 @@ import { formatCurrencyBRL } from '@/lib/utils'
 
 const emendaSchema = z.object({
   ano_exercicio: z.coerce.number().int().min(2020).max(2100),
-  tipo: z.enum(['individual', 'bancada', 'comissao'], {
+  tipo: z.enum(['individual', 'bancada', 'comissao', 'programa'], {
     required_error: 'O tipo é obrigatório.',
   }),
   tipo_recurso: z.string().min(1, 'O tipo de recurso é obrigatório.'),
@@ -180,7 +180,7 @@ export const EmendaForm = ({
             name="tipo"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tipo de Emenda</FormLabel>
+                <FormLabel>Tipo de Recurso</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}

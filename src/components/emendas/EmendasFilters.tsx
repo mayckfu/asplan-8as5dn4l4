@@ -109,7 +109,7 @@ export const EmendasFilters = ({
 
         <Select value={filters.tipo} onValueChange={handleSelectChange('tipo')}>
           <SelectTrigger>
-            <SelectValue placeholder="Tipo de Emenda" />
+            <SelectValue placeholder="Tipo de Recurso" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas</SelectItem>

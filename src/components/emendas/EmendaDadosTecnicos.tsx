@@ -273,7 +273,7 @@ export const EmendaDadosTecnicos = forwardRef<
               }
             />
             <ReadOnlyField
-              label="Tipo de Emenda"
+              label="Tipo de Recurso"
               value={TipoEmenda[emenda.tipo] || emenda.tipo || '-'}
             />
 

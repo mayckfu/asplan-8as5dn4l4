@@ -50,6 +50,7 @@ export const TipoEmenda = {
   individual: 'Individual',
   bancada: 'Bancada',
   comissao: 'Comissão',
+  programa: 'Programa',
 } as const
 
 export type TipoRecursoEnum = keyof typeof TipoRecurso

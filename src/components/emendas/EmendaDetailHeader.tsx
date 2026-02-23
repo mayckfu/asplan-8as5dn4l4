@@ -82,10 +82,12 @@ export const EmendaDetailHeader = ({
                   className="bg-primary/10 text-primary hover:bg-primary/20 border-transparent"
                 >
                   {emenda.tipo === 'individual'
-                    ? 'Emenda Individual'
+                    ? 'Recurso Individual'
                     : emenda.tipo === 'bancada'
-                      ? 'Emenda de Bancada'
-                      : 'Emenda de Comissão'}
+                      ? 'Recurso de Bancada'
+                      : emenda.tipo === 'comissao'
+                        ? 'Recurso de Comissão'
+                        : 'Recurso de Programa'}
                 </Badge>
               </div>
 
@@ -124,10 +126,12 @@ export const EmendaDetailHeader = ({
                 </Badge>
                 <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
                   {emenda.tipo === 'individual'
-                    ? 'Emenda Individual'
+                    ? 'Recurso Individual'
                     : emenda.tipo === 'bancada'
-                      ? 'Emenda de Bancada'
-                      : 'Emenda de Comissão'}
+                      ? 'Recurso de Bancada'
+                      : emenda.tipo === 'comissao'
+                        ? 'Recurso de Comissão'
+                        : 'Recurso de Programa'}
                 </span>
               </div>
 

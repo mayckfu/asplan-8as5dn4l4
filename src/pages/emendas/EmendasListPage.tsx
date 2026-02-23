@@ -181,6 +181,7 @@ const getTypeIcon = (type: string) => {
     case 'bancada':
       return <Users className="h-4 w-4" />
     case 'comissao':
+    case 'programa':
       return <Building2 className="h-4 w-4" />
     default:
       return <User className="h-4 w-4" />
@@ -195,6 +196,8 @@ const getTypeColor = (type: string) => {
       return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
     case 'comissao':
       return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
+    case 'programa':
+      return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
     default:
       return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
   }
@@ -629,7 +632,7 @@ const EmendasListPage = () => {
 
   const handleExport = () => {
     const dataToExport = filteredAmendments.map((a) => ({
-      Tipo: TipoEmenda[a.tipo] || a.tipo,
+      'Tipo de Recurso': TipoEmenda[a.tipo] || a.tipo,
       Autor: a.autor,
       'Nº Emenda': a.numero_emenda,
       'Nº Proposta': a.numero_proposta,
@@ -865,7 +868,7 @@ const EmendasListPage = () => {
                   <TableHeader>
                     <TableRow className="sticky top-0 bg-background/90 backdrop-blur-sm z-10">
                       <TableHead className="w-[120px] font-medium text-neutral-900 dark:text-neutral-200">
-                        {renderHeader('Tipo', 'tipo')}
+                        {renderHeader('Tipo de Recurso', 'tipo')}
                       </TableHead>
                       <TableHead className="min-w-[180px] font-medium text-neutral-900 dark:text-neutral-200">
                         {renderHeader('Parlamentar', 'parlamentar')}
