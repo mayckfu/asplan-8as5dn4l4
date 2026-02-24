@@ -296,6 +296,10 @@ const EmendaDetailPage = () => {
           situacao: updatedEmenda.situacao,
           status_interno: updatedEmenda.status_interno,
           numero_proposta: updatedEmenda.numero_proposta,
+          segundo_autor: updatedEmenda.segundo_autor || null,
+          segundo_parlamentar: updatedEmenda.segundo_parlamentar || null,
+          valor_segundo_responsavel:
+            updatedEmenda.valor_segundo_responsavel || null,
         })
         .eq('id', emendaData.id)
 

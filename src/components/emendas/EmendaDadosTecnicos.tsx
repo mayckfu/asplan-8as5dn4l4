@@ -228,6 +228,65 @@ export const EmendaDadosTecnicos = forwardRef<
                 />
               </div>
             </div>
+
+            <div className="space-y-4 p-4 border rounded-md bg-muted/20">
+              <h3 className="font-semibold text-sm text-muted-foreground">
+                Co-autoria (Opcional)
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="segundo_autor">Segundo Autor</Label>
+                  <Input
+                    id="segundo_autor"
+                    value={formData.segundo_autor || ''}
+                    onChange={(e) =>
+                      handleChange('segundo_autor', e.target.value)
+                    }
+                    placeholder="Nome do segundo autor"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="segundo_parlamentar">
+                    Segundo Parlamentar
+                  </Label>
+                  <Input
+                    id="segundo_parlamentar"
+                    value={formData.segundo_parlamentar || ''}
+                    onChange={(e) =>
+                      handleChange('segundo_parlamentar', e.target.value)
+                    }
+                    placeholder="Nome do segundo parlamentar"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                <div className="space-y-2">
+                  <Label htmlFor="valor_segundo_responsavel">
+                    Valor do Segundo Responsável (R$)
+                  </Label>
+                  <MoneyInput
+                    id="valor_segundo_responsavel"
+                    value={formData.valor_segundo_responsavel || 0}
+                    onChange={(val) =>
+                      handleChange('valor_segundo_responsavel', val)
+                    }
+                  />
+                </div>
+                <div className="pb-3 text-sm">
+                  <span className="text-muted-foreground">
+                    Saldo Principal:
+                  </span>{' '}
+                  <span className="font-bold tabular-nums">
+                    {formatCurrencyBRL(
+                      (emenda.valor_total || 0) -
+                        (formData.valor_segundo_responsavel || 0),
+                      isPrivacyMode,
+                    )}
+                  </span>
+                </div>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="objeto_emenda">Objeto (Resumido)</Label>
               <Input
@@ -280,11 +339,39 @@ export const EmendaDadosTecnicos = forwardRef<
             />
 
             <ReadOnlyField
-              label="Parlamentar"
+              label="Parlamentar Principal"
               value={emenda.parlamentar}
               className="md:col-span-2"
             />
-            <ReadOnlyField label="Autor" value={emenda.autor} />
+            <ReadOnlyField label="Autor Principal" value={emenda.autor} />
+
+            {emenda.segundo_parlamentar ||
+            emenda.segundo_autor ||
+            emenda.valor_segundo_responsavel ? (
+              <>
+                <div className="col-span-full border-t border-neutral-100 dark:border-neutral-800 my-2" />
+                <ReadOnlyField
+                  label="Segundo Parlamentar"
+                  value={emenda.segundo_parlamentar}
+                  className="md:col-span-2"
+                />
+                <ReadOnlyField
+                  label="Segundo Autor"
+                  value={emenda.segundo_autor}
+                />
+                <ReadOnlyField
+                  label="Valor do Segundo Responsável"
+                  value={
+                    emenda.valor_segundo_responsavel
+                      ? formatCurrencyBRL(
+                          emenda.valor_segundo_responsavel,
+                          isPrivacyMode,
+                        )
+                      : null
+                  }
+                />
+              </>
+            ) : null}
 
             <div className="col-span-full border-t border-neutral-100 dark:border-neutral-800 my-2" />
 
