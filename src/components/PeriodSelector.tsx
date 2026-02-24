@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { CalendarDays } from 'lucide-react'
+import { useYear } from '@/contexts/YearContext'
 
 interface PeriodSelectorProps {
   year: string
@@ -24,12 +25,16 @@ export function PeriodSelector({
   onMonthChange,
   className,
 }: PeriodSelectorProps) {
-  const currentYear = new Date().getFullYear()
-  let years = [
-    (currentYear - 1).toString(),
-    currentYear.toString(),
-    (currentYear + 1).toString(),
-  ]
+  const { availableYears } = useYear()
+
+  let years =
+    availableYears.length > 0
+      ? availableYears
+      : [
+          (new Date().getFullYear() - 1).toString(),
+          new Date().getFullYear().toString(),
+          (new Date().getFullYear() + 1).toString(),
+        ]
 
   if (year && year !== 'all' && !years.includes(year)) {
     years = [...years, year].sort((a, b) => Number(a) - Number(b))
