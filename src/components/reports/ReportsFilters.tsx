@@ -28,8 +28,6 @@ export type ReportFiltersState = {
   tipoRecurso: string
   situacao: string
   statusInterno: string
-  year: string
-  month: string
   valorMin: number
   valorMax: number
   responsavel: string
@@ -219,9 +217,7 @@ export const ReportsFilters = ({
             </PopoverContent>
           </Popover>
 
-          {(activeFiltersCount > 0 ||
-            filters.year !== new Date().getFullYear().toString() ||
-            filters.month !== 'all') && (
+          {activeFiltersCount > 0 && (
             <Button
               variant="ghost"
               className="w-full lg:w-auto text-muted-foreground hover:text-foreground h-10"

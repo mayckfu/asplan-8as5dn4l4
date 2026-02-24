@@ -1,5 +1,5 @@
-import { useMemo, useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -16,44 +16,30 @@ import { formatCurrencyBRL } from '@/lib/utils'
 import { StatusBadge } from '@/components/StatusBadge'
 import { supabase } from '@/lib/supabase/client'
 import { usePrivacy } from '@/contexts/PrivacyContext'
+import { useYear } from '@/contexts/YearContext'
 
 const PropostasMacPage = () => {
   const navigate = useNavigate()
   const { isPrivacyMode } = usePrivacy()
+  const { selectedYear } = useYear()
   const [macAmendments, setMacAmendments] = useState<Amendment[]>([])
   const [isLoading, setIsLoading] = useState(true)
-
-  const [searchParams, setSearchParams] = useSearchParams()
-  const urlYear = searchParams.get('year')
-
-  useEffect(() => {
-    if (!urlYear) {
-      const savedYear =
-        localStorage.getItem('asplan_dashboard_year') ||
-        new Date().getFullYear().toString()
-      const newParams = new URLSearchParams(searchParams)
-      newParams.set('year', savedYear)
-      setSearchParams(newParams, { replace: true })
-    } else {
-      localStorage.setItem('asplan_dashboard_year', urlYear)
-    }
-  }, [urlYear, searchParams, setSearchParams])
-
-  const selectedYear =
-    urlYear ||
-    localStorage.getItem('asplan_dashboard_year') ||
-    new Date().getFullYear().toString()
 
   useEffect(() => {
     const fetchMacAmendments = async () => {
       setIsLoading(true)
       try {
-        const { data, error } = await supabase
+        let query = supabase
           .from('emendas')
           .select('*')
           .in('tipo_recurso', ['INCREMENTO_MAC', 'CUSTEIO_MAC'])
-          .eq('ano_exercicio', parseInt(selectedYear))
           .order('created_at', { ascending: false })
+
+        if (selectedYear && selectedYear !== 'all') {
+          query = query.eq('ano_exercicio', parseInt(selectedYear))
+        }
+
+        const { data, error } = await query
 
         if (error) throw error
 
@@ -89,7 +75,8 @@ const PropostasMacPage = () => {
           <span className="sr-only">Voltar</span>
         </Button>
         <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-          Propostas MAC — {selectedYear}
+          Propostas MAC —{' '}
+          {selectedYear === 'all' ? 'Todos os Anos' : selectedYear}
         </h1>
       </div>
       <Card>
@@ -112,14 +99,15 @@ const PropostasMacPage = () => {
               {macAmendments.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8">
-                    Nenhuma proposta encontrada para o ano de {selectedYear}.
+                    Nenhuma proposta encontrada para o exercício{' '}
+                    {selectedYear === 'all' ? 'selecionado' : selectedYear}.
                   </TableCell>
                 </TableRow>
               ) : (
                 macAmendments.map((amendment) => (
                   <TableRow
                     key={amendment.id}
-                    className="cursor-pointer"
+                    className="cursor-pointer hover:bg-muted/50"
                     onClick={() => navigate(`/emenda/${amendment.id}`)}
                   >
                     <TableCell>{amendment.autor}</TableCell>

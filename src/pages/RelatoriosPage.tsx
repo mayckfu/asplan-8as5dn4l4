@@ -26,8 +26,7 @@ import { FinancialOverviewTab } from '@/components/reports/FinancialOverviewTab'
 import { LegislatorPerformanceTab } from '@/components/reports/LegislatorPerformanceTab'
 import { ExecutionDetailsTab } from '@/components/reports/ExecutionDetailsTab'
 import { AuditReportTab } from '@/components/reports/AuditReportTab'
-
-const currentYear = new Date().getFullYear().toString()
+import { useYear } from '@/contexts/YearContext'
 
 const initialFilters: ReportFiltersState = {
   autor: '',
@@ -35,8 +34,6 @@ const initialFilters: ReportFiltersState = {
   tipoRecurso: 'all',
   situacao: 'all',
   statusInterno: 'all',
-  year: currentYear,
-  month: 'all',
   valorMin: 0,
   valorMax: 0,
   responsavel: '',
@@ -73,43 +70,31 @@ const monthNames = [
 ]
 
 const RelatoriosPage = () => {
+  const { selectedYear, setSelectedYear } = useYear()
   const [searchParams, setSearchParams] = useSearchParams()
-  const urlYear = searchParams.get('year')
+  const selectedMonth = searchParams.get('month') || 'all'
 
-  const [filters, setFilters] = useState<ReportFiltersState>(() => {
-    const savedYear = localStorage.getItem('asplan_dashboard_year')
-    return {
-      ...initialFilters,
-      year: urlYear || savedYear || currentYear,
-      month: searchParams.get('month') || 'all',
-    }
-  })
+  const [filters, setFilters] = useState<ReportFiltersState>(initialFilters)
   const [allData, setAllData] = useState<DetailedAmendment[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    if (!urlYear) {
-      const newParams = new URLSearchParams(searchParams)
-      newParams.set('year', filters.year)
-      setSearchParams(newParams, { replace: true })
-    } else if (urlYear !== filters.year) {
-      setFilters((prev) => ({ ...prev, year: urlYear }))
-      localStorage.setItem('asplan_dashboard_year', urlYear)
+  const handleMonthChange = (month: string) => {
+    const newParams = new URLSearchParams(searchParams)
+    if (month === 'all') {
+      newParams.delete('month')
+    } else {
+      newParams.set('month', month)
     }
-
-    const urlMonth = searchParams.get('month') || 'all'
-    if (urlMonth !== filters.month) {
-      setFilters((prev) => ({ ...prev, month: urlMonth }))
-    }
-  }, [urlYear, searchParams, setSearchParams, filters.year, filters.month])
+    setSearchParams(newParams, { replace: true })
+  }
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true)
       try {
         let query = supabase.from('emendas').select('*')
-        if (filters.year) {
-          query = query.eq('ano_exercicio', parseInt(filters.year))
+        if (selectedYear && selectedYear !== 'all') {
+          query = query.eq('ano_exercicio', parseInt(selectedYear))
         }
 
         const { data: emendas, error: emendasError } = await query
@@ -193,14 +178,14 @@ const RelatoriosPage = () => {
     }
 
     fetchData()
-  }, [filters.year])
+  }, [selectedYear])
 
   const filteredData = useMemo(() => {
     return allData.filter((amendment) => {
-      if (filters.month !== 'all') {
+      if (selectedMonth !== 'all') {
         const amendmentDate = new Date(amendment.created_at)
         const amendmentMonth = (amendmentDate.getMonth() + 1).toString()
-        if (amendmentMonth !== filters.month) return false
+        if (amendmentMonth !== selectedMonth) return false
       }
 
       if (
@@ -229,7 +214,7 @@ const RelatoriosPage = () => {
 
       return true
     })
-  }, [filters, allData])
+  }, [filters, allData, selectedMonth])
 
   const allDespesas = useMemo(
     () => filteredData.flatMap((a) => a.despesas),
@@ -412,28 +397,12 @@ const RelatoriosPage = () => {
   }, [filteredData])
 
   const handleFilterChange = (newFilters: Partial<ReportFiltersState>) => {
-    if (newFilters.year !== undefined && newFilters.year !== filters.year) {
-      const newParams = new URLSearchParams(searchParams)
-      newParams.set('year', newFilters.year)
-      setSearchParams(newParams, { replace: true })
-    }
-    if (newFilters.month !== undefined && newFilters.month !== filters.month) {
-      const newParams = new URLSearchParams(searchParams)
-      if (newFilters.month === 'all') {
-        newParams.delete('month')
-      } else {
-        newParams.set('month', newFilters.month)
-      }
-      setSearchParams(newParams, { replace: true })
-    }
     setFilters((prev) => ({ ...prev, ...newFilters }))
   }
 
   const handleResetFilters = () => {
-    const currentYearStr = new Date().getFullYear().toString()
-    setFilters({ ...initialFilters, year: currentYearStr })
+    setFilters(initialFilters)
     const newParams = new URLSearchParams(searchParams)
-    newParams.set('year', currentYearStr)
     newParams.delete('month')
     setSearchParams(newParams, { replace: true })
   }
@@ -462,10 +431,10 @@ const RelatoriosPage = () => {
         </div>
         <div className="flex items-center gap-2">
           <PeriodSelector
-            year={filters.year}
-            month={filters.month}
-            onYearChange={(year) => handleFilterChange({ year })}
-            onMonthChange={(month) => handleFilterChange({ month })}
+            year={selectedYear}
+            month={selectedMonth}
+            onYearChange={(year) => setSelectedYear(year)}
+            onMonthChange={handleMonthChange}
           />
           <Button variant="outline" size="icon" title="Exportar">
             <FileDown className="h-4 w-4" />
@@ -492,7 +461,8 @@ const RelatoriosPage = () => {
           </div>
           <h3 className="text-lg font-semibold">Nenhum dado encontrado</h3>
           <p className="text-muted-foreground max-w-sm mt-2">
-            Não há registros para o período fiscal {filters.year} ou filtros
+            Não há registros para o período fiscal{' '}
+            {selectedYear === 'all' ? 'Todos' : selectedYear} ou filtros
             selecionados.
           </p>
           <Button

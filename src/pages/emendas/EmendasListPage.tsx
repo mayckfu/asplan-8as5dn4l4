@@ -86,6 +86,7 @@ import {
 import { useToast } from '@/components/ui/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { usePrivacy } from '@/contexts/PrivacyContext'
+import { useYear } from '@/contexts/YearContext'
 import { supabase } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -209,6 +210,7 @@ const EmendasListPage = () => {
   const { toast } = useToast()
   const { checkPermission } = useAuth()
   const { isPrivacyMode } = usePrivacy()
+  const { selectedYear, setSelectedYear } = useYear()
   const [searchParams, setSearchParams] = useSearchParams()
   const [presets, setPresets] = useState<Record<string, string>>(() =>
     JSON.parse(localStorage.getItem('emendas_presets') || '{}'),
@@ -230,25 +232,6 @@ const EmendasListPage = () => {
     direction: 'asc',
   })
 
-  const urlYear = searchParams.get('year')
-
-  useEffect(() => {
-    if (!urlYear) {
-      const savedYear =
-        localStorage.getItem('asplan_dashboard_year') ||
-        new Date().getFullYear().toString()
-      const newParams = new URLSearchParams(searchParams)
-      newParams.set('year', savedYear)
-      setSearchParams(newParams, { replace: true })
-    } else {
-      localStorage.setItem('asplan_dashboard_year', urlYear)
-    }
-  }, [urlYear, searchParams, setSearchParams])
-
-  const effectiveYearParam =
-    urlYear ||
-    localStorage.getItem('asplan_dashboard_year') ||
-    new Date().getFullYear().toString()
   const monthParam = searchParams.get('month') || 'all'
 
   // Security: Check Roles
@@ -265,8 +248,8 @@ const EmendasListPage = () => {
         .select('*')
         .order('created_at', { ascending: false })
 
-      if (effectiveYearParam && effectiveYearParam !== 'all') {
-        query = query.eq('ano_exercicio', parseInt(effectiveYearParam, 10))
+      if (selectedYear && selectedYear !== 'all') {
+        query = query.eq('ano_exercicio', parseInt(selectedYear, 10))
       }
 
       const { data, error } = await query
@@ -285,7 +268,7 @@ const EmendasListPage = () => {
     } finally {
       setIsLoading(false)
     }
-  }, [toast, effectiveYearParam])
+  }, [toast, selectedYear])
 
   useEffect(() => {
     fetchAmendments()
@@ -396,10 +379,7 @@ const EmendasListPage = () => {
   }
 
   const handleResetFilters = useCallback(() => {
-    setSearchParams(
-      { year: new Date().getFullYear().toString(), page: '1' },
-      { replace: true },
-    )
+    setSearchParams({ page: '1' }, { replace: true })
     setSearchTerm('')
   }, [setSearchParams])
 
@@ -702,11 +682,11 @@ const EmendasListPage = () => {
         </h1>
         <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 w-full lg:w-auto">
           <PeriodSelector
-            year={effectiveYearParam}
+            year={selectedYear}
             month={monthParam}
             onYearChange={(year) => {
+              setSelectedYear(year)
               const newParams = new URLSearchParams(searchParams)
-              newParams.set('year', year)
               newParams.set('page', '1')
               setSearchParams(newParams, { replace: true })
             }}

@@ -25,11 +25,16 @@ export function PeriodSelector({
   className,
 }: PeriodSelectorProps) {
   const currentYear = new Date().getFullYear()
-  const years = [
+  let years = [
     (currentYear - 1).toString(),
     currentYear.toString(),
     (currentYear + 1).toString(),
   ]
+
+  if (year && year !== 'all' && !years.includes(year)) {
+    years = [...years, year].sort((a, b) => Number(a) - Number(b))
+  }
+
   const months = [
     { value: 'all', label: 'Todos os Meses' },
     { value: '1', label: 'Janeiro' },

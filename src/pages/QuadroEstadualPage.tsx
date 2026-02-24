@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { useSearchParams } from 'react-router-dom'
 import {
   Printer,
   FileDown,
@@ -44,39 +43,14 @@ import { useToast } from '@/components/ui/use-toast'
 import { Link } from 'react-router-dom'
 import { StatusBadge } from '@/components/StatusBadge'
 import { usePrivacy } from '@/contexts/PrivacyContext'
+import { useYear } from '@/contexts/YearContext'
 
 const QuadroEstadualPage = () => {
   const { toast } = useToast()
   const { isPrivacyMode } = usePrivacy()
+  const { selectedYear, setSelectedYear } = useYear()
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState<Amendment[]>([])
-
-  const [searchParams, setSearchParams] = useSearchParams()
-  const urlYear = searchParams.get('year')
-
-  useEffect(() => {
-    if (!urlYear) {
-      const savedYear =
-        localStorage.getItem('asplan_dashboard_year') ||
-        new Date().getFullYear().toString()
-      const newParams = new URLSearchParams(searchParams)
-      newParams.set('year', savedYear)
-      setSearchParams(newParams, { replace: true })
-    } else {
-      localStorage.setItem('asplan_dashboard_year', urlYear)
-    }
-  }, [urlYear, searchParams, setSearchParams])
-
-  const selectedYear =
-    urlYear ||
-    localStorage.getItem('asplan_dashboard_year') ||
-    new Date().getFullYear().toString()
-
-  const setSelectedYear = (year: string) => {
-    const newParams = new URLSearchParams(searchParams)
-    newParams.set('year', year)
-    setSearchParams(newParams, { replace: true })
-  }
 
   const [selectedAuthor, setSelectedAuthor] = useState<string>('all')
   const [isCreateOpen, setIsCreateOpen] = useState(false)
@@ -84,11 +58,22 @@ const QuadroEstadualPage = () => {
   const fetchData = useCallback(async () => {
     setLoading(true)
     try {
-      const { data: emendas, error } = await supabase
+      let query = supabase
         .from('emendas')
         .select('*')
         .eq('origem', 'ESTADUAL')
         .order('created_at', { ascending: false })
+
+      // Fetch all to allow local filtering by author and year,
+      // or filter directly by year if we strictly want only one year.
+      // Since the original UI allows changing year via a select in this page specifically,
+      // we'll fetch all and filter locally like before, OR we filter on DB.
+      // Filtering on DB is better.
+      if (selectedYear && selectedYear !== 'all') {
+        query = query.eq('ano_exercicio', parseInt(selectedYear))
+      }
+
+      const { data: emendas, error } = await query
 
       if (error) throw error
 
@@ -105,7 +90,7 @@ const QuadroEstadualPage = () => {
     } finally {
       setLoading(false)
     }
-  }, [toast])
+  }, [toast, selectedYear])
 
   useEffect(() => {
     fetchData()
@@ -113,14 +98,11 @@ const QuadroEstadualPage = () => {
 
   const filteredData = useMemo(() => {
     return data.filter((item) => {
-      const matchYear =
-        selectedYear === 'all' ||
-        item.ano_exercicio.toString() === selectedYear.toString()
       const matchAuthor =
         selectedAuthor === 'all' || item.autor === selectedAuthor
-      return matchYear && matchAuthor
+      return matchAuthor
     })
-  }, [data, selectedYear, selectedAuthor])
+  }, [data, selectedAuthor])
 
   const totalValue = useMemo(() => {
     return filteredData.reduce((acc, item) => acc + item.valor_total, 0)

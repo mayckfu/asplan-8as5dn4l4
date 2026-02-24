@@ -7,6 +7,7 @@ import { AuthProvider } from '@/contexts/AuthContext'
 import { NotificationProvider } from '@/contexts/NotificationContext'
 import { SessionProvider } from '@/contexts/SessionContext'
 import { PrivacyProvider } from '@/contexts/PrivacyContext'
+import { YearProvider } from '@/contexts/YearContext'
 import Index from './pages/Index'
 import NotFound from './pages/NotFound'
 import Layout from './components/Layout'
@@ -31,50 +32,55 @@ const App = () => (
       <TooltipProvider>
         <PrivacyProvider>
           <AuthProvider>
-            <SessionProvider>
-              <NotificationProvider>
-                <Toaster />
-                <Sonner />
-                <Routes>
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route
-                    path="/forgot-password"
-                    element={<ForgotPasswordPage />}
-                  />
-                  <Route
-                    path="/reset-password"
-                    element={<ResetPasswordPage />}
-                  />
-                  <Route
-                    element={
-                      <ProtectedRoute>
-                        <Layout />
-                      </ProtectedRoute>
-                    }
-                  >
-                    <Route path="/" element={<Index />} />
-                    <Route path="/emendas" element={<EmendasListPage />} />
-                    <Route path="/emenda/:id" element={<EmendaDetailPage />} />
+            <YearProvider>
+              <SessionProvider>
+                <NotificationProvider>
+                  <Toaster />
+                  <Sonner />
+                  <Routes>
+                    <Route path="/login" element={<LoginPage />} />
                     <Route
-                      path="/quadro-estadual"
-                      element={<QuadroEstadualPage />}
-                    />
-                    <Route path="/relatorios" element={<RelatoriosPage />} />
-                    <Route path="/admin" element={<AdminPage />} />
-                    <Route path="/perfil" element={<ProfilePage />} />
-                    <Route
-                      path="/propostas/mac"
-                      element={<PropostasMacPage />}
+                      path="/forgot-password"
+                      element={<ForgotPasswordPage />}
                     />
                     <Route
-                      path="/propostas/pap"
-                      element={<PropostasPapPage />}
+                      path="/reset-password"
+                      element={<ResetPasswordPage />}
                     />
-                  </Route>
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </NotificationProvider>
-            </SessionProvider>
+                    <Route
+                      element={
+                        <ProtectedRoute>
+                          <Layout />
+                        </ProtectedRoute>
+                      }
+                    >
+                      <Route path="/" element={<Index />} />
+                      <Route path="/emendas" element={<EmendasListPage />} />
+                      <Route
+                        path="/emenda/:id"
+                        element={<EmendaDetailPage />}
+                      />
+                      <Route
+                        path="/quadro-estadual"
+                        element={<QuadroEstadualPage />}
+                      />
+                      <Route path="/relatorios" element={<RelatoriosPage />} />
+                      <Route path="/admin" element={<AdminPage />} />
+                      <Route path="/perfil" element={<ProfilePage />} />
+                      <Route
+                        path="/propostas/mac"
+                        element={<PropostasMacPage />}
+                      />
+                      <Route
+                        path="/propostas/pap"
+                        element={<PropostasPapPage />}
+                      />
+                    </Route>
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </NotificationProvider>
+              </SessionProvider>
+            </YearProvider>
           </AuthProvider>
         </PrivacyProvider>
       </TooltipProvider>

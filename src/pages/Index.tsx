@@ -14,11 +14,13 @@ import { OfficialLimitCard } from '@/components/dashboard/OfficialLimitCard'
 import { useToast } from '@/components/ui/use-toast'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
+import { useYear } from '@/contexts/YearContext'
 
 const Index = () => {
   const { toast } = useToast()
   const navigate = useNavigate()
   const { session, isAuthenticated, isAdmin } = useAuth()
+  const { selectedYear, setSelectedYear } = useYear()
 
   const [isLoading, setIsLoading] = useState(true)
   const [isRefetching, setIsRefetching] = useState(false)
@@ -30,31 +32,6 @@ const Index = () => {
   const [limitData, setLimitData] = useState<any>(null)
 
   const [searchParams, setSearchParams] = useSearchParams()
-  const urlYear = searchParams.get('year')
-
-  useEffect(() => {
-    if (!urlYear) {
-      const savedYear =
-        localStorage.getItem('asplan_dashboard_year') ||
-        new Date().getFullYear().toString()
-      const newParams = new URLSearchParams(searchParams)
-      newParams.set('year', savedYear)
-      setSearchParams(newParams, { replace: true })
-    } else {
-      localStorage.setItem('asplan_dashboard_year', urlYear)
-    }
-  }, [urlYear, searchParams, setSearchParams])
-
-  const selectedYear =
-    urlYear ||
-    localStorage.getItem('asplan_dashboard_year') ||
-    new Date().getFullYear().toString()
-
-  const setSelectedYear = (year: string) => {
-    const newParams = new URLSearchParams(searchParams)
-    newParams.set('year', year)
-    setSearchParams(newParams, { replace: true })
-  }
 
   const selectedMonth = searchParams.get('month') || 'all'
 
@@ -80,14 +57,17 @@ const Index = () => {
       try {
         let query = supabase.from('emendas').select('*')
 
-        if (selectedYear) {
+        if (selectedYear && selectedYear !== 'all') {
           query = query.eq('ano_exercicio', parseInt(selectedYear))
         }
 
         const limitQuery = (supabase as any)
           .from('limites_exercicio')
           .select('*')
-          .eq('ano', parseInt(selectedYear))
+          .eq(
+            'ano',
+            parseInt(selectedYear || new Date().getFullYear().toString()),
+          )
           .maybeSingle()
 
         const [emendasRes, limitDataRes] = await Promise.all([
@@ -400,7 +380,8 @@ const Index = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold tracking-tight text-asplan-deep flex items-center gap-3">
-              Dashboard — Exercício {selectedYear}
+              Dashboard — Exercício{' '}
+              {selectedYear === 'all' ? 'Todos' : selectedYear}
               {isRefetching && (
                 <Loader2 className="h-5 w-5 animate-spin text-primary" />
               )}
