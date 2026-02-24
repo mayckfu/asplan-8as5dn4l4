@@ -1,12 +1,17 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Navigate } from 'react-router-dom'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { UsersTable } from '@/components/admin/UsersTable'
 import { RolesTable } from '@/components/admin/RolesTable'
 import { AuditLogsTable } from '@/components/admin/AuditLogsTable'
 import { SecurityNotifications } from '@/components/admin/SecurityNotifications'
-import { BackupManager } from '@/components/admin/BackupManager'
 import { YearsTable, ConfiguracaoAno } from '@/components/admin/YearsTable'
 import { useAuth } from '@/contexts/AuthContext'
 import { User, Cargo, AuditLog } from '@/lib/mock-data'
@@ -15,9 +20,11 @@ import { useToast } from '@/components/ui/use-toast'
 import {
   Loader2,
   Shield,
-  Database,
   AlertTriangle,
   CalendarDays,
+  Users,
+  Briefcase,
+  History,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -319,32 +326,44 @@ const AdminPage = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-200">
-        Administração
-      </h1>
-      <Card className="rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800">
-        <CardHeader>
-          <CardTitle className="font-medium text-neutral-900 dark:text-neutral-200">
-            Painel de Controle
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="users" className="w-full">
-            <TabsList className="flex flex-wrap w-full md:inline-flex h-auto max-w-[1000px] gap-1 p-1">
-              <TabsTrigger value="users">Gerenciamento de Usuários</TabsTrigger>
-              <TabsTrigger value="roles">Cargos</TabsTrigger>
-              <TabsTrigger value="years" className="flex items-center gap-2">
-                <CalendarDays className="h-4 w-4" /> Anos de Exercício
-              </TabsTrigger>
-              <TabsTrigger value="audit">Auditoria</TabsTrigger>
-              <TabsTrigger value="security" className="flex items-center gap-2">
-                <Shield className="h-4 w-4" /> Segurança
-              </TabsTrigger>
-              <TabsTrigger value="backups" className="flex items-center gap-2">
-                <Database className="h-4 w-4" /> Backups
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="users" className="mt-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-200">
+          Administração
+        </h1>
+        <p className="text-muted-foreground mt-2">
+          Gerencie usuários, perfis de acesso, anos de exercício e configurações
+          globais do sistema.
+        </p>
+      </div>
+
+      <Tabs defaultValue="users" className="w-full space-y-6">
+        <TabsList className="flex flex-wrap w-full md:inline-flex h-auto gap-1 p-1 bg-muted/50">
+          <TabsTrigger value="users" className="flex items-center gap-2">
+            <Users className="h-4 w-4" /> Usuários
+          </TabsTrigger>
+          <TabsTrigger value="roles" className="flex items-center gap-2">
+            <Briefcase className="h-4 w-4" /> Cargos
+          </TabsTrigger>
+          <TabsTrigger value="years" className="flex items-center gap-2">
+            <CalendarDays className="h-4 w-4" /> Anos de Exercício
+          </TabsTrigger>
+          <TabsTrigger value="audit" className="flex items-center gap-2">
+            <History className="h-4 w-4" /> Auditoria
+          </TabsTrigger>
+          <TabsTrigger value="security" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" /> Segurança
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="users">
+          <Card className="shadow-sm border border-neutral-200 dark:border-neutral-800">
+            <CardHeader>
+              <CardTitle>Gerenciamento de Usuários</CardTitle>
+              <CardDescription>
+                Adicione, edite ou bloqueie o acesso de usuários ao sistema.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               <UsersTable
                 users={users}
                 cargos={cargos}
@@ -353,34 +372,67 @@ const AdminPage = () => {
                 onDeleteUser={handleDeleteUser}
                 onResetPassword={handleResetPassword}
               />
-            </TabsContent>
-            <TabsContent value="roles" className="mt-6">
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="roles">
+          <Card className="shadow-sm border border-neutral-200 dark:border-neutral-800">
+            <CardHeader>
+              <CardTitle>Cargos e Perfis de Acesso</CardTitle>
+              <CardDescription>
+                Configure os cargos disponíveis e seus perfis de acesso padrão.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               <RolesTable
                 cargos={cargos}
                 onUpdateCargo={handleUpdateCargo}
                 onCreateCargo={handleCreateCargo}
               />
-            </TabsContent>
-            <TabsContent value="years" className="mt-6">
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="years">
+          <Card className="shadow-sm border border-neutral-200 dark:border-neutral-800">
+            <CardHeader>
+              <CardTitle>Anos de Exercício</CardTitle>
+              <CardDescription>
+                Gerencie os anos de exercício liberados para os usuários do
+                sistema.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               <YearsTable
                 years={configYears}
                 onUpdateYear={handleUpdateYear}
                 onCreateYear={handleCreateYear}
                 onDeleteYear={handleDeleteYear}
               />
-            </TabsContent>
-            <TabsContent value="audit" className="mt-6">
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="audit">
+          <Card className="shadow-sm border border-neutral-200 dark:border-neutral-800">
+            <CardHeader>
+              <CardTitle>Logs de Auditoria</CardTitle>
+              <CardDescription>
+                Acompanhe o histórico de ações e alterações realizadas no
+                sistema.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               <AuditLogsTable logs={auditLogs} />
-            </TabsContent>
-            <TabsContent value="security" className="mt-6">
-              <SecurityNotifications />
-            </TabsContent>
-            <TabsContent value="backups" className="mt-6">
-              <BackupManager />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="security">
+          <SecurityNotifications />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
