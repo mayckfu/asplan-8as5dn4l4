@@ -13,6 +13,7 @@ import {
   Check,
   Loader2,
   FilePlus,
+  ListFilter,
 } from 'lucide-react'
 
 import { supabase } from '@/lib/supabase/client'
@@ -31,7 +32,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { FileUpload } from '@/components/FileUpload'
-import { formatBytes, cn } from '@/lib/utils'
+import { formatBytes, cn, formatCurrencyBRL } from '@/lib/utils'
+import { formatDisplayDate } from '@/lib/date-utils'
 import {
   Form,
   FormControl,
@@ -54,6 +56,16 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Badge } from '@/components/ui/badge'
 
 const preLancamentoSchema = z.object({
   identificador: z.string().optional(),
@@ -568,6 +580,37 @@ const PreLancamentoPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [files, setFiles] = useState<File[]>([])
 
+  // States for the list of records
+  const [records, setRecords] = useState<any[]>([])
+  const [isLoadingRecords, setIsLoadingRecords] = useState(true)
+
+  const fetchRecords = async () => {
+    setIsLoadingRecords(true)
+    try {
+      const { data, error } = await supabase
+        .from('pre_lancamentos')
+        .select('*')
+        .order('codigo_sequencial', { ascending: false })
+
+      if (error) throw error
+      setRecords(data || [])
+    } catch (error: any) {
+      console.error('Error fetching records:', error)
+      toast({
+        title: 'Erro ao carregar registros',
+        description: error.message,
+        variant: 'destructive',
+      })
+    } finally {
+      setIsLoadingRecords(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchRecords()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const form = useForm<PreLancamentoFormValues>({
     resolver: zodResolver(preLancamentoSchema),
     defaultValues: {
@@ -667,6 +710,9 @@ const PreLancamentoPage = () => {
       })
       form.reset()
       setFiles([])
+
+      // Refresh the list after successful submit
+      await fetchRecords()
     } catch (error: any) {
       toast({
         title: 'Erro ao salvar',
@@ -679,7 +725,7 @@ const PreLancamentoPage = () => {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-4">
+    <div className="space-y-6 max-w-7xl mx-auto pb-8">
       <div className="flex items-center gap-3">
         <div className="p-3 bg-brand-100 dark:bg-brand-900/30 rounded-lg">
           <FilePlus className="h-6 w-6 text-brand-600 dark:text-brand-400" />
@@ -1099,6 +1145,103 @@ const PreLancamentoPage = () => {
           </div>
         </form>
       </Form>
+
+      {/* Added Records List Section */}
+      <div className="mt-12 space-y-4">
+        <div className="flex items-center gap-2">
+          <ListFilter className="h-5 w-5 text-muted-foreground" />
+          <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
+            Registros Adicionados
+          </h2>
+        </div>
+        <Card className="shadow-sm border-neutral-200 overflow-hidden mb-8">
+          <Table>
+            <TableHeader className="bg-muted/40">
+              <TableRow>
+                <TableHead className="w-[80px] text-center">Cód.</TableHead>
+                <TableHead>Nº Emenda</TableHead>
+                <TableHead>Parlamentar</TableHead>
+                <TableHead>Beneficiário</TableHead>
+                <TableHead className="text-right">Valor Previsto</TableHead>
+                <TableHead className="text-center">Data Ref.</TableHead>
+                <TableHead className="text-center">Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoadingRecords ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <Skeleton className="h-4 w-8 mx-auto" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-20" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-32" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-40" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24 ml-auto" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-20 mx-auto" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-16 mx-auto" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : records.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={7}
+                    className="h-24 text-center text-muted-foreground"
+                  >
+                    Nenhum pré-lançamento encontrado
+                  </TableCell>
+                </TableRow>
+              ) : (
+                records.map((record) => (
+                  <TableRow key={record.id} className="group hover:bg-muted/20">
+                    <TableCell className="font-mono text-xs text-center text-muted-foreground">
+                      {record.codigo_sequencial}
+                    </TableCell>
+                    <TableCell className="font-medium text-neutral-900 dark:text-neutral-100">
+                      {record.numero_emenda || '-'}
+                    </TableCell>
+                    <TableCell>{record.parlamentar || '-'}</TableCell>
+                    <TableCell
+                      className="max-w-[200px] truncate"
+                      title={record.beneficiario || ''}
+                    >
+                      {record.beneficiario || '-'}
+                    </TableCell>
+                    <TableCell className="text-right font-medium text-brand-600 dark:text-brand-400 whitespace-nowrap">
+                      {record.valor_previsto
+                        ? formatCurrencyBRL(record.valor_previsto)
+                        : '-'}
+                    </TableCell>
+                    <TableCell className="text-center text-muted-foreground whitespace-nowrap">
+                      {formatDisplayDate(record.data_referencia)}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge
+                        variant="secondary"
+                        className="font-medium text-[10px] tracking-wider uppercase"
+                      >
+                        {record.status_operacao || 'INCLUIR'}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </Card>
+      </div>
     </div>
   )
 }
