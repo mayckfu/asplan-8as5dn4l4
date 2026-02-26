@@ -60,6 +60,7 @@ const preLancamentoSchema = z.object({
   ano: z.coerce.number().min(2000),
   data_referencia: z.string(),
   numero_emenda: z.string().min(1, 'Obrigatório'),
+  tipo: z.string().optional(),
   modalidade_aplicacao: z.string().min(1, 'Obrigatório'),
   parlamentar: z.string().min(1, 'Obrigatório'),
   beneficiario: z.string().optional(),
@@ -77,10 +78,75 @@ const preLancamentoSchema = z.object({
 
 type PreLancamentoFormValues = z.infer<typeof preLancamentoSchema>
 
+const TIPOS_EMENDA = [
+  { value: 'FEDERAL_BANCADA', label: 'Emenda Federal Bancada' },
+  {
+    value: 'FEDERAL_INDIVIDUAL_DEF',
+    label: 'Emenda Federal Individual - Transferências com Finalidade Definida',
+  },
+  {
+    value: 'FEDERAL_INDIVIDUAL_ESP',
+    label: 'Emenda Federal Individual - Transferências Especial',
+  },
+  { value: 'FEDERAL_COMISSAO', label: 'Emenda Federal de Comissão' },
+  { value: 'FEDERAL_RELATOR', label: 'Emenda Federal de Relator' },
+  { value: 'ESTADUAL_BANCADA', label: 'Emenda Estadual Bancada' },
+  {
+    value: 'ESTADUAL_INDIVIDUAL_DEF',
+    label:
+      'Emenda Estadual Individual - Transferências com Finalidade Definida',
+  },
+  {
+    value: 'ESTADUAL_INDIVIDUAL_ESP',
+    label: 'Emenda Estadual Individual - Transferências Especial',
+  },
+  { value: 'ESTADUAL_COMISSAO', label: 'Emenda Estadual de Comissão' },
+  { value: 'ESTADUAL_RELATOR', label: 'Emenda Estadual de Relator' },
+  { value: 'MUNICIPAL_INDIVIDUAL', label: 'Emenda Municipal Individual' },
+  { value: 'MUNICIPAL_BANCADA', label: 'Emenda Municipal de Bancada' },
+  { value: 'MUNICIPAL_COMISSAO', label: 'Emenda Municipal de Comissão' },
+  { value: 'INICIATIVA_POPULAR', label: 'Emenda de Iniciativa Popular' },
+  { value: 'REDACAO', label: 'Emenda de Redação' },
+  { value: 'SUPRESSIVA', label: 'Emenda Supressiva' },
+  { value: 'SUBSTITUTIVA', label: 'Emenda Substitutiva' },
+  { value: 'MODIFICATIVA', label: 'Emenda Modificativa' },
+  { value: 'ADITIVA', label: 'Emenda Aditiva' },
+  { value: 'AGLUTINATIVA', label: 'Emenda Aglutinativa' },
+  { value: 'OUTROS', label: 'Outros Tipos de Emenda' },
+]
+
 const FUNCOES = [
-  { value: '10', label: '10 - Saúde' },
+  { value: '01', label: '01 - Legislativa' },
+  { value: '02', label: '02 - Judiciária' },
+  { value: '03', label: '03 - Essencial à Justiça' },
+  { value: '04', label: '04 - Administração' },
+  { value: '05', label: '05 - Defesa Nacional' },
+  { value: '06', label: '06 - Segurança Pública' },
+  { value: '07', label: '07 - Relações Exteriores' },
   { value: '08', label: '08 - Assistência Social' },
+  { value: '09', label: '09 - Previdência Social' },
+  { value: '10', label: '10 - Saúde' },
+  { value: '11', label: '11 - Trabalho' },
   { value: '12', label: '12 - Educação' },
+  { value: '13', label: '13 - Cultura' },
+  { value: '14', label: '14 - Direitos da Cidadania' },
+  { value: '15', label: '15 - Urbanismo' },
+  { value: '16', label: '16 - Habitação' },
+  { value: '17', label: '17 - Saneamento' },
+  { value: '18', label: '18 - Gestão Ambiental' },
+  { value: '19', label: '19 - Ciência e Tecnologia' },
+  { value: '20', label: '20 - Agricultura' },
+  { value: '21', label: '21 - Organização Agrária' },
+  { value: '22', label: '22 - Indústria' },
+  { value: '23', label: '23 - Comércio e Serviços' },
+  { value: '24', label: '24 - Comunicações' },
+  { value: '25', label: '25 - Energia' },
+  { value: '26', label: '26 - Transporte' },
+  { value: '27', label: '27 - Desporto e Lazer' },
+  { value: '28', label: '28 - Encargos Especiais' },
+  { value: '29', label: '29 - Serviços' },
+  { value: '88', label: '88 - Recursos Vetados' },
+  { value: '99', label: '99 - Reserva' },
 ]
 
 const SUB_FUNCOES = [
@@ -208,6 +274,7 @@ const PreLancamentoPage = () => {
       ano: 2025,
       data_referencia: format(new Date(), 'yyyy-MM-dd'),
       numero_emenda: '',
+      tipo: '',
       modalidade_aplicacao: 'DIRETA',
       parlamentar: '',
       beneficiario: '',
@@ -261,11 +328,12 @@ const PreLancamentoPage = () => {
     if (!user) return
     setIsSubmitting(true)
     try {
-      const { error } = await supabase.from('pre_lancamentos').insert({
+      const payload: any = {
         identificador: data.identificador,
         ano: data.ano,
         data_referencia: data.data_referencia,
         numero_emenda: data.numero_emenda,
+        tipo: data.tipo,
         modalidade_aplicacao: data.modalidade_aplicacao,
         parlamentar: data.parlamentar,
         beneficiario: data.beneficiario,
@@ -280,7 +348,9 @@ const PreLancamentoPage = () => {
         unidade_orcamentaria: data.unidade_orcamentaria,
         programa: data.programa,
         created_by: user.id,
-      })
+      }
+
+      const { error } = await supabase.from('pre_lancamentos').insert(payload)
       if (error) throw error
 
       toast({
@@ -330,11 +400,11 @@ const PreLancamentoPage = () => {
                     <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs">
                       1
                     </span>
-                    Identificação
+                    Identificação da Emenda
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                  <div className="space-y-2 lg:col-span-1">
+                <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-2">
                     <Label className="text-muted-foreground font-semibold">
                       Código
                     </Label>
@@ -348,7 +418,7 @@ const PreLancamentoPage = () => {
                     control={form.control}
                     name="identificador"
                     render={({ field }) => (
-                      <FormItem className="lg:col-span-1">
+                      <FormItem>
                         <FormLabel>Identificador</FormLabel>
                         <FormControl>
                           <Input placeholder="Opcional" {...field} />
@@ -361,7 +431,7 @@ const PreLancamentoPage = () => {
                     control={form.control}
                     name="ano"
                     render={({ field }) => (
-                      <FormItem className="lg:col-span-1">
+                      <FormItem>
                         <FormLabel>Ano</FormLabel>
                         <FormControl>
                           <Input type="number" {...field} />
@@ -374,7 +444,7 @@ const PreLancamentoPage = () => {
                     control={form.control}
                     name="data_referencia"
                     render={({ field }) => (
-                      <FormItem className="lg:col-span-1">
+                      <FormItem>
                         <FormLabel>Data Referência</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} />
@@ -387,7 +457,7 @@ const PreLancamentoPage = () => {
                     control={form.control}
                     name="numero_emenda"
                     render={({ field }) => (
-                      <FormItem className="lg:col-span-1">
+                      <FormItem>
                         <FormLabel>Número da Emenda</FormLabel>
                         <FormControl>
                           <Input placeholder="Ex: 2025..." {...field} />
@@ -395,6 +465,13 @@ const PreLancamentoPage = () => {
                         <FormMessage />
                       </FormItem>
                     )}
+                  />
+                  <ComboboxField
+                    form={form}
+                    name="tipo"
+                    label="Tipo"
+                    options={TIPOS_EMENDA}
+                    placeholder="Selecione o tipo"
                   />
                 </CardContent>
               </Card>
