@@ -7,6 +7,7 @@ import {
   Building2,
   LogOut,
   Map,
+  ClipboardList,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -27,7 +28,7 @@ export const AppSidebar = () => {
   const { pathname } = useLocation()
   const [searchParams] = useSearchParams()
   const { state } = useSidebar()
-  const { user, isAdmin, logout } = useAuth()
+  const { user, isAdmin, logout, checkPermission } = useAuth()
   const isExpanded = state === 'expanded'
 
   const yearParam =
@@ -49,6 +50,12 @@ export const AppSidebar = () => {
       label: 'Relatórios',
       icon: BarChart2,
       visible: true,
+    },
+    {
+      href: '/pre-lancamento',
+      label: 'Pré-Lançamento',
+      icon: ClipboardList,
+      visible: checkPermission(['ADMIN', 'GESTOR', 'ANALISTA']),
     },
     {
       href: '/admin',

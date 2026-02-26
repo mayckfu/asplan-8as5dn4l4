@@ -19,6 +19,7 @@ import ProfilePage from './pages/ProfilePage'
 import PropostasMacPage from './pages/propostas/PropostasMacPage'
 import PropostasPapPage from './pages/propostas/PropostasPapPage'
 import QuadroEstadualPage from './pages/QuadroEstadualPage'
+import PreLancamentoPage from './pages/PreLancamentoPage'
 import LoginPage from './pages/LoginPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
@@ -65,6 +66,10 @@ const App = () => (
                         element={<QuadroEstadualPage />}
                       />
                       <Route path="/relatorios" element={<RelatoriosPage />} />
+                      <Route
+                        path="/pre-lancamento"
+                        element={<PreLancamentoPage />}
+                      />
                       <Route path="/admin" element={<AdminPage />} />
                       <Route path="/perfil" element={<ProfilePage />} />
                       <Route
