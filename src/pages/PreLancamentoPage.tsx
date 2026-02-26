@@ -458,6 +458,10 @@ const ACOES = [
     value: '2E90',
     label: '2E90 - Incremento Temporário Assistência Hospitalar',
   },
+  {
+    value: '2064',
+    label: '2064 - GESTÃO DA ATENÇÃO PRIMÁRIA EM SAÚDE',
+  },
 ]
 
 const ComboboxField = ({
@@ -603,6 +607,13 @@ const PreLancamentoPage = () => {
         form.setValue('orgao', '36000 - Ministério da Saúde')
         form.setValue('unidade_orcamentaria', '36901 - Fundo Nacional de Saúde')
         form.setValue('programa', '5019 - Assistência Especializada à Saúde')
+        break
+      case '2064':
+        form.setValue('orgao', '03 - SECRETARIA MUNICIPAL DE SAÚDE - SMS')
+        form.setValue('unidade_orcamentaria', '0302 - FUNDO MUNICIPAL DE SAÚDE')
+        form.setValue('funcao', '10')
+        form.setValue('sub_funcao', '301 - Atenção Básica')
+        form.setValue('programa', '0007 - LAGARTO SAÚDE INTEGRAL E ACESSÍVEL')
         break
       default:
         if (!acao) {
@@ -933,30 +944,66 @@ const PreLancamentoPage = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
-                      Órgão
-                    </Label>
-                    <div className="font-medium text-sm text-brand-900 dark:text-brand-100 bg-white dark:bg-neutral-900 px-3 py-2.5 rounded-md border border-brand-200/60 dark:border-brand-800 shadow-sm">
-                      {form.watch('orgao') || '—'}
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
-                      Unidade Orçamentária
-                    </Label>
-                    <div className="font-medium text-sm text-brand-900 dark:text-brand-100 bg-white dark:bg-neutral-900 px-3 py-2.5 rounded-md border border-brand-200/60 dark:border-brand-800 shadow-sm">
-                      {form.watch('unidade_orcamentaria') || '—'}
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
-                      Programa
-                    </Label>
-                    <div className="font-medium text-sm text-brand-900 dark:text-brand-100 bg-white dark:bg-neutral-900 px-3 py-2.5 rounded-md border border-brand-200/60 dark:border-brand-800 shadow-sm">
-                      {form.watch('programa') || '—'}
-                    </div>
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="orgao"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
+                          Órgão
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Órgão"
+                            className="font-medium text-sm text-brand-900 dark:text-brand-100 bg-white dark:bg-neutral-900 border-brand-200/60 dark:border-brand-800 focus-visible:ring-brand-500"
+                            {...field}
+                            value={field.value || ''}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="unidade_orcamentaria"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
+                          Unidade Orçamentária
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Unidade Orçamentária"
+                            className="font-medium text-sm text-brand-900 dark:text-brand-100 bg-white dark:bg-neutral-900 border-brand-200/60 dark:border-brand-800 focus-visible:ring-brand-500"
+                            {...field}
+                            value={field.value || ''}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="programa"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
+                          Programa
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Programa"
+                            className="font-medium text-sm text-brand-900 dark:text-brand-100 bg-white dark:bg-neutral-900 border-brand-200/60 dark:border-brand-800 focus-visible:ring-brand-500"
+                            {...field}
+                            value={field.value || ''}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </CardContent>
               </Card>
             </div>
