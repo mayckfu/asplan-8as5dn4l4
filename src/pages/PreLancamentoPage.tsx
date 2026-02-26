@@ -437,8 +437,8 @@ const SUB_FUNCOES = [
 ]
 
 const CATEGORIAS = [
-  { value: '3', label: '3 - Despesas Correntes' },
-  { value: '4', label: '4 - Despesas de Capital' },
+  { value: '01 - Custeio', label: '01 - Custeio' },
+  { value: '02 - Investimento', label: '02 - Investimento' },
 ]
 
 const ACOES = [
