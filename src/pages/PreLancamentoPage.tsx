@@ -147,11 +147,293 @@ const FUNCOES = [
 ]
 
 const SUB_FUNCOES = [
-  { value: '301', label: '301 - Atenção Básica' },
-  { value: '302', label: '302 - Assistência Hospitalar e Ambulatorial' },
-  { value: '303', label: '303 - Suporte Profilático e Terapêutico' },
-  { value: '304', label: '304 - Vigilância Sanitária' },
-  { value: '305', label: '305 - Vigilância Epidemiológica' },
+  { value: '031 - Ação Legislativa', label: '031 - Ação Legislativa' },
+  { value: '032 - Controle Externo', label: '032 - Controle Externo' },
+  { value: '061 - Ação Judiciária', label: '061 - Ação Judiciária' },
+  {
+    value: '062 - Defesa do Interesse Público no Processo Judiciário',
+    label: '062 - Defesa do Interesse Público no Processo Judiciário',
+  },
+  {
+    value: '091 - Defesa da Ordem Jurídica',
+    label: '091 - Defesa da Ordem Jurídica',
+  },
+  {
+    value: '092 - Representação Judicial e Extrajudicial',
+    label: '092 - Representação Judicial e Extrajudicial',
+  },
+  {
+    value: '121 - Planejamento e Orçamento',
+    label: '121 - Planejamento e Orçamento',
+  },
+  { value: '122 - Administração Geral', label: '122 - Administração Geral' },
+  {
+    value: '123 - Administração Financeira',
+    label: '123 - Administração Financeira',
+  },
+  { value: '124 - Controle Interno', label: '124 - Controle Interno' },
+  {
+    value: '125 - Normatização e Fiscalização',
+    label: '125 - Normatização e Fiscalização',
+  },
+  {
+    value: '126 - Tecnologia da Informação',
+    label: '126 - Tecnologia da Informação',
+  },
+  {
+    value: '127 - Ordenamento Territorial',
+    label: '127 - Ordenamento Territorial',
+  },
+  {
+    value: '128 - Formação de Recursos Humanos',
+    label: '128 - Formação de Recursos Humanos',
+  },
+  {
+    value: '129 - Administração de Receitas',
+    label: '129 - Administração de Receitas',
+  },
+  {
+    value: '130 - Administração de Concessões',
+    label: '130 - Administração de Concessões',
+  },
+  { value: '131 - Comunicação Social', label: '131 - Comunicação Social' },
+  { value: '151 - Defesa Aérea', label: '151 - Defesa Aérea' },
+  { value: '152 - Defesa Naval', label: '152 - Defesa Naval' },
+  { value: '153 - Defesa Terrestre', label: '153 - Defesa Terrestre' },
+  { value: '181 - Policiamento', label: '181 - Policiamento' },
+  { value: '182 - Defesa Civil', label: '182 - Defesa Civil' },
+  {
+    value: '183 - Informação e Inteligência',
+    label: '183 - Informação e Inteligência',
+  },
+  {
+    value: '211 - Custódia e Reintegração Social',
+    label: '211 - Custódia e Reintegração Social',
+  },
+  {
+    value: '212 - Direitos Individuais, Coletivos e Difusos',
+    label: '212 - Direitos Individuais, Coletivos e Difusos',
+  },
+  {
+    value: '213 - Assistência aos Povos Indígenas',
+    label: '213 - Assistência aos Povos Indígenas',
+  },
+  { value: '241 - Assistência ao Idoso', label: '241 - Assistência ao Idoso' },
+  {
+    value: '242 - Assistência ao Portador de Deficiência',
+    label: '242 - Assistência ao Portador de Deficiência',
+  },
+  {
+    value: '243 - Assistência à Criança e ao Adolescente',
+    label: '243 - Assistência à Criança e ao Adolescente',
+  },
+  {
+    value: '244 - Assistência Comunitária',
+    label: '244 - Assistência Comunitária',
+  },
+  {
+    value: '271 - Previdência do Regime Estatutário',
+    label: '271 - Previdência do Regime Estatutário',
+  },
+  {
+    value: '272 - Previdência do Regime Estratégico',
+    label: '272 - Previdência do Regime Estratégico',
+  },
+  {
+    value: '273 - Previdência Complementar',
+    label: '273 - Previdência Complementar',
+  },
+  { value: '274 - Previdência Rural', label: '274 - Previdência Rural' },
+  { value: '301 - Atenção Básica', label: '301 - Atenção Básica' },
+  {
+    value: '302 - Assistência Hospitalar e Ambulatorial',
+    label: '302 - Assistência Hospitalar e Ambulatorial',
+  },
+  {
+    value: '303 - Suporte Profilático e Terapêutico',
+    label: '303 - Suporte Profilático e Terapêutico',
+  },
+  { value: '304 - Vigilância Sanitária', label: '304 - Vigilância Sanitária' },
+  {
+    value: '305 - Vigilância Epidemiológica',
+    label: '305 - Vigilância Epidemiológica',
+  },
+  {
+    value: '306 - Alimentação e Nutrição',
+    label: '306 - Alimentação e Nutrição',
+  },
+  {
+    value: '331 - Proteção e Benefícios ao Trabalhador',
+    label: '331 - Proteção e Benefícios ao Trabalhador',
+  },
+  { value: '332 - Relações de Trabalho', label: '332 - Relações de Trabalho' },
+  { value: '333 - Empregabilidade', label: '333 - Empregabilidade' },
+  { value: '334 - Fomento ao Trabalho', label: '334 - Fomento ao Trabalho' },
+  { value: '361 - Ensino Fundamental', label: '361 - Ensino Fundamental' },
+  { value: '362 - Ensino Médio', label: '362 - Ensino Médio' },
+  { value: '363 - Ensino Profissional', label: '363 - Ensino Profissional' },
+  { value: '364 - Ensino Superior', label: '364 - Ensino Superior' },
+  { value: '365 - Educação Infantil', label: '365 - Educação Infantil' },
+  {
+    value: '366 - Educação de Jovens e Adultos',
+    label: '366 - Educação de Jovens e Adultos',
+  },
+  { value: '367 - Educação Especial', label: '367 - Educação Especial' },
+  { value: '368 - Educação Básica', label: '368 - Educação Básica' },
+  {
+    value: '391 - Patrimônio Histórico, Artístico e Arqueológico',
+    label: '391 - Patrimônio Histórico, Artístico e Arqueológico',
+  },
+  { value: '392 - Difusão Cultural', label: '392 - Difusão Cultural' },
+  {
+    value: '421 - Custódia e Reintegração Social (Direitos da Cidadania)',
+    label: '421 - Custódia e Reintegração Social (Direitos da Cidadania)',
+  },
+  {
+    value: '422 - Direitos Individuais, Coletivos e Difusos',
+    label: '422 - Direitos Individuais, Coletivos e Difusos',
+  },
+  {
+    value: '451 - Infraestrutura Urbana',
+    label: '451 - Infraestrutura Urbana',
+  },
+  { value: '452 - Serviços Urbanos', label: '452 - Serviços Urbanos' },
+  {
+    value: '453 - Transportes Coletivos Urbanos',
+    label: '453 - Transportes Coletivos Urbanos',
+  },
+  { value: '481 - Habitação Rural', label: '481 - Habitação Rural' },
+  { value: '482 - Habitação Urbana', label: '482 - Habitação Urbana' },
+  {
+    value: '511 - Saneamento Básico Rural',
+    label: '511 - Saneamento Básico Rural',
+  },
+  {
+    value: '512 - Saneamento Básico Urbano',
+    label: '512 - Saneamento Básico Urbano',
+  },
+  {
+    value: '541 - Preservação e Conservação Ambiental',
+    label: '541 - Preservação e Conservação Ambiental',
+  },
+  { value: '542 - Controle Ambiental', label: '542 - Controle Ambiental' },
+  {
+    value: '543 - Recuperação de Áreas Degradadas',
+    label: '543 - Recuperação de Áreas Degradadas',
+  },
+  { value: '544 - Recursos Hídricos', label: '544 - Recursos Hídricos' },
+  { value: '545 - Meteorologia', label: '545 - Meteorologia' },
+  {
+    value: '571 - Desenvolvimento Científico',
+    label: '571 - Desenvolvimento Científico',
+  },
+  {
+    value: '572 - Desenvolvimento Tecnológico e Engenharia',
+    label: '572 - Desenvolvimento Tecnológico e Engenharia',
+  },
+  {
+    value: '573 - Difusão do Conhecimento Científico e Tecnológico',
+    label: '573 - Difusão do Conhecimento Científico e Tecnológico',
+  },
+  {
+    value: '601 - Promoção da Produção Vegetal',
+    label: '601 - Promoção da Produção Vegetal',
+  },
+  {
+    value: '602 - Promoção da Produção Animal',
+    label: '602 - Promoção da Produção Animal',
+  },
+  { value: '603 - Defesa Agropecuária', label: '603 - Defesa Agropecuária' },
+  { value: '604 - Organização Agrária', label: '604 - Organização Agrária' },
+  { value: '605 - Abastecimento', label: '605 - Abastecimento' },
+  { value: '606 - Extensão Rural', label: '606 - Extensão Rural' },
+  { value: '607 - Irrigação', label: '607 - Irrigação' },
+  {
+    value: '608 - Promoção da Produção Agropecuária',
+    label: '608 - Promoção da Produção Agropecuária',
+  },
+  {
+    value: '609 - Defesa Agropecuária (Agropecuária)',
+    label: '609 - Defesa Agropecuária (Agropecuária)',
+  },
+  { value: '631 - Reforma Agrária', label: '631 - Reforma Agrária' },
+  { value: '632 - Colonização', label: '632 - Colonização' },
+  { value: '661 - Promoção Industrial', label: '661 - Promoção Industrial' },
+  { value: '662 - Produção Industrial', label: '662 - Produção Industrial' },
+  { value: '663 - Mineração', label: '663 - Mineração' },
+  {
+    value: '664 - Propriedade Industrial',
+    label: '664 - Propriedade Industrial',
+  },
+  {
+    value: '665 - Normalização e Qualidade',
+    label: '665 - Normalização e Qualidade',
+  },
+  { value: '691 - Promoção Comercial', label: '691 - Promoção Comercial' },
+  { value: '692 - Comercialização', label: '692 - Comercialização' },
+  { value: '693 - Comércio Exterior', label: '693 - Comércio Exterior' },
+  { value: '694 - Serviços Financeiros', label: '694 - Serviços Financeiros' },
+  { value: '695 - Turismo', label: '695 - Turismo' },
+  { value: '721 - Comunicações Postais', label: '721 - Comunicações Postais' },
+  { value: '722 - Telecomunicações', label: '722 - Telecomunicações' },
+  { value: '751 - Energia Elétrica', label: '751 - Energia Elétrica' },
+  { value: '752 - Petróleo', label: '752 - Petróleo' },
+  { value: '753 - Biocombustíveis', label: '753 - Biocombustíveis' },
+  { value: '781 - Transporte Aéreo', label: '781 - Transporte Aéreo' },
+  {
+    value: '782 - Transporte Rodoviário',
+    label: '782 - Transporte Rodoviário',
+  },
+  {
+    value: '783 - Transporte Ferroviário',
+    label: '783 - Transporte Ferroviário',
+  },
+  {
+    value: '784 - Transporte Hidroviário',
+    label: '784 - Transporte Hidroviário',
+  },
+  {
+    value: '785 - Transportes Especiais',
+    label: '785 - Transportes Especiais',
+  },
+  {
+    value: '811 - Desporto de Rendimento',
+    label: '811 - Desporto de Rendimento',
+  },
+  { value: '812 - Desporto Comunitário', label: '812 - Desporto Comunitário' },
+  { value: '813 - Lazer', label: '813 - Lazer' },
+  {
+    value: '841 - Refinanciamento da Dívida Interna',
+    label: '841 - Refinanciamento da Dívida Interna',
+  },
+  {
+    value: '842 - Refinanciamento da Dívida Externa',
+    label: '842 - Refinanciamento da Dívida Externa',
+  },
+  {
+    value: '843 - Serviço da Dívida Interna',
+    label: '843 - Serviço da Dívida Interna',
+  },
+  {
+    value: '844 - Serviço da Dívida Externa',
+    label: '844 - Serviço da Dívida Externa',
+  },
+  {
+    value: '845 - Outras Transferências',
+    label: '845 - Outras Transferências',
+  },
+  {
+    value: '846 - Outros Encargos Especiais',
+    label: '846 - Outros Encargos Especiais',
+  },
+  {
+    value: '847 - Transferências para a Educação Básica',
+    label: '847 - Transferências para a Educação Básica',
+  },
+  {
+    value: '999 - Reserva de Contingência',
+    label: '999 - Reserva de Contingência',
+  },
 ]
 
 const CATEGORIAS = [
@@ -196,64 +478,82 @@ const ComboboxField = ({
     <FormField
       control={form.control}
       name={name}
-      render={({ field }) => (
-        <FormItem className="flex flex-col">
-          <FormLabel>{label}</FormLabel>
-          <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-              <FormControl>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  className={cn(
-                    'w-full justify-between font-normal',
-                    !field.value && 'text-muted-foreground',
-                  )}
-                >
-                  {field.value
-                    ? options.find((option) => option.value === field.value)
-                        ?.label
-                    : placeholder}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </FormControl>
-            </PopoverTrigger>
-            <PopoverContent className="w-full p-0">
-              <Command>
-                <CommandInput
-                  placeholder={`Buscar ${label.toLowerCase()}...`}
-                />
-                <CommandList>
-                  <CommandEmpty>Nenhum resultado.</CommandEmpty>
-                  <CommandGroup>
-                    {options.map((option) => (
-                      <CommandItem
-                        value={option.label}
-                        key={option.value}
-                        onSelect={() => {
-                          form.setValue(name, option.value)
-                          setOpen(false)
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            'mr-2 h-4 w-4',
-                            option.value === field.value
-                              ? 'opacity-100'
-                              : 'opacity-0',
-                          )}
-                        />
-                        {option.label}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-          <FormMessage />
-        </FormItem>
-      )}
+      render={({ field }) => {
+        // Find option with exact match or starting with "code -" to support legacy data gracefully
+        const selectedOption = options.find(
+          (option) =>
+            option.value === field.value ||
+            (field.value && option.value.startsWith(`${field.value} -`)),
+        )
+
+        return (
+          <FormItem className="flex flex-col">
+            <FormLabel>{label}</FormLabel>
+            <Popover open={open} onOpenChange={setOpen}>
+              <PopoverTrigger asChild>
+                <FormControl>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    className={cn(
+                      'w-full justify-between font-normal h-auto min-h-[2.5rem] py-2',
+                      !field.value && 'text-muted-foreground',
+                    )}
+                  >
+                    <span className="truncate text-left whitespace-normal leading-tight">
+                      {selectedOption
+                        ? selectedOption.label
+                        : field.value || placeholder}
+                    </span>
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </FormControl>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0" align="start">
+                <Command>
+                  <CommandInput
+                    placeholder={`Buscar ${label.toLowerCase()}...`}
+                  />
+                  <CommandList>
+                    <CommandEmpty>Nenhum resultado.</CommandEmpty>
+                    <CommandGroup>
+                      {options.map((option) => {
+                        const isSelected =
+                          field.value === option.value ||
+                          (field.value &&
+                            option.value.startsWith(`${field.value} -`))
+                        return (
+                          <CommandItem
+                            value={option.label}
+                            key={option.value}
+                            onSelect={() => {
+                              form.setValue(name, option.value, {
+                                shouldValidate: true,
+                              })
+                              setOpen(false)
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                'mr-2 h-4 w-4 shrink-0',
+                                isSelected ? 'opacity-100' : 'opacity-0',
+                              )}
+                            />
+                            <span className="whitespace-normal leading-tight">
+                              {option.label}
+                            </span>
+                          </CommandItem>
+                        )
+                      })}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            <FormMessage />
+          </FormItem>
+        )
+      }}
     />
   )
 }
