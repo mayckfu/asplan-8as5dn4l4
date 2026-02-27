@@ -509,7 +509,7 @@ const ComboboxField = ({
   form: any
   name: string
   label: string
-  options: { value: string; label: string }[]
+  options: { id?: string; value: string; label: string }[]
   placeholder: string
 }) => {
   const [open, setOpen] = useState(false)
@@ -566,7 +566,7 @@ const ComboboxField = ({
                         return (
                           <CommandItem
                             value={option.label}
-                            key={option.value}
+                            key={option.id || option.value}
                             onSelect={() => {
                               form.setValue(name, option.value, {
                                 shouldValidate: true,
@@ -630,7 +630,7 @@ const PreLancamentoPage = () => {
 
   // State for available emendas dynamic selection
   const [emendasOptions, setEmendasOptions] = useState<
-    { value: string; label: string }[]
+    { id?: string; value: string; label: string }[]
   >([])
 
   const fetchRecords = async () => {
@@ -659,14 +659,18 @@ const PreLancamentoPage = () => {
     try {
       const { data, error } = await supabase
         .from('emendas')
-        .select('numero_emenda')
+        .select('id, numero_emenda')
         .order('numero_emenda')
 
       if (error) throw error
 
       if (data) {
         setEmendasOptions(
-          data.map((e) => ({ value: e.numero_emenda, label: e.numero_emenda })),
+          data.map((e) => ({
+            id: e.id,
+            value: e.numero_emenda,
+            label: e.numero_emenda,
+          })),
         )
       }
     } catch (error: any) {
