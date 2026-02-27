@@ -80,7 +80,7 @@ const preLancamentoSchema = z.object({
   identificador: z.string().optional(),
   ano: z.coerce.number().min(2000),
   data_referencia: z.string(),
-  numero_emenda: z.string().min(1, 'Obrigatório'),
+  numero_proposta: z.string().min(1, 'Obrigatório'),
   tipo: z.string().min(1, 'Obrigatório'),
   modalidade_aplicacao: z.string().min(1, 'Obrigatório'),
   parlamentar: z.string().min(1, 'Obrigatório'),
@@ -628,8 +628,8 @@ const PreLancamentoPage = () => {
   const [records, setRecords] = useState<any[]>([])
   const [isLoadingRecords, setIsLoadingRecords] = useState(true)
 
-  // State for available emendas dynamic selection
-  const [emendasOptions, setEmendasOptions] = useState<
+  // State for available propostas dynamic selection
+  const [propostasOptions, setPropostasOptions] = useState<
     { id?: string; value: string; label: string }[]
   >([])
 
@@ -655,32 +655,40 @@ const PreLancamentoPage = () => {
     }
   }
 
-  const fetchEmendasOptions = async () => {
+  const fetchPropostasOptions = async () => {
     try {
       const { data, error } = await supabase
         .from('emendas')
-        .select('id, numero_emenda')
-        .order('numero_emenda')
+        .select('numero_proposta')
+        .not('numero_proposta', 'is', null)
+        .order('numero_proposta')
 
       if (error) throw error
 
       if (data) {
-        setEmendasOptions(
-          data.map((e) => ({
-            id: e.id,
-            value: e.numero_emenda,
-            label: e.numero_emenda,
+        const validPropostas = data
+          .map((e) => e.numero_proposta)
+          .filter((p) => p && p.trim() !== '')
+
+        // Deduplicate proposal numbers
+        const uniquePropostas = Array.from(new Set(validPropostas))
+
+        setPropostasOptions(
+          uniquePropostas.map((p) => ({
+            id: p as string,
+            value: p as string,
+            label: p as string,
           })),
         )
       }
     } catch (error: any) {
-      console.error('Error fetching emendas options:', error)
+      console.error('Error fetching propostas options:', error)
     }
   }
 
   useEffect(() => {
     fetchRecords()
-    fetchEmendasOptions()
+    fetchPropostasOptions()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -690,7 +698,7 @@ const PreLancamentoPage = () => {
       identificador: '',
       ano: 2025,
       data_referencia: format(new Date(), 'yyyy-MM-dd'),
-      numero_emenda: '',
+      numero_proposta: '',
       tipo: '',
       modalidade_aplicacao: 'DIRETA',
       parlamentar: '',
@@ -780,16 +788,16 @@ const PreLancamentoPage = () => {
       const { data: existing, error: checkError } = await supabase
         .from('pre_lancamentos')
         .select('id')
-        .eq('numero_emenda', data.numero_emenda)
+        .eq('numero_proposta', data.numero_proposta)
         .maybeSingle()
 
       if (checkError) throw checkError
 
       if (existing) {
-        form.setError('numero_emenda', {
+        form.setError('numero_proposta', {
           type: 'manual',
           message:
-            'Este número de emenda já está cadastrado no pré-lançamento.',
+            'Este número de proposta já está cadastrado no pré-lançamento.',
         })
         setIsSubmitting(false)
         return
@@ -799,7 +807,7 @@ const PreLancamentoPage = () => {
         identificador: data.identificador,
         ano: data.ano,
         data_referencia: data.data_referencia,
-        numero_emenda: data.numero_emenda,
+        numero_proposta: data.numero_proposta,
         tipo: data.tipo,
         modalidade_aplicacao: data.modalidade_aplicacao,
         parlamentar: data.parlamentar,
@@ -851,7 +859,8 @@ const PreLancamentoPage = () => {
             Pré-Lançamento
           </h1>
           <p className="text-muted-foreground mt-1">
-            Organize e preencha os dados da emenda antes do lançamento oficial.
+            Organize e preencha os dados da proposta antes do lançamento
+            oficial.
           </p>
         </div>
       </div>
@@ -870,7 +879,7 @@ const PreLancamentoPage = () => {
                     <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs">
                       1
                     </span>
-                    Identificação da Emenda
+                    Identificação da Proposta
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -925,10 +934,10 @@ const PreLancamentoPage = () => {
                   />
                   <ComboboxField
                     form={form}
-                    name="numero_emenda"
-                    label="Número da Emenda"
-                    options={emendasOptions}
-                    placeholder="Selecione a emenda..."
+                    name="numero_proposta"
+                    label="Número da Proposta"
+                    options={propostasOptions}
+                    placeholder="Selecione a proposta..."
                   />
                   <ComboboxField
                     form={form}
@@ -1036,7 +1045,7 @@ const PreLancamentoPage = () => {
                     name="objeto"
                     render={({ field }) => (
                       <FormItem className="md:col-span-2 lg:col-span-3">
-                        <FormLabel>Objeto da Emenda</FormLabel>
+                        <FormLabel>Objeto da Proposta</FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="Descreva a finalidade..."
@@ -1249,7 +1258,7 @@ const PreLancamentoPage = () => {
                 ) : (
                   <Save className="h-4 w-4" />
                 )}
-                Gravar Emenda
+                Gravar Proposta
               </Button>
             </div>
           </div>
@@ -1287,10 +1296,19 @@ const PreLancamentoPage = () => {
               >
                 <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors group">
                   <div className="flex flex-1 items-center justify-between gap-6 pr-4 text-left">
-                    {/* Emenda Num & Tipo */}
+                    {/* Proposta Num & Tipo */}
                     <div className="flex flex-col min-w-[120px] w-1/3">
-                      <span className="text-sm font-bold text-foreground truncate">
-                        {record.numero_emenda || 'Sem Número'}
+                      <span
+                        className="text-sm font-bold text-foreground truncate"
+                        title={
+                          record.numero_proposta ||
+                          record.numero_emenda ||
+                          'Sem Número'
+                        }
+                      >
+                        {record.numero_proposta ||
+                          record.numero_emenda ||
+                          'Sem Número'}
                       </span>
                       <span
                         className="text-xs text-muted-foreground truncate"
@@ -1349,7 +1367,7 @@ const PreLancamentoPage = () => {
                       value={formatDisplayDate(record.data_referencia)}
                     />
                     <DetailField
-                      label="Tipo de Emenda"
+                      label="Tipo"
                       value={getOptionLabel(record.tipo, TIPOS_EMENDA)}
                     />
                     <DetailField
