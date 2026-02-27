@@ -64,6 +64,17 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 
 const preLancamentoSchema = z.object({
   identificador: z.string().optional(),
@@ -506,7 +517,7 @@ const ComboboxField = ({
     <FormField
       control={form.control}
       name={name}
-      render={({ field }) => {
+      render={({ field, fieldState }) => {
         // Find option with exact match or starting with "code -" to support legacy data gracefully
         const selectedOption = options.find(
           (option) =>
@@ -526,6 +537,8 @@ const ComboboxField = ({
                     className={cn(
                       'w-full justify-between font-normal h-auto min-h-[2.5rem] py-2',
                       !field.value && 'text-muted-foreground',
+                      fieldState.error &&
+                        'border-destructive text-destructive focus:ring-destructive',
                     )}
                   >
                     <span className="truncate text-left whitespace-normal leading-tight">
@@ -615,6 +628,11 @@ const PreLancamentoPage = () => {
   const [records, setRecords] = useState<any[]>([])
   const [isLoadingRecords, setIsLoadingRecords] = useState(true)
 
+  // State for available emendas dynamic selection
+  const [emendasOptions, setEmendasOptions] = useState<
+    { value: string; label: string }[]
+  >([])
+
   const fetchRecords = async () => {
     setIsLoadingRecords(true)
     try {
@@ -637,8 +655,28 @@ const PreLancamentoPage = () => {
     }
   }
 
+  const fetchEmendasOptions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('emendas')
+        .select('numero_emenda')
+        .order('numero_emenda')
+
+      if (error) throw error
+
+      if (data) {
+        setEmendasOptions(
+          data.map((e) => ({ value: e.numero_emenda, label: e.numero_emenda })),
+        )
+      }
+    } catch (error: any) {
+      console.error('Error fetching emendas options:', error)
+    }
+  }
+
   useEffect(() => {
     fetchRecords()
+    fetchEmendasOptions()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -706,10 +744,53 @@ const PreLancamentoPage = () => {
     setFiles((prev) => prev.filter((_, i) => i !== index))
   }
 
+  const handleDeleteRecord = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('pre_lancamentos')
+        .delete()
+        .eq('id', id)
+      if (error) throw error
+
+      toast({
+        title: 'Registro removido',
+        description: 'O pré-lançamento foi excluído com sucesso.',
+      })
+
+      fetchRecords()
+    } catch (error: any) {
+      console.error('Error deleting record:', error)
+      toast({
+        title: 'Erro ao excluir',
+        description: error.message,
+        variant: 'destructive',
+      })
+    }
+  }
+
   const onSubmit = async (data: PreLancamentoFormValues) => {
     if (!user) return
     setIsSubmitting(true)
     try {
+      // 1. Validar duplicidade no frontend antes do envio
+      const { data: existing, error: checkError } = await supabase
+        .from('pre_lancamentos')
+        .select('id')
+        .eq('numero_emenda', data.numero_emenda)
+        .maybeSingle()
+
+      if (checkError) throw checkError
+
+      if (existing) {
+        form.setError('numero_emenda', {
+          type: 'manual',
+          message:
+            'Este número de emenda já está cadastrado no pré-lançamento.',
+        })
+        setIsSubmitting(false)
+        return
+      }
+
       const payload: any = {
         identificador: data.identificador,
         ano: data.ano,
@@ -838,18 +919,12 @@ const PreLancamentoPage = () => {
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
+                  <ComboboxField
+                    form={form}
                     name="numero_emenda"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Número da Emenda</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ex: 2025..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label="Número da Emenda"
+                    options={emendasOptions}
+                    placeholder="Selecione a emenda..."
                   />
                   <ComboboxField
                     form={form}
@@ -1327,6 +1402,39 @@ const PreLancamentoPage = () => {
                       label="Status da Operação"
                       value={record.status_operacao}
                     />
+                  </div>
+
+                  {/* Delete Action within Content */}
+                  <div className="mt-6 pt-4 border-t border-neutral-200 dark:border-neutral-800 flex justify-end">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="gap-2"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Excluir
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Atenção</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Deseja realmente remover este registro?
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeleteRecord(record.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Remover
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </AccordionContent>
               </AccordionItem>
