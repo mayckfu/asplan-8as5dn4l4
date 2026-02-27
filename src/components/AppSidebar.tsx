@@ -28,7 +28,7 @@ export const AppSidebar = () => {
   const { pathname } = useLocation()
   const [searchParams] = useSearchParams()
   const { state } = useSidebar()
-  const { user, isAdmin, logout, checkPermission } = useAuth()
+  const { user, isAdmin, logout } = useAuth()
   const isExpanded = state === 'expanded'
 
   const yearParam =
@@ -55,7 +55,7 @@ export const AppSidebar = () => {
       href: '/pre-lancamento',
       label: 'Pré-Lançamento',
       icon: ClipboardList,
-      visible: checkPermission(['ADMIN', 'GESTOR', 'ANALISTA']),
+      visible: true,
     },
     {
       href: '/admin',
