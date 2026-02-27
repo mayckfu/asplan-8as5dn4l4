@@ -14,6 +14,7 @@ import {
   Loader2,
   FilePlus,
   ListFilter,
+  Eye,
 } from 'lucide-react'
 
 import { supabase } from '@/lib/supabase/client'
@@ -66,6 +67,14 @@ import {
 } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 
 const preLancamentoSchema = z.object({
   identificador: z.string().optional(),
@@ -573,6 +582,23 @@ const ComboboxField = ({
     />
   )
 }
+
+const DetailItem = ({
+  label,
+  value,
+}: {
+  label: string
+  value: React.ReactNode
+}) => (
+  <div className="flex flex-col space-y-1 pb-3 border-b border-border/50 last:border-0 last:pb-0">
+    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+      {label}
+    </span>
+    <span className="text-sm font-medium text-foreground whitespace-pre-wrap break-words">
+      {value || '-'}
+    </span>
+  </div>
+)
 
 const PreLancamentoPage = () => {
   const { user } = useAuth()
@@ -1155,49 +1181,89 @@ const PreLancamentoPage = () => {
           </h2>
         </div>
         <Card className="shadow-sm border-neutral-200 overflow-hidden mb-8">
-          <Table>
-            <TableHeader className="bg-muted/40">
+          <Table wrapperClassName="max-h-[600px]">
+            <TableHeader>
               <TableRow>
-                <TableHead className="w-[80px] text-center">Cód.</TableHead>
-                <TableHead>Nº Emenda</TableHead>
-                <TableHead>Parlamentar</TableHead>
-                <TableHead>Beneficiário</TableHead>
-                <TableHead className="text-right">Valor Previsto</TableHead>
-                <TableHead className="text-center">Data Ref.</TableHead>
-                <TableHead className="text-center">Status</TableHead>
+                <TableHead className="sticky top-0 bg-white dark:bg-neutral-900 z-10 w-[50px] shadow-[0_1px_0_0_#e5e7eb] dark:shadow-[0_1px_0_0_#262626]">
+                  Ações
+                </TableHead>
+                <TableHead className="sticky top-0 bg-white dark:bg-neutral-900 z-10 w-[80px] text-center shadow-[0_1px_0_0_#e5e7eb] dark:shadow-[0_1px_0_0_#262626] whitespace-nowrap">
+                  Cód.
+                </TableHead>
+                <TableHead className="sticky top-0 bg-white dark:bg-neutral-900 z-10 shadow-[0_1px_0_0_#e5e7eb] dark:shadow-[0_1px_0_0_#262626] whitespace-nowrap">
+                  Identificador
+                </TableHead>
+                <TableHead className="sticky top-0 bg-white dark:bg-neutral-900 z-10 text-center shadow-[0_1px_0_0_#e5e7eb] dark:shadow-[0_1px_0_0_#262626] whitespace-nowrap">
+                  Ano
+                </TableHead>
+                <TableHead className="sticky top-0 bg-white dark:bg-neutral-900 z-10 text-center shadow-[0_1px_0_0_#e5e7eb] dark:shadow-[0_1px_0_0_#262626] whitespace-nowrap">
+                  Data Ref.
+                </TableHead>
+                <TableHead className="sticky top-0 bg-white dark:bg-neutral-900 z-10 shadow-[0_1px_0_0_#e5e7eb] dark:shadow-[0_1px_0_0_#262626] whitespace-nowrap">
+                  Nº Emenda
+                </TableHead>
+                <TableHead className="sticky top-0 bg-white dark:bg-neutral-900 z-10 shadow-[0_1px_0_0_#e5e7eb] dark:shadow-[0_1px_0_0_#262626] whitespace-nowrap">
+                  Tipo
+                </TableHead>
+                <TableHead className="sticky top-0 bg-white dark:bg-neutral-900 z-10 shadow-[0_1px_0_0_#e5e7eb] dark:shadow-[0_1px_0_0_#262626] whitespace-nowrap">
+                  Mod. Aplicação
+                </TableHead>
+                <TableHead className="sticky top-0 bg-white dark:bg-neutral-900 z-10 shadow-[0_1px_0_0_#e5e7eb] dark:shadow-[0_1px_0_0_#262626] whitespace-nowrap">
+                  Parlamentar
+                </TableHead>
+                <TableHead className="sticky top-0 bg-white dark:bg-neutral-900 z-10 shadow-[0_1px_0_0_#e5e7eb] dark:shadow-[0_1px_0_0_#262626] whitespace-nowrap">
+                  Beneficiário
+                </TableHead>
+                <TableHead className="sticky top-0 bg-white dark:bg-neutral-900 z-10 shadow-[0_1px_0_0_#e5e7eb] dark:shadow-[0_1px_0_0_#262626] whitespace-nowrap">
+                  Localidade
+                </TableHead>
+                <TableHead className="sticky top-0 bg-white dark:bg-neutral-900 z-10 text-right shadow-[0_1px_0_0_#e5e7eb] dark:shadow-[0_1px_0_0_#262626] whitespace-nowrap">
+                  Valor Previsto
+                </TableHead>
+                <TableHead className="sticky top-0 bg-white dark:bg-neutral-900 z-10 shadow-[0_1px_0_0_#e5e7eb] dark:shadow-[0_1px_0_0_#262626] whitespace-nowrap">
+                  Objeto
+                </TableHead>
+                <TableHead className="sticky top-0 bg-white dark:bg-neutral-900 z-10 shadow-[0_1px_0_0_#e5e7eb] dark:shadow-[0_1px_0_0_#262626] whitespace-nowrap">
+                  Função
+                </TableHead>
+                <TableHead className="sticky top-0 bg-white dark:bg-neutral-900 z-10 shadow-[0_1px_0_0_#e5e7eb] dark:shadow-[0_1px_0_0_#262626] whitespace-nowrap">
+                  Sub-função
+                </TableHead>
+                <TableHead className="sticky top-0 bg-white dark:bg-neutral-900 z-10 shadow-[0_1px_0_0_#e5e7eb] dark:shadow-[0_1px_0_0_#262626] whitespace-nowrap">
+                  Cat. Econômica
+                </TableHead>
+                <TableHead className="sticky top-0 bg-white dark:bg-neutral-900 z-10 shadow-[0_1px_0_0_#e5e7eb] dark:shadow-[0_1px_0_0_#262626] whitespace-nowrap">
+                  Ação Orç.
+                </TableHead>
+                <TableHead className="sticky top-0 bg-white dark:bg-neutral-900 z-10 shadow-[0_1px_0_0_#e5e7eb] dark:shadow-[0_1px_0_0_#262626] whitespace-nowrap">
+                  Órgão
+                </TableHead>
+                <TableHead className="sticky top-0 bg-white dark:bg-neutral-900 z-10 shadow-[0_1px_0_0_#e5e7eb] dark:shadow-[0_1px_0_0_#262626] whitespace-nowrap">
+                  Unid. Orç.
+                </TableHead>
+                <TableHead className="sticky top-0 bg-white dark:bg-neutral-900 z-10 shadow-[0_1px_0_0_#e5e7eb] dark:shadow-[0_1px_0_0_#262626] whitespace-nowrap">
+                  Programa
+                </TableHead>
+                <TableHead className="sticky top-0 bg-white dark:bg-neutral-900 z-10 text-center shadow-[0_1px_0_0_#e5e7eb] dark:shadow-[0_1px_0_0_#262626] whitespace-nowrap">
+                  Status
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoadingRecords ? (
                 Array.from({ length: 3 }).map((_, i) => (
                   <TableRow key={i}>
-                    <TableCell>
-                      <Skeleton className="h-4 w-8 mx-auto" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-20" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-32" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-40" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-24 ml-auto" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-20 mx-auto" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-16 mx-auto" />
-                    </TableCell>
+                    {Array.from({ length: 21 }).map((_, j) => (
+                      <TableCell key={j}>
+                        <Skeleton className="h-4 w-full min-w-[60px]" />
+                      </TableCell>
+                    ))}
                   </TableRow>
                 ))
               ) : records.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={21}
                     className="h-24 text-center text-muted-foreground"
                   >
                     Nenhum pré-lançamento encontrado
@@ -1206,28 +1272,188 @@ const PreLancamentoPage = () => {
               ) : (
                 records.map((record) => (
                   <TableRow key={record.id} className="group hover:bg-muted/20">
-                    <TableCell className="font-mono text-xs text-center text-muted-foreground">
+                    <TableCell className="text-center">
+                      <Sheet>
+                        <SheetTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </SheetTrigger>
+                        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+                          <SheetHeader className="mb-6">
+                            <SheetTitle>Detalhes do Pré-Lançamento</SheetTitle>
+                            <SheetDescription>
+                              Visualização completa dos dados da emenda.
+                            </SheetDescription>
+                          </SheetHeader>
+                          <div className="space-y-4">
+                            <DetailItem
+                              label="Código Sequencial"
+                              value={record.codigo_sequencial}
+                            />
+                            <DetailItem
+                              label="Identificador"
+                              value={record.identificador}
+                            />
+                            <DetailItem label="Ano" value={record.ano} />
+                            <DetailItem
+                              label="Data de Referência"
+                              value={formatDisplayDate(record.data_referencia)}
+                            />
+                            <DetailItem
+                              label="Número da Emenda"
+                              value={record.numero_emenda}
+                            />
+                            <DetailItem label="Tipo" value={record.tipo} />
+                            <DetailItem
+                              label="Modalidade de Aplicação"
+                              value={record.modalidade_aplicacao}
+                            />
+                            <DetailItem
+                              label="Parlamentar"
+                              value={record.parlamentar}
+                            />
+                            <DetailItem
+                              label="Beneficiário"
+                              value={record.beneficiario}
+                            />
+                            <DetailItem
+                              label="Localidade"
+                              value={record.localidade}
+                            />
+                            <DetailItem
+                              label="Valor Previsto"
+                              value={
+                                record.valor_previsto
+                                  ? formatCurrencyBRL(record.valor_previsto)
+                                  : '-'
+                              }
+                            />
+                            <DetailItem label="Objeto" value={record.objeto} />
+                            <DetailItem label="Função" value={record.funcao} />
+                            <DetailItem
+                              label="Sub-função"
+                              value={record.sub_funcao}
+                            />
+                            <DetailItem
+                              label="Categoria Econômica"
+                              value={record.categoria_economica}
+                            />
+                            <DetailItem
+                              label="Ação Orçamentária"
+                              value={record.acao_orcamentaria}
+                            />
+                            <DetailItem label="Órgão" value={record.orgao} />
+                            <DetailItem
+                              label="Unidade Orçamentária"
+                              value={record.unidade_orcamentaria}
+                            />
+                            <DetailItem
+                              label="Programa"
+                              value={record.programa}
+                            />
+                            <DetailItem
+                              label="Status da Operação"
+                              value={record.status_operacao}
+                            />
+                          </div>
+                        </SheetContent>
+                      </Sheet>
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-center text-muted-foreground whitespace-nowrap">
                       {record.codigo_sequencial}
                     </TableCell>
-                    <TableCell className="font-medium text-neutral-900 dark:text-neutral-100">
+                    <TableCell className="whitespace-nowrap">
+                      {record.identificador || '-'}
+                    </TableCell>
+                    <TableCell className="text-center whitespace-nowrap">
+                      {record.ano || '-'}
+                    </TableCell>
+                    <TableCell className="text-center text-muted-foreground whitespace-nowrap">
+                      {formatDisplayDate(record.data_referencia)}
+                    </TableCell>
+                    <TableCell className="font-medium text-neutral-900 dark:text-neutral-100 whitespace-nowrap">
                       {record.numero_emenda || '-'}
                     </TableCell>
-                    <TableCell>{record.parlamentar || '-'}</TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {record.tipo || '-'}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {record.modalidade_aplicacao || '-'}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {record.parlamentar || '-'}
+                    </TableCell>
                     <TableCell
-                      className="max-w-[200px] truncate"
+                      className="max-w-[150px] truncate"
                       title={record.beneficiario || ''}
                     >
                       {record.beneficiario || '-'}
+                    </TableCell>
+                    <TableCell
+                      className="max-w-[150px] truncate"
+                      title={record.localidade || ''}
+                    >
+                      {record.localidade || '-'}
                     </TableCell>
                     <TableCell className="text-right font-medium text-brand-600 dark:text-brand-400 whitespace-nowrap">
                       {record.valor_previsto
                         ? formatCurrencyBRL(record.valor_previsto)
                         : '-'}
                     </TableCell>
-                    <TableCell className="text-center text-muted-foreground whitespace-nowrap">
-                      {formatDisplayDate(record.data_referencia)}
+                    <TableCell
+                      className="max-w-[200px] truncate"
+                      title={record.objeto || ''}
+                    >
+                      {record.objeto || '-'}
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell
+                      className="max-w-[150px] truncate"
+                      title={record.funcao || ''}
+                    >
+                      {record.funcao || '-'}
+                    </TableCell>
+                    <TableCell
+                      className="max-w-[150px] truncate"
+                      title={record.sub_funcao || ''}
+                    >
+                      {record.sub_funcao || '-'}
+                    </TableCell>
+                    <TableCell
+                      className="max-w-[150px] truncate"
+                      title={record.categoria_economica || ''}
+                    >
+                      {record.categoria_economica || '-'}
+                    </TableCell>
+                    <TableCell
+                      className="max-w-[150px] truncate"
+                      title={record.acao_orcamentaria || ''}
+                    >
+                      {record.acao_orcamentaria || '-'}
+                    </TableCell>
+                    <TableCell
+                      className="max-w-[150px] truncate"
+                      title={record.orgao || ''}
+                    >
+                      {record.orgao || '-'}
+                    </TableCell>
+                    <TableCell
+                      className="max-w-[150px] truncate"
+                      title={record.unidade_orcamentaria || ''}
+                    >
+                      {record.unidade_orcamentaria || '-'}
+                    </TableCell>
+                    <TableCell
+                      className="max-w-[150px] truncate"
+                      title={record.programa || ''}
+                    >
+                      {record.programa || '-'}
+                    </TableCell>
+                    <TableCell className="text-center whitespace-nowrap">
                       <Badge
                         variant="secondary"
                         className="font-medium text-[10px] tracking-wider uppercase"
