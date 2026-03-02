@@ -15,6 +15,7 @@ import {
   FilePlus,
   ListFilter,
   Edit,
+  Calculator,
 } from 'lucide-react'
 
 import { supabase } from '@/lib/supabase/client'
@@ -819,7 +820,7 @@ const PreLancamentoPage = () => {
 
       toast({
         title: 'Registro removido',
-        description: 'O pré-lançamento foi excluído com sucesso.',
+        description: 'A elaboração foi excluída com sucesso.',
       })
 
       fetchRecords()
@@ -854,8 +855,7 @@ const PreLancamentoPage = () => {
       if (existing) {
         form.setError('numero_proposta', {
           type: 'manual',
-          message:
-            'Este número de proposta já está cadastrado no pré-lançamento.',
+          message: 'Este número de proposta já está cadastrado na elaboração.',
         })
         setIsSubmitting(false)
         return
@@ -891,7 +891,7 @@ const PreLancamentoPage = () => {
 
         toast({
           title: 'Alterações salvas!',
-          description: 'O pré-lançamento foi atualizado com sucesso.',
+          description: 'A elaboração foi atualizada com sucesso.',
         })
       } else {
         payload.created_by = user.id
@@ -899,7 +899,7 @@ const PreLancamentoPage = () => {
         if (error) throw error
 
         toast({
-          title: 'Pré-lançamento salvo!',
+          title: 'Elaboração salva!',
           description: 'Os dados foram registrados com sucesso.',
         })
       }
@@ -923,11 +923,11 @@ const PreLancamentoPage = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-brand-100 dark:bg-brand-900/30 rounded-lg">
-            <ClipboardList className="h-6 w-6 text-brand-600 dark:text-brand-400" />
+            <Calculator className="h-6 w-6 text-brand-600 dark:text-brand-400" />
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
-              Pré-Lançamento
+              Contabilis Elaboração
             </h1>
             <p className="text-muted-foreground mt-1">
               Gerencie a lista de propostas antes do lançamento oficial.
@@ -939,7 +939,7 @@ const PreLancamentoPage = () => {
           className="bg-brand-600 hover:bg-brand-700 text-white gap-2 w-full sm:w-auto"
         >
           <FilePlus className="h-4 w-4" />
-          Incluir Pré-Lançamento
+          Incluir Registro
         </Button>
       </div>
 
@@ -955,7 +955,7 @@ const PreLancamentoPage = () => {
           <Card className="border-dashed shadow-sm bg-neutral-50/50 dark:bg-neutral-900/50">
             <CardContent className="h-48 flex flex-col items-center justify-center text-muted-foreground gap-4">
               <ListFilter className="h-8 w-8 opacity-20" />
-              <p>Nenhum pré-lançamento encontrado.</p>
+              <p>Nenhuma elaboração encontrada.</p>
               <Button variant="outline" onClick={openNewForm}>
                 Adicionar Primeiro Registro
               </Button>
@@ -1142,7 +1142,7 @@ const PreLancamentoPage = () => {
         >
           <SheetHeader className="p-6 border-b bg-white dark:bg-neutral-900 shadow-sm z-10">
             <SheetTitle className="text-xl">
-              {editingRecord ? 'Editar Pré-Lançamento' : 'Novo Pré-Lançamento'}
+              {editingRecord ? 'Editar Registro' : 'Novo Registro'}
             </SheetTitle>
             <SheetDescription>
               {editingRecord

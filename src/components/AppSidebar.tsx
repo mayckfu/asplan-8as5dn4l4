@@ -7,7 +7,7 @@ import {
   Building2,
   LogOut,
   Map,
-  ClipboardList,
+  Calculator,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -53,8 +53,8 @@ export const AppSidebar = () => {
     },
     {
       href: '/pre-lancamento',
-      label: 'Pré-Lançamento',
-      icon: ClipboardList,
+      label: 'Contabilis Elaboração',
+      icon: Calculator,
       visible: true,
     },
     {
