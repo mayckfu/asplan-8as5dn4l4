@@ -483,6 +483,11 @@ const ACOES = [
     label: '2E90 - Incremento Temporário Assistência Hospitalar',
   },
   { value: '2064', label: '2064 - GESTÃO DA ATENÇÃO PRIMÁRIA EM SAÚDE' },
+  {
+    value: '2067',
+    label:
+      '2067 - GESTÃO DA ATENÇÃO ESPECIALIZADA, MÉDIA E ALTA COMPLEXIDADE AMBULATORIAL E HOSPITALAR',
+  },
 ]
 
 const getOptionLabel = (
@@ -737,6 +742,16 @@ const PreLancamentoPage = () => {
         form.setValue('unidade_orcamentaria', '0302 - FUNDO MUNICIPAL DE SAÚDE')
         form.setValue('funcao', '10')
         form.setValue('sub_funcao', '301 - Atenção Básica')
+        form.setValue('programa', '0007 - LAGARTO SAÚDE INTEGRAL E ACESSÍVEL')
+        break
+      case '2067':
+        form.setValue('orgao', '03 - SECRETARIA MUNICIPAL DE SAÚDE - SMS')
+        form.setValue('unidade_orcamentaria', '0302 - FUNDO MUNICIPAL DE SAÚDE')
+        form.setValue('funcao', '10')
+        form.setValue(
+          'sub_funcao',
+          '302 - Assistência Hospitalar e Ambulatorial',
+        )
         form.setValue('programa', '0007 - LAGARTO SAÚDE INTEGRAL E ACESSÍVEL')
         break
       default:
