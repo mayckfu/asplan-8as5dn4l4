@@ -14,6 +14,7 @@ import {
   Loader2,
   FilePlus,
   ListFilter,
+  Edit,
 } from 'lucide-react'
 
 import { supabase } from '@/lib/supabase/client'
@@ -75,6 +76,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 
 const preLancamentoSchema = z.object({
   identificador: z.string().optional(),
@@ -467,22 +475,13 @@ const ACOES = [
     value: '8581',
     label: '8581 - Estruturação da Rede de Serviços de Atenção Básica',
   },
-  {
-    value: '2E89',
-    label: '2E89 - Incremento Temporário ao Custeio',
-  },
-  {
-    value: '8535',
-    label: '8535 - Estruturação de Unidades de Atenção',
-  },
+  { value: '2E89', label: '2E89 - Incremento Temporário ao Custeio' },
+  { value: '8535', label: '8535 - Estruturação de Unidades de Atenção' },
   {
     value: '2E90',
     label: '2E90 - Incremento Temporário Assistência Hospitalar',
   },
-  {
-    value: '2064',
-    label: '2064 - GESTÃO DA ATENÇÃO PRIMÁRIA EM SAÚDE',
-  },
+  { value: '2064', label: '2064 - GESTÃO DA ATENÇÃO PRIMÁRIA EM SAÚDE' },
 ]
 
 const getOptionLabel = (
@@ -518,7 +517,6 @@ const ComboboxField = ({
       control={form.control}
       name={name}
       render={({ field, fieldState }) => {
-        // Find option with exact match or starting with "code -" to support legacy data gracefully
         const selectedOption = options.find(
           (option) =>
             option.value === field.value ||
@@ -550,7 +548,10 @@ const ComboboxField = ({
                   </Button>
                 </FormControl>
               </PopoverTrigger>
-              <PopoverContent className="w-full p-0" align="start">
+              <PopoverContent
+                className="w-[var(--radix-popover-trigger-width)] p-0"
+                align="start"
+              >
                 <Command>
                   <CommandInput
                     placeholder={`Buscar ${label.toLowerCase()}...`}
@@ -621,14 +622,13 @@ const DetailField = ({
 const PreLancamentoPage = () => {
   const { user } = useAuth()
   const { toast } = useToast()
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [editingRecord, setEditingRecord] = useState<any>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [files, setFiles] = useState<File[]>([])
 
-  // States for the list of records
   const [records, setRecords] = useState<any[]>([])
   const [isLoadingRecords, setIsLoadingRecords] = useState(true)
-
-  // State for available propostas dynamic selection
   const [propostasOptions, setPropostasOptions] = useState<
     { id?: string; value: string; label: string }[]
   >([])
@@ -670,7 +670,6 @@ const PreLancamentoPage = () => {
           .map((e) => e.numero_proposta)
           .filter((p) => p && p.trim() !== '')
 
-        // Deduplicate proposal numbers
         const uniquePropostas = Array.from(new Set(validPropostas))
 
         setPropostasOptions(
@@ -748,6 +747,60 @@ const PreLancamentoPage = () => {
     }
   }, [acao, form])
 
+  const openNewForm = () => {
+    setEditingRecord(null)
+    form.reset({
+      identificador: '',
+      ano: 2025,
+      data_referencia: format(new Date(), 'yyyy-MM-dd'),
+      numero_proposta: '',
+      tipo: '',
+      modalidade_aplicacao: 'DIRETA',
+      parlamentar: '',
+      beneficiario: '',
+      localidade: '',
+      valor_previsto: 0,
+      objeto: '',
+      funcao: '',
+      sub_funcao: '',
+      categoria_economica: '',
+      acao_orcamentaria: '',
+      orgao: '',
+      unidade_orcamentaria: '',
+      programa: '',
+    })
+    setFiles([])
+    setIsFormOpen(true)
+  }
+
+  const openEditForm = (record: any) => {
+    setEditingRecord(record)
+    form.reset({
+      identificador: record.identificador || '',
+      ano: record.ano || 2025,
+      data_referencia: record.data_referencia
+        ? record.data_referencia.substring(0, 10)
+        : '',
+      numero_proposta: record.numero_proposta || '',
+      tipo: record.tipo || '',
+      modalidade_aplicacao: record.modalidade_aplicacao || 'DIRETA',
+      parlamentar: record.parlamentar || '',
+      beneficiario: record.beneficiario || '',
+      localidade: record.localidade || '',
+      valor_previsto: record.valor_previsto || 0,
+      objeto: record.objeto || '',
+      funcao: record.funcao || '',
+      sub_funcao: record.sub_funcao || '',
+      categoria_economica: record.categoria_economica || '',
+      acao_orcamentaria: record.acao_orcamentaria || '',
+      orgao: record.orgao || '',
+      unidade_orcamentaria: record.unidade_orcamentaria || '',
+      programa: record.programa || '',
+    })
+    setFiles([])
+    setIsFormOpen(true)
+  }
+
   const handleFilesAccepted = (accepted: File[]) => {
     setFiles((prev) => [...prev, ...accepted])
   }
@@ -784,12 +837,17 @@ const PreLancamentoPage = () => {
     if (!user) return
     setIsSubmitting(true)
     try {
-      // 1. Validar duplicidade no frontend antes do envio
-      const { data: existing, error: checkError } = await supabase
+      // Validar duplicidade
+      let query = supabase
         .from('pre_lancamentos')
         .select('id')
         .eq('numero_proposta', data.numero_proposta)
-        .maybeSingle()
+
+      if (editingRecord) {
+        query = query.neq('id', editingRecord.id)
+      }
+
+      const { data: existing, error: checkError } = await query.maybeSingle()
 
       if (checkError) throw checkError
 
@@ -822,21 +880,32 @@ const PreLancamentoPage = () => {
         orgao: data.orgao,
         unidade_orcamentaria: data.unidade_orcamentaria,
         programa: data.programa,
-        created_by: user.id,
       }
 
-      const { error } = await supabase.from('pre_lancamentos').insert(payload)
-      if (error) throw error
+      if (editingRecord) {
+        const { error } = await supabase
+          .from('pre_lancamentos')
+          .update(payload)
+          .eq('id', editingRecord.id)
+        if (error) throw error
 
-      toast({
-        title: 'Pré-lançamento salvo com sucesso!',
-        description: 'Os dados foram registrados.',
-      })
-      form.reset()
-      setFiles([])
+        toast({
+          title: 'Alterações salvas!',
+          description: 'O pré-lançamento foi atualizado com sucesso.',
+        })
+      } else {
+        payload.created_by = user.id
+        const { error } = await supabase.from('pre_lancamentos').insert(payload)
+        if (error) throw error
 
-      // Refresh the list after successful submit
-      await fetchRecords()
+        toast({
+          title: 'Pré-lançamento salvo!',
+          description: 'Os dados foram registrados com sucesso.',
+        })
+      }
+
+      setIsFormOpen(false)
+      fetchRecords()
     } catch (error: any) {
       toast({
         title: 'Erro ao salvar',
@@ -850,430 +919,32 @@ const PreLancamentoPage = () => {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-8">
-      <div className="flex items-center gap-3">
-        <div className="p-3 bg-brand-100 dark:bg-brand-900/30 rounded-lg">
-          <FilePlus className="h-6 w-6 text-brand-600 dark:text-brand-400" />
+      {/* Header View */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-brand-100 dark:bg-brand-900/30 rounded-lg">
+            <ClipboardList className="h-6 w-6 text-brand-600 dark:text-brand-400" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
+              Pré-Lançamento
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Gerencie a lista de propostas antes do lançamento oficial.
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
-            Pré-Lançamento
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Organize e preencha os dados da proposta antes do lançamento
-            oficial.
-          </p>
-        </div>
+        <Button
+          onClick={openNewForm}
+          className="bg-brand-600 hover:bg-brand-700 text-white gap-2 w-full sm:w-auto"
+        >
+          <FilePlus className="h-4 w-4" />
+          Incluir Pré-Lançamento
+        </Button>
       </div>
 
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="flex flex-col relative"
-        >
-          <div className="flex flex-col lg:flex-row gap-6 mb-8">
-            {/* Form Blocks */}
-            <div className="flex-1 space-y-6">
-              <Card className="shadow-sm border-neutral-200">
-                <CardHeader className="bg-muted/40 border-b border-border py-3">
-                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs">
-                      1
-                    </span>
-                    Identificação da Proposta
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-muted-foreground font-semibold">
-                      Código
-                    </Label>
-                    <Input
-                      value="Automático"
-                      disabled
-                      className="bg-muted/50 font-mono text-center"
-                    />
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="identificador"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Identificador</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Opcional" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="ano"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Ano</FormLabel>
-                        <FormControl>
-                          <Input type="number" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="data_referencia"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Data Referência</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <ComboboxField
-                    form={form}
-                    name="numero_proposta"
-                    label="Número da Proposta"
-                    options={propostasOptions}
-                    placeholder="Selecione a proposta..."
-                  />
-                  <ComboboxField
-                    form={form}
-                    name="tipo"
-                    label="Tipo"
-                    options={TIPOS_EMENDA}
-                    placeholder="Selecione o tipo"
-                  />
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-sm border-neutral-200">
-                <CardHeader className="bg-muted/40 border-b border-border py-3">
-                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs">
-                      2
-                    </span>
-                    Detalhes e Classificação
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="modalidade_aplicacao"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Modalidade Aplicação</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="DIRETA">Direta</SelectItem>
-                            <SelectItem value="INDIRETA">Indireta</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="parlamentar"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Parlamentar</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Nome do autor" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="valor_previsto"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Valor Previsto (R$)</FormLabel>
-                        <FormControl>
-                          <MoneyInput
-                            value={field.value}
-                            onChange={field.onChange}
-                            placeholder="0,00"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="beneficiario"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Beneficiário</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Entidade ou pessoa" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="localidade"
-                    render={({ field }) => (
-                      <FormItem className="lg:col-span-2">
-                        <FormLabel>Localidade</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Cidade / Estado" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="objeto"
-                    render={({ field }) => (
-                      <FormItem className="md:col-span-2 lg:col-span-3">
-                        <FormLabel>Objeto da Proposta</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Descreva a finalidade..."
-                            className="resize-none min-h-[100px]"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-sm border-neutral-200">
-                <CardHeader className="bg-muted/40 border-b border-border py-3">
-                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs">
-                      3
-                    </span>
-                    Estrutura Orçamentária
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <ComboboxField
-                    form={form}
-                    name="funcao"
-                    label="Função"
-                    options={FUNCOES}
-                    placeholder="Selecione a função"
-                  />
-                  <ComboboxField
-                    form={form}
-                    name="sub_funcao"
-                    label="Sub-Função"
-                    options={SUB_FUNCOES}
-                    placeholder="Selecione a sub-função"
-                  />
-                  <ComboboxField
-                    form={form}
-                    name="categoria_economica"
-                    label="Categoria Econômica"
-                    options={CATEGORIAS}
-                    placeholder="Selecione a categoria"
-                  />
-                  <ComboboxField
-                    form={form}
-                    name="acao_orcamentaria"
-                    label="Ação Orçamentária"
-                    options={ACOES}
-                    placeholder="Selecione a ação"
-                  />
-                </CardContent>
-              </Card>
-
-              <Card className="bg-brand-50 border-brand-100 dark:bg-brand-950/20 dark:border-brand-900 shadow-sm overflow-hidden">
-                <CardHeader className="py-3 border-b border-brand-100/50 dark:border-brand-900/50 bg-brand-100/30 dark:bg-brand-900/30">
-                  <CardTitle className="text-sm font-semibold text-brand-800 dark:text-brand-300 flex items-center gap-2">
-                    <Landmark className="h-4 w-4" />
-                    Resumo da Classificação Institucional e Programática
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="orgao"
-                    render={({ field }) => (
-                      <FormItem className="space-y-1.5">
-                        <FormLabel className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
-                          Órgão
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Órgão"
-                            className="font-medium text-sm text-brand-900 dark:text-brand-100 bg-white dark:bg-neutral-900 border-brand-200/60 dark:border-brand-800 focus-visible:ring-brand-500"
-                            {...field}
-                            value={field.value || ''}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="unidade_orcamentaria"
-                    render={({ field }) => (
-                      <FormItem className="space-y-1.5">
-                        <FormLabel className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
-                          Unidade Orçamentária
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Unidade Orçamentária"
-                            className="font-medium text-sm text-brand-900 dark:text-brand-100 bg-white dark:bg-neutral-900 border-brand-200/60 dark:border-brand-800 focus-visible:ring-brand-500"
-                            {...field}
-                            value={field.value || ''}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="programa"
-                    render={({ field }) => (
-                      <FormItem className="space-y-1.5">
-                        <FormLabel className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
-                          Programa
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Programa"
-                            className="font-medium text-sm text-brand-900 dark:text-brand-100 bg-white dark:bg-neutral-900 border-brand-200/60 dark:border-brand-800 focus-visible:ring-brand-500"
-                            {...field}
-                            value={field.value || ''}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Attachments Sidebar */}
-            <div className="w-full lg:w-80 space-y-6">
-              <Card className="sticky top-6 shadow-sm border-neutral-200">
-                <CardHeader className="bg-muted/40 border-b border-border py-3">
-                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <ClipboardList className="h-4 w-4" /> Anexos
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-4 space-y-4">
-                  <FileUpload
-                    onFilesAccepted={handleFilesAccepted}
-                    className="border-dashed bg-muted/20 hover:bg-muted/40"
-                  />
-                  {files.length > 0 && (
-                    <div className="space-y-2 mt-4 animate-in fade-in">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                        Arquivos Adicionados
-                      </h4>
-                      {files.map((file, index) => (
-                        <div
-                          key={`${file.name}-${index}`}
-                          className="flex items-center justify-between p-2.5 rounded-md border bg-neutral-50 dark:bg-neutral-900 shadow-sm group transition-colors hover:border-primary/30"
-                        >
-                          <div className="flex items-center gap-3 overflow-hidden">
-                            <div className="p-1.5 bg-white dark:bg-neutral-800 rounded border shrink-0">
-                              <FileIcon className="h-4 w-4 text-primary" />
-                            </div>
-                            <div className="flex flex-col overflow-hidden">
-                              <span
-                                className="text-sm font-medium truncate text-neutral-800 dark:text-neutral-200"
-                                title={file.name}
-                              >
-                                {file.name}
-                              </span>
-                              <span className="text-[10px] font-mono text-muted-foreground">
-                                {formatBytes(file.size)}
-                              </span>
-                            </div>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-red-500 hover:bg-red-50 hover:text-red-600 opacity-50 group-hover:opacity-100 transition-opacity shrink-0"
-                            onClick={() => removeFile(index)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
-          {/* Fixed Action Footer */}
-          <div className="sticky bottom-4 z-40 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-center shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] w-full gap-4 backdrop-blur-sm bg-white/95 dark:bg-neutral-900/95">
-            <div className="font-mono text-sm font-bold tracking-wider text-muted-foreground flex items-center gap-2.5 bg-muted/50 px-3 py-1.5 rounded-md border">
-              <span className="h-2.5 w-2.5 rounded-full bg-blue-500 animate-pulse ring-4 ring-blue-500/20" />
-              MODO: INCLUIR
-            </div>
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full sm:w-auto"
-                onClick={() => {
-                  form.reset()
-                  setFiles([])
-                }}
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full sm:w-auto gap-2 bg-brand-600 hover:bg-brand-700 text-white"
-              >
-                {isSubmitting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4" />
-                )}
-                Gravar Proposta
-              </Button>
-            </div>
-          </div>
-        </form>
-      </Form>
-
-      {/* Added Records Expandable Cards Section */}
-      <div className="mt-12 space-y-4">
-        <div className="flex items-center gap-2">
-          <ListFilter className="h-5 w-5 text-muted-foreground" />
-          <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
-            Registros Adicionados
-          </h2>
-        </div>
-
+      {/* Main List Section */}
+      <div className="space-y-4">
         {isLoadingRecords ? (
           <div className="space-y-4">
             {Array.from({ length: 3 }).map((_, i) => (
@@ -1281,9 +952,13 @@ const PreLancamentoPage = () => {
             ))}
           </div>
         ) : records.length === 0 ? (
-          <Card className="border-dashed shadow-sm">
-            <CardContent className="h-32 flex items-center justify-center text-muted-foreground">
-              Nenhum pré-lançamento encontrado.
+          <Card className="border-dashed shadow-sm bg-neutral-50/50 dark:bg-neutral-900/50">
+            <CardContent className="h-48 flex flex-col items-center justify-center text-muted-foreground gap-4">
+              <ListFilter className="h-8 w-8 opacity-20" />
+              <p>Nenhum pré-lançamento encontrado.</p>
+              <Button variant="outline" onClick={openNewForm}>
+                Adicionar Primeiro Registro
+              </Button>
             </CardContent>
           </Card>
         ) : (
@@ -1296,7 +971,6 @@ const PreLancamentoPage = () => {
               >
                 <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors group">
                   <div className="flex flex-1 items-center justify-between gap-6 pr-4 text-left">
-                    {/* Proposta Num & Tipo */}
                     <div className="flex flex-col min-w-[120px] w-1/3">
                       <span
                         className="text-sm font-bold text-foreground truncate"
@@ -1318,7 +992,6 @@ const PreLancamentoPage = () => {
                       </span>
                     </div>
 
-                    {/* Parlamentar */}
                     <div className="flex flex-col min-w-[120px] w-1/3 hidden sm:flex">
                       <span
                         className="text-sm font-medium text-foreground truncate"
@@ -1334,7 +1007,6 @@ const PreLancamentoPage = () => {
                       </span>
                     </div>
 
-                    {/* Valor & Status */}
                     <div className="flex flex-col items-end min-w-[120px] ml-auto">
                       <span className="text-sm font-bold text-brand-600 dark:text-brand-400 whitespace-nowrap">
                         {record.valor_previsto
@@ -1361,7 +1033,6 @@ const PreLancamentoPage = () => {
                       value={record.identificador}
                     />
                     <DetailField label="Ano" value={record.ano} />
-
                     <DetailField
                       label="Data de Referência"
                       value={formatDisplayDate(record.data_referencia)}
@@ -1374,7 +1045,6 @@ const PreLancamentoPage = () => {
                       label="Modalidade de Aplicação"
                       value={record.modalidade_aplicacao}
                     />
-
                     <DetailField
                       label="Parlamentar"
                       value={record.parlamentar}
@@ -1384,13 +1054,11 @@ const PreLancamentoPage = () => {
                       value={record.beneficiario}
                     />
                     <DetailField label="Localidade" value={record.localidade} />
-
                     <DetailField
                       label="Objeto"
                       value={record.objeto}
                       className="sm:col-span-2 lg:col-span-3"
                     />
-
                     <DetailField
                       label="Função"
                       value={getOptionLabel(record.funcao, FUNCOES)}
@@ -1406,28 +1074,29 @@ const PreLancamentoPage = () => {
                         CATEGORIAS,
                       )}
                     />
-
                     <DetailField
                       label="Ação Orçamentária"
                       value={getOptionLabel(record.acao_orcamentaria, ACOES)}
                       className="lg:col-span-3"
                     />
-
                     <DetailField label="Órgão" value={record.orgao} />
                     <DetailField
                       label="Unidade Orçamentária"
                       value={record.unidade_orcamentaria}
                     />
                     <DetailField label="Programa" value={record.programa} />
-
-                    <DetailField
-                      label="Status da Operação"
-                      value={record.status_operacao}
-                    />
                   </div>
 
-                  {/* Delete Action within Content */}
-                  <div className="mt-6 pt-4 border-t border-neutral-200 dark:border-neutral-800 flex justify-end">
+                  <div className="mt-6 pt-4 border-t border-neutral-200 dark:border-neutral-800 flex justify-end gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => openEditForm(record)}
+                    >
+                      <Edit className="h-4 w-4" />
+                      Editar
+                    </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button
@@ -1464,6 +1133,431 @@ const PreLancamentoPage = () => {
           </Accordion>
         )}
       </div>
+
+      {/* Side Panel Form */}
+      <Sheet open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <SheetContent
+          side="right"
+          className="w-full sm:max-w-2xl lg:max-w-4xl p-0 flex flex-col gap-0 bg-neutral-50 dark:bg-neutral-950/90"
+        >
+          <SheetHeader className="p-6 border-b bg-white dark:bg-neutral-900 shadow-sm z-10">
+            <SheetTitle className="text-xl">
+              {editingRecord ? 'Editar Pré-Lançamento' : 'Novo Pré-Lançamento'}
+            </SheetTitle>
+            <SheetDescription>
+              {editingRecord
+                ? 'Altere os dados da proposta abaixo.'
+                : 'Preencha os dados da proposta antes do lançamento oficial.'}
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="flex-1 overflow-y-auto p-6 relative">
+            <Form {...form}>
+              <form
+                id="pre-lancamento-form"
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6 pb-6"
+              >
+                <Card className="shadow-sm border-neutral-200 dark:border-neutral-800">
+                  <CardHeader className="bg-muted/40 border-b border-border py-3">
+                    <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                      <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs">
+                        1
+                      </span>
+                      Identificação da Proposta
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-muted-foreground font-semibold">
+                        Código
+                      </Label>
+                      <Input
+                        value={
+                          editingRecord
+                            ? editingRecord.codigo_sequencial
+                            : 'Automático'
+                        }
+                        disabled
+                        className="bg-muted/50 font-mono text-center"
+                      />
+                    </div>
+                    <FormField
+                      control={form.control}
+                      name="identificador"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Identificador</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Opcional" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="ano"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Ano</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="data_referencia"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Data Referência</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <ComboboxField
+                      form={form}
+                      name="numero_proposta"
+                      label="Número da Proposta"
+                      options={propostasOptions}
+                      placeholder="Selecione a proposta..."
+                    />
+                    <ComboboxField
+                      form={form}
+                      name="tipo"
+                      label="Tipo"
+                      options={TIPOS_EMENDA}
+                      placeholder="Selecione o tipo"
+                    />
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-sm border-neutral-200 dark:border-neutral-800">
+                  <CardHeader className="bg-muted/40 border-b border-border py-3">
+                    <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                      <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs">
+                        2
+                      </span>
+                      Detalhes e Classificação
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="modalidade_aplicacao"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Modalidade Aplicação</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="DIRETA">Direta</SelectItem>
+                              <SelectItem value="INDIRETA">Indireta</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="parlamentar"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Parlamentar</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Nome do autor" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="valor_previsto"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Valor Previsto (R$)</FormLabel>
+                          <FormControl>
+                            <MoneyInput
+                              value={field.value}
+                              onChange={field.onChange}
+                              placeholder="0,00"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="beneficiario"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Beneficiário</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Entidade ou pessoa"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="localidade"
+                      render={({ field }) => (
+                        <FormItem className="lg:col-span-2">
+                          <FormLabel>Localidade</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Cidade / Estado" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="objeto"
+                      render={({ field }) => (
+                        <FormItem className="md:col-span-2 lg:col-span-3">
+                          <FormLabel>Objeto da Proposta</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Descreva a finalidade..."
+                              className="resize-none min-h-[100px]"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-sm border-neutral-200 dark:border-neutral-800">
+                  <CardHeader className="bg-muted/40 border-b border-border py-3">
+                    <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                      <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs">
+                        3
+                      </span>
+                      Estrutura Orçamentária
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <ComboboxField
+                      form={form}
+                      name="funcao"
+                      label="Função"
+                      options={FUNCOES}
+                      placeholder="Selecione a função"
+                    />
+                    <ComboboxField
+                      form={form}
+                      name="sub_funcao"
+                      label="Sub-Função"
+                      options={SUB_FUNCOES}
+                      placeholder="Selecione a sub-função"
+                    />
+                    <ComboboxField
+                      form={form}
+                      name="categoria_economica"
+                      label="Categoria Econômica"
+                      options={CATEGORIAS}
+                      placeholder="Selecione a categoria"
+                    />
+                    <ComboboxField
+                      form={form}
+                      name="acao_orcamentaria"
+                      label="Ação Orçamentária"
+                      options={ACOES}
+                      placeholder="Selecione a ação"
+                    />
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-brand-50 border-brand-100 dark:bg-brand-950/20 dark:border-brand-900 shadow-sm overflow-hidden">
+                  <CardHeader className="py-3 border-b border-brand-100/50 dark:border-brand-900/50 bg-brand-100/30 dark:bg-brand-900/30">
+                    <CardTitle className="text-sm font-semibold text-brand-800 dark:text-brand-300 flex items-center gap-2">
+                      <Landmark className="h-4 w-4" />
+                      Resumo da Classificação Institucional e Programática
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <FormField
+                      control={form.control}
+                      name="orgao"
+                      render={({ field }) => (
+                        <FormItem className="space-y-1.5">
+                          <FormLabel className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
+                            Órgão
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Órgão"
+                              className="font-medium text-sm text-brand-900 dark:text-brand-100 bg-white dark:bg-neutral-900 border-brand-200/60 dark:border-brand-800 focus-visible:ring-brand-500"
+                              {...field}
+                              value={field.value || ''}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="unidade_orcamentaria"
+                      render={({ field }) => (
+                        <FormItem className="space-y-1.5">
+                          <FormLabel className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
+                            Unidade Orçamentária
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Unidade Orçamentária"
+                              className="font-medium text-sm text-brand-900 dark:text-brand-100 bg-white dark:bg-neutral-900 border-brand-200/60 dark:border-brand-800 focus-visible:ring-brand-500"
+                              {...field}
+                              value={field.value || ''}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="programa"
+                      render={({ field }) => (
+                        <FormItem className="space-y-1.5">
+                          <FormLabel className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
+                            Programa
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Programa"
+                              className="font-medium text-sm text-brand-900 dark:text-brand-100 bg-white dark:bg-neutral-900 border-brand-200/60 dark:border-brand-800 focus-visible:ring-brand-500"
+                              {...field}
+                              value={field.value || ''}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-sm border-neutral-200 dark:border-neutral-800">
+                  <CardHeader className="bg-muted/40 border-b border-border py-3">
+                    <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                      <ClipboardList className="h-4 w-4" /> Anexos
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4 space-y-4">
+                    <FileUpload
+                      onFilesAccepted={handleFilesAccepted}
+                      className="border-dashed bg-muted/20 hover:bg-muted/40"
+                    />
+                    {files.length > 0 && (
+                      <div className="space-y-2 mt-4 animate-in fade-in">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                          Arquivos Adicionados
+                        </h4>
+                        {files.map((file, index) => (
+                          <div
+                            key={`${file.name}-${index}`}
+                            className="flex items-center justify-between p-2.5 rounded-md border bg-neutral-50 dark:bg-neutral-900 shadow-sm group transition-colors hover:border-primary/30"
+                          >
+                            <div className="flex items-center gap-3 overflow-hidden">
+                              <div className="p-1.5 bg-white dark:bg-neutral-800 rounded border shrink-0">
+                                <FileIcon className="h-4 w-4 text-primary" />
+                              </div>
+                              <div className="flex flex-col overflow-hidden">
+                                <span
+                                  className="text-sm font-medium truncate text-neutral-800 dark:text-neutral-200"
+                                  title={file.name}
+                                >
+                                  {file.name}
+                                </span>
+                                <span className="text-[10px] font-mono text-muted-foreground">
+                                  {formatBytes(file.size)}
+                                </span>
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-red-500 hover:bg-red-50 hover:text-red-600 opacity-50 group-hover:opacity-100 transition-opacity shrink-0"
+                              onClick={() => removeFile(index)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </form>
+            </Form>
+          </div>
+
+          <div className="p-4 border-t bg-white dark:bg-neutral-900 shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.1)] flex items-center justify-between z-10 shrink-0">
+            <div className="font-mono text-sm font-bold tracking-wider text-muted-foreground hidden sm:flex items-center gap-2.5 bg-muted/50 px-3 py-1.5 rounded-md border">
+              <span
+                className={cn(
+                  'h-2.5 w-2.5 rounded-full animate-pulse ring-4',
+                  editingRecord
+                    ? 'bg-amber-500 ring-amber-500/20'
+                    : 'bg-blue-500 ring-blue-500/20',
+                )}
+              />
+              MODO: {editingRecord ? 'EDITAR' : 'INCLUIR'}
+            </div>
+            <div className="flex items-center justify-end gap-3 w-full sm:w-auto">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={() => setIsFormOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                form="pre-lancamento-form"
+                disabled={isSubmitting}
+                className="w-full sm:w-auto gap-2 bg-brand-600 hover:bg-brand-700 text-white"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                {editingRecord ? 'Salvar Alterações' : 'Gravar Proposta'}
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }
