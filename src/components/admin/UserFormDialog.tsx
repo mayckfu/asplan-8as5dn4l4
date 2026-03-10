@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { User, Cargo } from '@/lib/mock-data'
+import { User } from '@/lib/mock-data'
 
 const passwordRegex =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
@@ -38,7 +38,6 @@ const userSchema = z
     email: z.string().email('Email inválido'),
     cpf: z.string().optional(),
     role: z.enum(['ADMIN', 'GESTOR', 'ANALISTA', 'CONSULTA'] as const),
-    cargo_id: z.string().min(1, 'Cargo é obrigatório'),
     unidade: z.string().optional(),
     status: z.enum(['ATIVO', 'BLOQUEADO', 'PENDENTE'] as const),
     password: z.string().optional(),
@@ -76,7 +75,6 @@ interface UserFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   user?: User | null
-  cargos: Cargo[]
   onSubmit: (data: UserFormValues) => void
 }
 
@@ -84,7 +82,6 @@ export const UserFormDialog = ({
   open,
   onOpenChange,
   user,
-  cargos,
   onSubmit,
 }: UserFormDialogProps) => {
   const form = useForm<UserFormValues>({
@@ -94,7 +91,6 @@ export const UserFormDialog = ({
       email: '',
       cpf: '',
       role: 'CONSULTA',
-      cargo_id: '',
       unidade: '',
       status: 'ATIVO',
       password: '',
@@ -109,7 +105,6 @@ export const UserFormDialog = ({
         email: user.email,
         cpf: user.cpf || '',
         role: user.role,
-        cargo_id: user.cargo_id || '',
         unidade: user.unidade || '',
         status: user.status,
         password: '',
@@ -121,7 +116,6 @@ export const UserFormDialog = ({
         email: '',
         cpf: '',
         role: 'CONSULTA',
-        cargo_id: '',
         unidade: '',
         status: 'ATIVO',
         password: '',
@@ -131,7 +125,6 @@ export const UserFormDialog = ({
   }, [user, form, open])
 
   const handleSubmit = (values: UserFormValues) => {
-    // Enforce password for new users if not provided
     if (!user && !values.password) {
       form.setError('password', {
         type: 'manual',
@@ -149,7 +142,7 @@ export const UserFormDialog = ({
         <DialogHeader>
           <DialogTitle>{user ? 'Editar Usuário' : 'Novo Usuário'}</DialogTitle>
           <DialogDescription>
-            Preencha os dados do usuário abaixo.
+            Preencha os dados do usuário e defina as permissões de acesso.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -259,52 +252,10 @@ export const UserFormDialog = ({
               />
               <FormField
                 control={form.control}
-                name="cargo_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cargo</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {cargos.map((cargo) => (
-                          <SelectItem key={cargo.id} value={cargo.id}>
-                            {cargo.nome}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="unidade"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Unidade / Setor</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Financeiro" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status Inicial</FormLabel>
+                    <FormLabel>Status de Acesso</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
@@ -325,6 +276,24 @@ export const UserFormDialog = ({
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="unidade"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Unidade / Setor (Opcional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ex: Financeiro, Planejamento..."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <DialogFooter className="pt-4">
               <Button
                 type="button"
@@ -333,7 +302,7 @@ export const UserFormDialog = ({
               >
                 Cancelar
               </Button>
-              <Button type="submit">Salvar</Button>
+              <Button type="submit">Salvar Usuário</Button>
             </DialogFooter>
           </form>
         </Form>

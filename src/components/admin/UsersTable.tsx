@@ -35,13 +35,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { User, Cargo } from '@/lib/mock-data'
+import { User } from '@/lib/mock-data'
 import { UserFormDialog } from './UserFormDialog'
 import { useToast } from '@/components/ui/use-toast'
 
 interface UsersTableProps {
   users: User[]
-  cargos: Cargo[]
   onUpdateUser: (user: User) => void
   onCreateUser: (user: Omit<User, 'id' | 'created_at'>) => void
   onDeleteUser?: (userId: string) => void
@@ -50,7 +49,6 @@ interface UsersTableProps {
 
 export const UsersTable = ({
   users,
-  cargos,
   onUpdateUser,
   onCreateUser,
   onDeleteUser,
@@ -63,10 +61,6 @@ export const UsersTable = ({
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [userToBlock, setUserToBlock] = useState<User | null>(null)
   const [userToDelete, setUserToDelete] = useState<User | null>(null)
-
-  const getCargoName = (id?: string) => {
-    return cargos.find((c) => c.id === id)?.nome || '-'
-  }
 
   const handleEdit = (user: User) => {
     setEditingUser(user)
@@ -161,7 +155,6 @@ export const UsersTable = ({
               <TableHead>Nome</TableHead>
               <TableHead>E-mail</TableHead>
               <TableHead>CPF</TableHead>
-              <TableHead>Cargo</TableHead>
               <TableHead>Perfil</TableHead>
               <TableHead>Unidade</TableHead>
               <TableHead>Status</TableHead>
@@ -171,7 +164,7 @@ export const UsersTable = ({
           <TableBody>
             {users.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8">
+                <TableCell colSpan={7} className="text-center py-8">
                   Nenhum usuário encontrado.
                 </TableCell>
               </TableRow>
@@ -185,7 +178,6 @@ export const UsersTable = ({
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{user.cpf || '-'}</TableCell>
-                  <TableCell>{getCargoName(user.cargo_id)}</TableCell>
                   <TableCell>
                     <Badge variant="outline">{user.role}</Badge>
                   </TableCell>
@@ -261,7 +253,6 @@ export const UsersTable = ({
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         user={editingUser}
-        cargos={cargos}
         onSubmit={handleFormSubmit}
       />
 

@@ -9,28 +9,19 @@ import {
 } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { UsersTable } from '@/components/admin/UsersTable'
-import { RolesTable } from '@/components/admin/RolesTable'
 import { AuditLogsTable } from '@/components/admin/AuditLogsTable'
 import { SecurityNotifications } from '@/components/admin/SecurityNotifications'
 import { useAuth } from '@/contexts/AuthContext'
-import { User, Cargo, AuditLog } from '@/lib/mock-data'
+import { User, AuditLog } from '@/lib/mock-data'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/use-toast'
-import {
-  Loader2,
-  Shield,
-  AlertTriangle,
-  Users,
-  Briefcase,
-  History,
-} from 'lucide-react'
+import { Loader2, Shield, AlertTriangle, Users, History } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 const AdminPage = () => {
   const { isAdmin, user } = useAuth()
   const { toast } = useToast()
   const [users, setUsers] = useState<User[]>([])
-  const [cargos, setCargos] = useState<Cargo[]>([])
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -46,13 +37,6 @@ const AdminPage = () => {
 
       if (usersError) throw usersError
 
-      const { data: cargosData, error: cargosError } = await supabase
-        .from('cargos')
-        .select('*')
-        .order('nome', { ascending: true })
-
-      if (cargosError) throw cargosError
-
       const { data: logsData, error: logsError } = await supabase
         .from('audit_logs')
         .select('*, profiles:changed_by(name)')
@@ -62,7 +46,6 @@ const AdminPage = () => {
       if (logsError) throw logsError
 
       setUsers(usersData as User[])
-      setCargos(cargosData as Cargo[])
       setAuditLogs(
         logsData.map((log: any) => ({
           ...log,
@@ -101,7 +84,6 @@ const AdminPage = () => {
           email: updatedUser.email,
           cpf: updatedUser.cpf,
           role: updatedUser.role,
-          cargo_id: updatedUser.cargo_id,
           unidade: updatedUser.unidade,
           status: updatedUser.status,
         })
@@ -132,7 +114,6 @@ const AdminPage = () => {
             name: newUser.name,
             cpf: newUser.cpf,
             role: newUser.role,
-            cargo_id: newUser.cargo_id,
             unidade: newUser.unidade,
             status: newUser.status,
             email_confirm: true,
@@ -216,54 +197,6 @@ const AdminPage = () => {
     }
   }
 
-  const handleUpdateCargo = async (updatedCargo: Cargo) => {
-    try {
-      const { error } = await supabase
-        .from('cargos')
-        .update({
-          nome: updatedCargo.nome,
-          descricao: updatedCargo.descricao,
-          default_role: updatedCargo.default_role,
-          active: updatedCargo.active,
-        })
-        .eq('id', updatedCargo.id)
-
-      if (error) throw error
-
-      setCargos((prev) =>
-        prev.map((c) => (c.id === updatedCargo.id ? updatedCargo : c)),
-      )
-      toast({ title: 'Cargo atualizado com sucesso.' })
-    } catch (error: any) {
-      toast({
-        title: 'Erro ao atualizar cargo',
-        description: error.message,
-        variant: 'destructive',
-      })
-    }
-  }
-
-  const handleCreateCargo = async (newCargo: Omit<Cargo, 'id'>) => {
-    try {
-      const { data, error } = await supabase
-        .from('cargos')
-        .insert([newCargo])
-        .select()
-        .single()
-
-      if (error) throw error
-
-      setCargos((prev) => [...prev, data as Cargo])
-      toast({ title: 'Cargo criado com sucesso.' })
-    } catch (error: any) {
-      toast({
-        title: 'Erro ao criar cargo',
-        description: error.message,
-        variant: 'destructive',
-      })
-    }
-  }
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-100px)]">
@@ -300,9 +233,6 @@ const AdminPage = () => {
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="h-4 w-4" /> Usuários
           </TabsTrigger>
-          <TabsTrigger value="roles" className="flex items-center gap-2">
-            <Briefcase className="h-4 w-4" /> Cargos
-          </TabsTrigger>
           <TabsTrigger value="audit" className="flex items-center gap-2">
             <History className="h-4 w-4" /> Auditoria
           </TabsTrigger>
@@ -322,29 +252,10 @@ const AdminPage = () => {
             <CardContent>
               <UsersTable
                 users={users}
-                cargos={cargos}
                 onUpdateUser={handleUpdateUser}
                 onCreateUser={handleCreateUser}
                 onDeleteUser={handleDeleteUser}
                 onResetPassword={handleResetPassword}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="roles">
-          <Card className="shadow-sm border border-neutral-200 dark:border-neutral-800">
-            <CardHeader>
-              <CardTitle>Cargos e Perfis de Acesso</CardTitle>
-              <CardDescription>
-                Configure os cargos disponíveis e seus perfis de acesso padrão.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <RolesTable
-                cargos={cargos}
-                onUpdateCargo={handleUpdateCargo}
-                onCreateCargo={handleCreateCargo}
               />
             </CardContent>
           </Card>
