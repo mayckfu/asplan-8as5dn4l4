@@ -12,7 +12,6 @@ import { UsersTable } from '@/components/admin/UsersTable'
 import { RolesTable } from '@/components/admin/RolesTable'
 import { AuditLogsTable } from '@/components/admin/AuditLogsTable'
 import { SecurityNotifications } from '@/components/admin/SecurityNotifications'
-import { YearsTable, ConfiguracaoAno } from '@/components/admin/YearsTable'
 import { useAuth } from '@/contexts/AuthContext'
 import { User, Cargo, AuditLog } from '@/lib/mock-data'
 import { supabase } from '@/lib/supabase/client'
@@ -21,7 +20,6 @@ import {
   Loader2,
   Shield,
   AlertTriangle,
-  CalendarDays,
   Users,
   Briefcase,
   History,
@@ -34,7 +32,6 @@ const AdminPage = () => {
   const [users, setUsers] = useState<User[]>([])
   const [cargos, setCargos] = useState<Cargo[]>([])
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
-  const [configYears, setConfigYears] = useState<ConfiguracaoAno[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -64,13 +61,6 @@ const AdminPage = () => {
 
       if (logsError) throw logsError
 
-      const { data: yearsData, error: yearsError } = await supabase
-        .from('configuracoes_anos' as any)
-        .select('*')
-        .order('ano', { ascending: false })
-
-      if (yearsError) throw yearsError
-
       setUsers(usersData as User[])
       setCargos(cargosData as Cargo[])
       setAuditLogs(
@@ -79,7 +69,6 @@ const AdminPage = () => {
           changed_by: log.profiles?.name || 'Sistema',
         })) as AuditLog[],
       )
-      setConfigYears(yearsData as ConfiguracaoAno[])
     } catch (error: any) {
       console.error('Error fetching admin data:', error.message)
       setError(error.message || 'Erro ao carregar dados administrativos.')
@@ -275,36 +264,6 @@ const AdminPage = () => {
     }
   }
 
-  const handleUpdateYear = (updatedYear: ConfiguracaoAno) => {
-    setConfigYears((prev) =>
-      prev.map((y) => (y.ano === updatedYear.ano ? updatedYear : y)),
-    )
-  }
-
-  const handleCreateYear = (ano: number) => {
-    setConfigYears((prev) => [{ ano, liberado_geral: false }, ...prev])
-  }
-
-  const handleDeleteYear = async (ano: number) => {
-    try {
-      const { error } = await supabase
-        .from('configuracoes_anos' as any)
-        .delete()
-        .eq('ano', ano)
-
-      if (error) throw error
-
-      setConfigYears((prev) => prev.filter((y) => y.ano !== ano))
-      toast({ title: 'Ano excluído com sucesso.' })
-    } catch (error: any) {
-      toast({
-        title: 'Erro ao excluir ano',
-        description: error.message,
-        variant: 'destructive',
-      })
-    }
-  }
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-100px)]">
@@ -331,8 +290,8 @@ const AdminPage = () => {
           Administração
         </h1>
         <p className="text-muted-foreground mt-2">
-          Gerencie usuários, perfis de acesso, anos de exercício e configurações
-          globais do sistema.
+          Gerencie usuários, perfis de acesso e configurações globais do
+          sistema.
         </p>
       </div>
 
@@ -343,9 +302,6 @@ const AdminPage = () => {
           </TabsTrigger>
           <TabsTrigger value="roles" className="flex items-center gap-2">
             <Briefcase className="h-4 w-4" /> Cargos
-          </TabsTrigger>
-          <TabsTrigger value="years" className="flex items-center gap-2">
-            <CalendarDays className="h-4 w-4" /> Anos de Exercício
           </TabsTrigger>
           <TabsTrigger value="audit" className="flex items-center gap-2">
             <History className="h-4 w-4" /> Auditoria
@@ -389,26 +345,6 @@ const AdminPage = () => {
                 cargos={cargos}
                 onUpdateCargo={handleUpdateCargo}
                 onCreateCargo={handleCreateCargo}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="years">
-          <Card className="shadow-sm border border-neutral-200 dark:border-neutral-800">
-            <CardHeader>
-              <CardTitle>Anos de Exercício</CardTitle>
-              <CardDescription>
-                Gerencie os anos de exercício liberados para os usuários do
-                sistema.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <YearsTable
-                years={configYears}
-                onUpdateYear={handleUpdateYear}
-                onCreateYear={handleCreateYear}
-                onDeleteYear={handleDeleteYear}
               />
             </CardContent>
           </Card>

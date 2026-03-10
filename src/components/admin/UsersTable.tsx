@@ -78,13 +78,12 @@ export const UsersTable = ({
     setIsFormOpen(true)
   }
 
-  const handleToggleBlock = (user: User) => {
+  const handleToggleBlock = (user: User, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation()
     if (user.status === 'BLOQUEADO') {
-      // Unblock immediately
       onUpdateUser({ ...user, status: 'ATIVO' })
       toast({ title: 'Usuário desbloqueado com sucesso.' })
     } else {
-      // Confirm block
       setUserToBlock(user)
       setBlockConfirmOpen(true)
     }
@@ -99,7 +98,8 @@ export const UsersTable = ({
     setUserToBlock(null)
   }
 
-  const handleDelete = (user: User) => {
+  const handleDelete = (user: User, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation()
     setUserToDelete(user)
     setDeleteConfirmOpen(true)
   }
@@ -112,12 +112,12 @@ export const UsersTable = ({
     setUserToDelete(null)
   }
 
-  const handleResetPasswordClick = (user: User) => {
+  const handleResetPasswordClick = (user: User, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation()
     onResetPassword(user.email)
   }
 
   const handleFormSubmit = (data: any) => {
-    // Check for email uniqueness
     const emailExists = users.some(
       (u) =>
         u.email.toLowerCase() === data.email.toLowerCase() &&
@@ -177,7 +177,11 @@ export const UsersTable = ({
               </TableRow>
             ) : (
               users.map((user) => (
-                <TableRow key={user.id}>
+                <TableRow
+                  key={user.id}
+                  className="cursor-pointer transition-colors hover:bg-muted/50"
+                  onClick={() => handleEdit(user)}
+                >
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{user.cpf || '-'}</TableCell>
@@ -199,7 +203,10 @@ export const UsersTable = ({
                       {user.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell
+                    className="text-right"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon">
@@ -207,11 +214,16 @@ export const UsersTable = ({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(user)}>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleEdit(user)
+                          }}
+                        >
                           <Edit className="mr-2 h-4 w-4" /> Editar
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleToggleBlock(user)}
+                          onClick={(e) => handleToggleBlock(user, e)}
                         >
                           {user.status === 'BLOQUEADO' ? (
                             <>
@@ -224,14 +236,14 @@ export const UsersTable = ({
                           )}
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleResetPasswordClick(user)}
+                          onClick={(e) => handleResetPasswordClick(user, e)}
                         >
                           <RotateCcw className="mr-2 h-4 w-4" /> Resetar Senha
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
-                          onClick={() => handleDelete(user)}
+                          onClick={(e) => handleDelete(user, e)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" /> Excluir
                         </DropdownMenuItem>
